@@ -17,16 +17,24 @@
 
 ### 1. Clonar el repositorio
 
+```bash
 git clone https://github.com/ThomasSerna/proyecto-ingenieria-software.git
+```
 
 ### 2. Instalar dependencias
 
+```bash
 pip install -r requirements.txt
+```
 
 ### 3. Ejecutar migraciones
 
+```bash
 python manage.py migrate
+```
 
-### 4. Ejecutar servidor
+### 4. Iniciar el servidor
 
+```bash
 python manage.py runserver
+```
