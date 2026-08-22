@@ -5,6 +5,7 @@ from django.shortcuts import render
 
 from agents.profile.graph import profile_graph
 
+# Metodo de recepcion del request con el pdf del perfil
 def profile_debug(request):
     context = {}
 
@@ -23,7 +24,7 @@ def profile_debug(request):
 
         try:
             # El grafo actualmente recibe una ruta,
-            # entonces
+            # entonces usamos un archivo temporal para procesar la información
             with tempfile.NamedTemporaryFile(
                 delete=False,
                 suffix=".pdf"

@@ -13,11 +13,3 @@ def extract_text_from_pdf(pdf_file):
             text += page_text + "\n"
 
     return text
-
-if __name__ == "__main__":
-
-    test_name = "cv_prueba.pdf"
-    with open(test_name, "rb") as file:
-        text = extract_text_from_pdf(file)
-
-    print(text)
