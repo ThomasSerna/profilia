@@ -1,0 +1,394 @@
+{% extends "auth_base.html" %}
+
+
+{% block title %}
+    Iniciar Sesión | Profilia
+{% endblock %}
+
+
+{% block content %}
+
+<div
+    class="
+        w-full
+        max-w-[440px]
+        bg-white
+        rounded-[24px]
+        overflow-hidden
+        shadow-2xl
+        border
+        border-slate-300
+    "
+>
+
+    <!-- ================================================== -->
+    <!-- BRAND -->
+    <!-- ================================================== -->
+
+    <div
+        class="
+            bg-[#18243d]
+            text-white
+            text-center
+            px-8
+            pt-9
+            pb-8
+        "
+    >
+
+        <div
+            class="
+                text-3xl
+                font-black
+                tracking-tight
+                mb-1
+            "
+        >
+
+            <span>profil</span>
+            <span class="text-[#00d461]">i</span>
+            <span class="text-[#02bc4d]">a</span>
+
+        </div>
+
+
+        <p
+            class="
+                text-xs
+                text-slate-300
+                font-medium
+            "
+        >
+            Powered by
+
+            <span
+                class="
+                    text-[#02bc4d]
+                    font-bold
+                "
+            >
+                Magneto 365
+            </span>
+        </p>
+
+
+        <p
+            class="
+                text-xs
+                text-slate-300
+                mt-3
+            "
+        >
+            Plataforma Agéntica Multimodal de Selección con IA
+        </p>
+
+    </div>
+
+
+    <!-- ================================================== -->
+    <!-- FORM -->
+    <!-- ================================================== -->
+
+    <div class="px-6 py-6">
+
+        <!-- Tabs -->
+
+        <div
+            class="
+                grid
+                grid-cols-2
+                bg-slate-100
+                rounded-xl
+                p-1
+                mb-6
+            "
+        >
+
+            <a
+                href="{% url 'accounts:login' %}"
+                class="
+                    py-2
+                    text-center
+                    text-xs
+                    font-bold
+                    bg-white
+                    text-[#13223a]
+                    rounded-lg
+                    shadow-sm
+                "
+            >
+                Iniciar Sesión
+            </a>
+
+
+            <a
+                href="{% url 'accounts:register' %}"
+                class="
+                    py-2
+                    text-center
+                    text-xs
+                    font-semibold
+                    text-slate-500
+                    rounded-lg
+                    hover:text-[#02bc4d]
+                    transition
+                "
+            >
+                Crear Cuenta
+            </a>
+
+        </div>
+
+
+        <form
+    method="POST"
+    action="{% url 'accounts:login' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}"
+    class="space-y-4">
+
+            {% csrf_token %}
+
+
+            <!-- General errors -->
+
+            {% if form.non_field_errors %}
+
+                <div
+                    class="
+                        px-3
+                        py-2.5
+                        rounded-lg
+                        bg-red-50
+                        border
+                        border-red-200
+                        text-red-600
+                        text-xs
+                    "
+                >
+
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+
+            <!-- Email -->
+
+            <div>
+
+                <label
+                    for="id_email"
+                    class="
+                        block
+                        text-xs
+                        font-bold
+                        text-slate-700
+                        mb-1.5
+                    "
+                >
+                    Correo Electrónico
+                </label>
+
+
+                <div class="relative">
+
+                    <i
+                        class="
+                            fa-solid
+                            fa-envelope
+                            absolute
+                            left-4
+                            top-1/2
+                            -translate-y-1/2
+                            text-slate-400
+                            text-xs
+                        "
+                    ></i>
+
+
+                    <input
+                        type="email"
+                        id="id_email"
+                        name="email"
+                        value="{{ form.email.value|default:'' }}"
+                        placeholder="juan.palacio@profilia.ai"
+                        required
+                        autofocus
+
+                        class="
+                            w-full
+                            h-11
+                            pl-10
+                            pr-4
+                            rounded-xl
+                            border
+                            border-slate-300
+                            bg-slate-50
+                            text-xs
+                            text-slate-800
+                            outline-none
+                            transition
+                            focus:border-[#02bc4d]
+                            focus:ring-2
+                            focus:ring-[#02bc4d]/10
+                        "
+                    >
+
+                </div>
+
+
+                {% for error in form.email.errors %}
+
+                    <p
+                        class="
+                            text-[11px]
+                            text-red-500
+                            mt-1
+                        "
+                    >
+                        {{ error }}
+                    </p>
+
+                {% endfor %}
+
+            </div>
+
+
+            <!-- Password -->
+
+            <div>
+
+                <div
+                    class="
+                        flex
+                        items-center
+                        justify-between
+                        mb-1.5
+                    "
+                >
+
+                    <label
+                        for="id_password"
+                        class="
+                            text-xs
+                            font-bold
+                            text-slate-700
+                        "
+                    >
+                        Contraseña
+                    </label>
+
+
+                    <span
+                        class="
+                            text-[10px]
+                            text-[#02bc4d]
+                            font-semibold
+                        "
+                    >
+                        ¿Olvidaste tu clave?
+                    </span>
+
+                </div>
+
+
+                <div class="relative">
+
+                    <i
+                        class="
+                            fa-solid
+                            fa-lock
+                            absolute
+                            left-4
+                            top-1/2
+                            -translate-y-1/2
+                            text-slate-400
+                            text-xs
+                        "
+                    ></i>
+
+
+                    <input
+                        type="password"
+                        id="id_password"
+                        name="password"
+                        placeholder="••••••••••••"
+                        required
+
+                        class="
+                            w-full
+                            h-11
+                            pl-10
+                            pr-4
+                            rounded-xl
+                            border
+                            border-slate-300
+                            bg-slate-50
+                            text-xs
+                            text-slate-800
+                            outline-none
+                            transition
+                            focus:border-[#02bc4d]
+                            focus:ring-2
+                            focus:ring-[#02bc4d]/10
+                        "
+                    >
+
+                </div>
+
+
+                {% for error in form.password.errors %}
+
+                    <p class="text-[11px] text-red-500 mt-1">
+                        {{ error }}
+                    </p>
+
+                {% endfor %}
+
+            </div>
+
+
+            <!-- Button -->
+
+            <button
+                type="submit"
+
+                class="
+                    w-full
+                    h-11
+                    rounded-xl
+                    bg-[#5bbd59]
+                    hover:bg-[#02bc4d]
+                    text-white
+                    font-bold
+                    text-xs
+                    transition
+                    shadow-md
+                    shadow-green-500/20
+                    flex
+                    items-center
+                    justify-center
+                    gap-2
+                "
+            >
+
+                Ingresar a la Plataforma Agéntica
+
+                <i
+                    class="
+                        fa-solid
+                        fa-right-to-bracket
+                    "
+                ></i>
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

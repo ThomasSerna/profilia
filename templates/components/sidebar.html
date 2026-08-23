@@ -34,32 +34,89 @@
 
 
         <!-- Candidate Information -->
-        <div class="mx-4 mt-5 p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center space-x-3">
+<div class="mx-4 mt-5 p-3 rounded-xl bg-slate-900/60 border border-slate-800">
 
-            <div class="relative">
+    <div class="flex items-center space-x-3">
 
-                <div class="w-9 h-9 rounded-full bg-[#02bc4d] flex items-center justify-center font-extrabold text-white text-xs">
-                    JP
-                </div>
+        <div class="relative shrink-0">
 
-                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00d461] rounded-full ring-2 ring-[#13223a]">
-                </span>
-
+            <div class="w-9 h-9 rounded-full bg-[#02bc4d] flex items-center justify-center font-extrabold text-white text-xs">
+                {{ request.user.initials }}
             </div>
 
-            <div class="overflow-hidden">
-
-                <p class="text-xs font-bold text-slate-100 truncate">
-                    Juan Esteban Palacio
-                </p>
-
-                <p class="text-[10px] text-slate-400 truncate">
-                    Desarrollador Software / Candidato IA
-                </p>
-
-            </div>
+            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00d461] rounded-full ring-2 ring-[#13223a]">
+            </span>
 
         </div>
+
+
+        <div class="overflow-hidden flex-1">
+
+            <p
+                class="text-xs font-bold text-slate-100 truncate"
+                title="{{ request.user.full_name }}"
+            >
+                {{ request.user.full_name }}
+            </p>
+
+            <p
+                class="text-[10px] text-slate-400 truncate"
+                title="{{ request.user.professional_role }}"
+            >
+                {% if request.user.professional_role %}
+                    {{ request.user.professional_role }}
+                {% else %}
+                    Candidato Profilia
+                {% endif %}
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
+
+        <p
+            class="text-[10px] text-slate-500 truncate flex-1"
+            title="{{ request.user.email }}"
+        >
+            {{ request.user.email }}
+        </p>
+
+
+        <form
+            method="POST"
+            action="{% url 'accounts:logout' %}"
+        >
+
+            {% csrf_token %}
+
+            <button
+                type="submit"
+                title="Cerrar sesión"
+                class="
+                    w-7 h-7
+                    rounded-lg
+                    flex
+                    items-center
+                    justify-center
+                    text-slate-400
+                    hover:text-red-400
+                    hover:bg-red-500/10
+                    transition
+                "
+            >
+
+                <i class="fa-solid fa-right-from-bracket text-[11px]"></i>
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
 
 
         <!-- Navigation -->

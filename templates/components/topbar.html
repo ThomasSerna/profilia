@@ -1,5 +1,7 @@
 <header class="h-16 border-b border-slate-200 px-8 flex items-center justify-between bg-white shadow-sm shrink-0">
 
+    <!-- Current page -->
+
     <div class="flex items-center space-x-3">
 
         <h1 class="text-lg font-bold text-[#13223a] flex items-center gap-2">
@@ -10,6 +12,7 @@
 
         </h1>
 
+
         <span class="text-xs px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
 
             {{ page_subtitle|default:"Paso 1 de 4: Estructuración y detección de vacíos" }}
@@ -19,28 +22,48 @@
     </div>
 
 
+    <!-- Current user -->
+
     <div class="flex items-center space-x-3">
 
         <div class="text-right hidden sm:block">
 
-            <p class="text-xs font-semibold text-[#13223a]">
-                Candidato Activo
+            <p class="text-xs font-semibold text-[#13223a] max-w-44 truncate">
+
+                {{ request.user.full_name }}
+
             </p>
+
 
             <p class="text-[10px] text-[#02bc4d] font-semibold flex items-center justify-end gap-1">
 
                 <i class="fa-solid fa-circle text-[6px]"></i>
 
-                Agente listo
+                Sesión activa
 
             </p>
 
         </div>
 
 
-        <div class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-[#13223a]">
+        <div
+            class="
+                w-9 h-9
+                rounded-xl
+                bg-[#02bc4d]/10
+                border
+                border-[#02bc4d]/20
+                flex
+                items-center
+                justify-center
+                text-[#02bc4d]
+                text-[11px]
+                font-extrabold
+            "
+            title="{{ request.user.email }}"
+        >
 
-            <i class="fa-solid fa-user-gear text-xs"></i>
+            {{ request.user.initials }}
 
         </div>
 
