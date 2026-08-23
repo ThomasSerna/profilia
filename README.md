@@ -14,16 +14,18 @@ Proyecto de Ingeniería de Software orientado a una arquitectura agéntica para 
 - Python 3.13
 - Django
 - LangGraph
-- Groq / Llama 3.3
+- Groq / GPT-OSS 20B
 - PyPDF
 
 ## Funcionalidades actuales
 
-- Carga de hojas de vida en formato PDF desde una interfaz web de depuración.
+- Carga y procesamiento de hojas de vida en formato PDF desde la interfaz principal y el panel de depuración.
 - Extracción del texto contenido en el PDF.
 - Flujo del Agente de Perfil implementado con LangGraph.
 - Extracción estructurada de datos del candidato mediante un LLM.
-- Visualización del texto leído y del perfil generado para pruebas del MVP.
+- Interfaz base de Profilia para el flujo agéntico y panel global de depuración.
+- Sistema básico de autenticación con registro, inicio y cierre de sesión.
+- Visualización de los datos del usuario autenticado dentro de la interfaz.
 
 ## Configuración local
 
@@ -35,8 +37,16 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-La interfaz de depuración del Agente de Perfil se encuentra en:
+Antes de iniciar el proyecto, crea el archivo `.env` a partir de `.env.example` y configura las claves necesarias.
+
+La aplicación principal se encuentra en:
 
 ```text
-http://127.0.0.1:8000/debug/profile/
+http://127.0.0.1:8000/
+```
+
+El panel de depuración se encuentra en:
+
+```text
+http://127.0.0.1:8000/debug/
 ```
