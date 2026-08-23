@@ -8,25 +8,20 @@
 
 {% block content %}
 
+<section class="space-y-6 max-w-5xl mx-auto">
 
-<section
-    class="space-y-6
-           max-w-5xl mx-auto"
->
-
-
-    <!-- Banner -->
+    <!-- ====================================================== -->
+    <!-- BANNER -->
+    <!-- ====================================================== -->
 
     <div
-        class="p-6
-               rounded-2xl
+        class="p-6 rounded-2xl
                bg-gradient-to-r
                from-[#13223a]
                to-[#1e3458]
                text-white
                shadow-md"
     >
-
 
         <span
             class="px-2.5 py-1
@@ -67,10 +62,13 @@
             relevante para el proceso de búsqueda de empleo.
         </p>
 
-
     </div>
 
 
+
+    <!-- ====================================================== -->
+    <!-- CONTENT -->
+    <!-- ====================================================== -->
 
     <div
         class="grid
@@ -80,13 +78,14 @@
     >
 
 
+        <!-- ================================================== -->
         <!-- PDF -->
+        <!-- ================================================== -->
 
         <div
             class="lg:col-span-6
                    space-y-4"
         >
-
 
             <div
                 class="p-6
@@ -98,10 +97,11 @@
 
 
                 <div
-                    class="flex items-center
-                           justify-between mb-4"
+                    class="flex
+                           items-center
+                           justify-between
+                           mb-4"
                 >
-
 
                     <h3
                         class="text-sm
@@ -110,8 +110,10 @@
                     >
 
                         <i
-                            class="fa-solid fa-file-pdf
-                                   text-red-500 mr-2"
+                            class="fa-solid
+                                   fa-file-pdf
+                                   text-red-500
+                                   mr-2"
                         ></i>
 
                         Carga de Hoja de Vida
@@ -126,98 +128,157 @@
                         PDF · Máx. 10 MB
                     </span>
 
-
                 </div>
 
 
 
-                <input
-                    id="pdf-input"
-                    type="file"
-                    accept=".pdf,application/pdf"
-                    class="hidden"
+                <!-- ========================================== -->
+                <!-- FORM -->
+                <!-- ========================================== -->
+
+                <form
+                    id="profile-form"
+                    action="{% url 'debug_profile' %}"
+                    method="POST"
+                    enctype="multipart/form-data"
+                    class="space-y-4"
                 >
 
+                    {% csrf_token %}
 
 
-                <div
-                    id="pdf-upload-box"
-                    class="border-2
-                           border-dashed
-                           border-slate-300
-                           hover:border-[#02bc4d]
-                           rounded-xl p-8
-                           text-center
-                           cursor-pointer
-                           transition
-                           bg-slate-50
-                           hover:bg-emerald-50/40"
-                >
+                    <!-- File input -->
 
-
-                    <div
-                        class="w-14 h-14
-                               mx-auto
-                               rounded-full
-                               bg-white
-                               flex items-center
-                               justify-center
-                               text-slate-400
-                               mb-3
-                               border border-slate-200"
+                    <input
+                        id="pdf-input"
+                        name="pdf"
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        class="hidden"
                     >
 
-                        <i
-                            class="fa-solid
-                                   fa-cloud-arrow-up
-                                   text-2xl"
-                        ></i>
+
+
+                    <!-- Upload Area -->
+
+                    <div
+                        id="pdf-upload-box"
+                        class="border-2
+                               border-dashed
+                               border-slate-300
+                               hover:border-[#02bc4d]
+                               rounded-xl
+                               p-8
+                               text-center
+                               cursor-pointer
+                               transition-all
+                               duration-200
+                               bg-slate-50
+                               hover:bg-emerald-50/40
+                               group"
+                    >
+
+
+                        <div
+                            class="w-14 h-14
+                                   mx-auto
+                                   rounded-full
+                                   bg-white
+                                   flex
+                                   items-center
+                                   justify-center
+                                   text-slate-400
+                                   group-hover:text-[#02bc4d]
+                                   group-hover:bg-[#02bc4d]/10
+                                   mb-3
+                                   border border-slate-200
+                                   transition"
+                        >
+
+                            <i
+                                class="fa-solid
+                                       fa-cloud-arrow-up
+                                       text-2xl"
+                            ></i>
+
+                        </div>
+
+
+                        <p
+                            class="text-sm
+                                   font-bold
+                                   text-[#13223a]"
+                        >
+                            Haz clic para cargar tu CV
+                        </p>
+
+
+                        <p
+                            class="text-xs
+                                   text-slate-500
+                                   mt-1"
+                        >
+                            O arrastra el archivo aquí
+                        </p>
+
+
+                        <p
+                            id="selected-file-name"
+                            class="text-[11px]
+                                   text-[#02bc4d]
+                                   mt-3
+                                   font-semibold"
+                        >
+                            Ningún archivo seleccionado
+                        </p>
 
                     </div>
 
 
-                    <p
-                        class="text-sm
+
+                    <!-- Process Button -->
+
+                    <button
+                        id="process-profile-button"
+                        type="submit"
+                        disabled
+                        class="w-full
+                               py-3
+                               px-4
+                               rounded-xl
+                               bg-slate-200
+                               text-slate-400
                                font-bold
-                               text-[#13223a]"
+                               text-xs
+                               transition-all
+                               flex
+                               items-center
+                               justify-center
+                               gap-2
+                               cursor-not-allowed"
                     >
-                        Haz clic para cargar tu CV
-                    </p>
 
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
 
-                    <p
-                        class="text-xs
-                               text-slate-500
-                               mt-1"
-                    >
-                        O arrastra el archivo aquí
-                    </p>
+                        <span>
+                            Procesar Hoja de Vida
+                        </span>
 
+                    </button>
 
-                    <p
-                        id="selected-file-name"
-                        class="text-[11px]
-                               text-[#02bc4d]
-                               mt-3 font-semibold"
-                    >
-                        Ningún archivo seleccionado
-                    </p>
-
-
-                </div>
-
+                </form>
 
             </div>
-
 
         </div>
 
 
 
-        <!-- Gaps -->
+        <!-- ================================================== -->
+        <!-- VACÍOS -->
+        <!-- ================================================== -->
 
         <div class="lg:col-span-6">
-
 
             <div
                 class="p-6
@@ -230,10 +291,11 @@
 
 
                 <div
-                    class="flex items-center
-                           justify-between mb-4"
+                    class="flex
+                           items-center
+                           justify-between
+                           mb-4"
                 >
-
 
                     <h3
                         class="text-sm
@@ -244,7 +306,8 @@
                         <i
                             class="fa-solid
                                    fa-triangle-exclamation
-                                   text-amber-500 mr-2"
+                                   text-amber-500
+                                   mr-2"
                         ></i>
 
                         Vacíos Detectados
@@ -253,6 +316,7 @@
 
 
                     <span
+                        id="profile-status-badge"
                         class="text-[10px]
                                px-2 py-0.5
                                rounded-full
@@ -261,7 +325,6 @@
                     >
                         Esperando CV...
                     </span>
-
 
                 </div>
 
@@ -272,7 +335,6 @@
                            py-14
                            text-slate-400"
                 >
-
 
                     <i
                         class="fa-solid
@@ -285,27 +347,154 @@
                     <p
                         class="text-xs
                                max-w-sm
-                               mx-auto mt-3"
+                               mx-auto
+                               mt-3"
                     >
                         Cuando el Agente de Perfil procese tu CV,
                         aquí aparecerá la información que necesite
                         completar.
                     </p>
 
-
                 </div>
-
 
             </div>
 
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- ========================================================== -->
+<!-- SUCCESS NOTIFICATION -->
+<!-- ========================================================== -->
+
+<div
+    id="profile-success-notification"
+    class="hidden
+           fixed
+           top-20
+           right-6
+           z-50
+           w-80
+           bg-white
+           border
+           border-emerald-200
+           rounded-xl
+           shadow-lg
+           p-4"
+>
+
+    <div class="flex items-start gap-3">
+
+        <div
+            class="w-9 h-9
+                   shrink-0
+                   rounded-full
+                   bg-emerald-100
+                   text-[#02bc4d]
+                   flex
+                   items-center
+                   justify-center"
+        >
+
+            <i class="fa-solid fa-check"></i>
 
         </div>
 
 
+        <div>
+
+            <p
+                class="text-xs
+                       font-bold
+                       text-[#13223a]"
+            >
+                Hoja de vida procesada
+            </p>
+
+
+            <p
+                class="text-[11px]
+                       text-slate-500
+                       mt-1"
+            >
+                El Agente de Perfil procesó el archivo correctamente.
+            </p>
+
+        </div>
+
     </div>
 
+</div>
 
-</section>
+
+
+<!-- ========================================================== -->
+<!-- ERROR NOTIFICATION -->
+<!-- ========================================================== -->
+
+<div
+    id="profile-error-notification"
+    class="hidden
+           fixed
+           top-20
+           right-6
+           z-50
+           w-80
+           bg-white
+           border
+           border-red-200
+           rounded-xl
+           shadow-lg
+           p-4"
+>
+
+    <div class="flex items-start gap-3">
+
+        <div
+            class="w-9 h-9
+                   shrink-0
+                   rounded-full
+                   bg-red-100
+                   text-red-500
+                   flex
+                   items-center
+                   justify-center"
+        >
+
+            <i class="fa-solid fa-xmark"></i>
+
+        </div>
+
+
+        <div>
+
+            <p
+                class="text-xs
+                       font-bold
+                       text-[#13223a]"
+            >
+                No se pudo procesar
+            </p>
+
+
+            <p
+                id="profile-error-message"
+                class="text-[11px]
+                       text-slate-500
+                       mt-1"
+            >
+                Ocurrió un error procesando la hoja de vida.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
 
 
 {% endblock %}
