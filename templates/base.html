@@ -1,0 +1,134 @@
+{% load static %}
+
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}
+            Profilia - Powered by Magneto 365
+        {% endblock %}
+    </title>
+
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    >
+
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <script>
+
+        tailwind.config = {
+
+            theme: {
+
+                extend: {
+
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    },
+
+                    colors: {
+
+                        brand: {
+                            navy: '#13223a',
+                            green: '#02bc4d',
+                            lightgreen: '#00d461',
+                            bg: '#f8fafc'
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    </script>
+
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/profilia.css' %}"
+    >
+
+
+    {% block extra_head %}
+    {% endblock %}
+
+
+</head>
+
+
+<body
+    class="bg-slate-50
+           text-slate-800
+           font-sans
+           h-screen
+           flex
+           overflow-hidden"
+>
+
+
+    {% include "components/sidebar.html" %}
+
+
+    <main
+        class="flex-1
+               flex flex-col
+               h-full
+               overflow-hidden
+               bg-slate-50"
+    >
+
+
+        {% include "components/topbar.html" %}
+
+
+        <div
+            class="flex-1
+                   overflow-y-auto
+                   p-6 md:p-8"
+        >
+
+            {% block content %}
+            {% endblock %}
+
+        </div>
+
+
+    </main>
+
+
+    <script
+        src="{% static 'js/profilia.js' %}"
+    ></script>
+
+
+    {% block extra_js %}
+    {% endblock %}
+
+
+</body>
+
+</html>

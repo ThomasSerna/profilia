@@ -1,8 +1,19 @@
 from django.urls import path
-from . import views
+
+from .views.home import home
+from .views.debug.home import debug_home
+from .views.debug.profile import debug_profile
+
 
 urlpatterns = [
+    # Aplicación
+    path("", home, name="home"),
 
-    # DEBUG
-    path("debug/profile/", views.profile_debug, name="profile_debug"),
+    # Debug
+    path("debug/", debug_home, name="debug"),
+    path(
+        "debug/profile/",
+        debug_profile,
+        name="debug_profile"
+    ),
 ]

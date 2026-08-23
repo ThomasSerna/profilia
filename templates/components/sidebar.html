@@ -1,0 +1,315 @@
+<aside class="w-80 bg-[#13223a] text-white flex flex-col justify-between h-full shrink-0 select-none z-20 shadow-xl">
+
+    <div>
+
+        <!-- Branding -->
+        <div class="p-6 border-b border-slate-800/80 bg-[#13223a]">
+
+            <div class="flex items-center justify-between">
+
+                <a href="{% url 'home' %}" class="flex items-center space-x-1">
+
+                    <div class="flex items-center text-3xl font-black tracking-tight select-none">
+                        <span class="text-white">profil</span>
+                        <span style="color: #00d461;">i</span>
+                        <span style="color: #02bc4d;">a</span>
+                    </div>
+
+                </a>
+
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#00d461]/20 text-[#00d461] font-bold border border-[#00d461]/30">
+                    IA
+                </span>
+
+            </div>
+
+            <p class="text-[11px] text-slate-400 font-medium mt-1">
+                Powered by
+                <span class="text-[#00d461] font-semibold">
+                    Magneto 365
+                </span>
+            </p>
+
+        </div>
+
+
+        <!-- Candidate Information -->
+        <div class="mx-4 mt-5 p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center space-x-3">
+
+            <div class="relative">
+
+                <div class="w-9 h-9 rounded-full bg-[#02bc4d] flex items-center justify-center font-extrabold text-white text-xs">
+                    JP
+                </div>
+
+                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00d461] rounded-full ring-2 ring-[#13223a]">
+                </span>
+
+            </div>
+
+            <div class="overflow-hidden">
+
+                <p class="text-xs font-bold text-slate-100 truncate">
+                    Juan Esteban Palacio
+                </p>
+
+                <p class="text-[10px] text-slate-400 truncate">
+                    Desarrollador Software / Candidato IA
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- Navigation -->
+        <nav class="mt-5 px-3 space-y-1.5">
+
+            <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                Flujo Agéntico (LangGraph)
+            </p>
+
+
+            <!-- Agent 1 -->
+            <a
+                href="{% url 'home' %}"
+                class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl
+                       transition-all duration-200 bg-[#02bc4d] text-white font-medium
+                       shadow-md shadow-[#02bc4d]/20 group"
+            >
+
+                <div class="flex items-center space-x-3">
+
+                    <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white">
+                        <i class="fa-solid fa-id-card"></i>
+                    </div>
+
+                    <div class="text-left">
+
+                        <p class="text-xs font-bold">
+                            1. Agente de Perfil
+                        </p>
+
+                        <p class="text-[10px] text-emerald-100">
+                            CV & Vacíos
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-semibold">
+                    En curso
+                </span>
+
+            </a>
+
+
+            <!-- Agent 2 -->
+            <button
+                disabled
+                class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl
+                       text-slate-400 cursor-not-allowed opacity-60"
+            >
+
+                <div class="flex items-center space-x-3">
+
+                    <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+
+                    <div class="text-left">
+
+                        <p class="text-xs font-semibold">
+                            2. Agente de Vacantes
+                        </p>
+
+                        <p class="text-[10px] text-slate-400">
+                            Matching & Scoring
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-semibold">
+
+                    <i class="fa-solid fa-lock text-[9px] mr-1"></i>
+
+                    Bloqueado
+
+                </span>
+
+            </button>
+
+
+            <!-- Agent 3 -->
+            <button
+                disabled
+                class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl
+                       text-slate-400 cursor-not-allowed opacity-60"
+            >
+
+                <div class="flex items-center space-x-3">
+
+                    <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </div>
+
+                    <div class="text-left">
+
+                        <p class="text-xs font-semibold">
+                            3. Agente de Postulación
+                        </p>
+
+                        <p class="text-[10px] text-slate-400">
+                            Aplicación & Evidencia
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-semibold">
+
+                    <i class="fa-solid fa-lock text-[9px] mr-1"></i>
+
+                    Bloqueado
+
+                </span>
+
+            </button>
+
+
+            <!-- Agent 4 -->
+            <button
+                disabled
+                class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl
+                       text-slate-400 cursor-not-allowed opacity-60"
+            >
+
+                <div class="flex items-center space-x-3">
+
+                    <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+
+                    <div class="text-left">
+
+                        <p class="text-xs font-semibold">
+                            4. Agente Seguimiento
+                        </p>
+
+                        <p class="text-[10px] text-slate-400">
+                            Estado & Recordatorios
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-semibold">
+
+                    <i class="fa-solid fa-lock text-[9px] mr-1"></i>
+
+                    Bloqueado
+
+                </span>
+
+            </button>
+
+
+            <!-- Traceability -->
+            <div class="pt-4 pb-1">
+
+                <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                    Transparencia & Sistema
+                </p>
+
+                <button
+                    disabled
+                    class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl
+                           text-slate-500 border border-slate-700 opacity-60 cursor-not-allowed"
+                >
+
+                    <div class="flex items-center space-x-3">
+
+                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+                            <i class="fa-solid fa-list-check"></i>
+                        </div>
+
+                        <div class="text-left">
+
+                            <p class="text-xs font-semibold">
+                                Panel de Trazabilidad
+                            </p>
+
+                            <p class="text-[10px] text-slate-500">
+                                Logs & Razonamiento IA
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </button>
+
+            </div>
+
+        </nav>
+
+    </div>
+
+
+    <!-- Sidebar footer -->
+    <div class="p-4 border-t border-slate-800/80 bg-slate-950/40">
+
+        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+
+            <div class="flex items-center justify-between mb-2">
+
+                <span class="text-[11px] font-semibold text-slate-200 flex items-center gap-1.5">
+
+                    <span class="relative flex h-2 w-2">
+
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00d461] opacity-75">
+                        </span>
+
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-[#02bc4d]">
+                        </span>
+
+                    </span>
+
+                    LangGraph Network
+
+                </span>
+
+                <span class="text-[10px] text-slate-400 font-mono">
+                    v1.0-MVP
+                </span>
+
+            </div>
+
+
+            <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+
+                <div
+                    id="flow-progress-bar"
+                    class="bg-gradient-to-r from-[#02bc4d] to-[#00d461] h-full w-1/4"
+                >
+                </div>
+
+            </div>
+
+            <p
+                id="flow-progress-text"
+                class="text-[10px] text-slate-400 mt-2 text-right"
+            >
+                Progreso total: 25%
+            </p>
+
+        </div>
+
+    </div>
+
+</aside>
