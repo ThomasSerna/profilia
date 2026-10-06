@@ -10,126 +10,29 @@
 
 <section class="space-y-6 max-w-5xl mx-auto">
 
-    <!-- ====================================================== -->
-    <!-- BANNER -->
-    <!-- ====================================================== -->
-
-    <div
-        class="p-6 rounded-2xl
-               bg-gradient-to-r
-               from-[#13223a]
-               to-[#1e3458]
-               text-white
-               shadow-md"
-    >
-
-        <span
-            class="px-2.5 py-1
-                   rounded-md
-                   bg-[#00d461]/20
-                   text-[#00d461]
-                   text-xs font-bold
-                   border border-[#00d461]/30
-                   inline-block mb-3"
-        >
-
-            <i class="fa-solid fa-robot mr-1"></i>
-
-            Agente Autónomo 1
-
-        </span>
-
-
-        <h2
-            class="text-2xl
-                   font-black
-                   mb-2"
-        >
-            Estructuración de Perfil y Detección de Vacíos
-        </h2>
-
-
-        <p
-            class="text-xs
-                   md:text-sm
-                   text-slate-200
-                   leading-relaxed
-                   max-w-2xl"
-        >
-            Carga tu Hoja de Vida en formato PDF.
-            El Agente de Perfil analizará tu información profesional,
-            estructurará tus datos y detectará información faltante
-            relevante para el proceso de búsqueda de empleo.
-        </p>
-
-    </div>
-
-
-
-    <!-- ====================================================== -->
-    <!-- CONTENT -->
-    <!-- ====================================================== -->
-
-    <div
-        class="grid
-               grid-cols-1
-               lg:grid-cols-12
-               gap-6"
-    >
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
 
         <!-- ================================================== -->
-        <!-- PDF -->
+        <!-- PDF UPLOAD -->
         <!-- ================================================== -->
 
-        <div
-            class="lg:col-span-6
-                   space-y-4"
-        >
+        <div class="lg:col-span-5 space-y-4">
 
-            <div
-                class="p-6
-                       rounded-2xl
-                       bg-white
-                       border border-slate-200
-                       shadow-sm"
-            >
+            <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
 
+                <h3 class="text-sm font-bold text-[#13223a] mb-4 flex items-center justify-between">
 
-                <div
-                    class="flex
-                           items-center
-                           justify-between
-                           mb-4"
-                >
-
-                    <h3
-                        class="text-sm
-                               font-bold
-                               text-[#13223a]"
-                    >
-
-                        <i
-                            class="fa-solid
-                                   fa-file-pdf
-                                   text-red-500
-                                   mr-2"
-                        ></i>
-
+                    <span>
+                        <i class="fa-solid fa-file-contract text-[#02bc4d] mr-2"></i>
                         Carga de Hoja de Vida
-
-                    </h3>
-
-
-                    <span
-                        class="text-[10px]
-                               text-slate-500"
-                    >
-                        PDF · Máx. 10 MB
                     </span>
 
-                </div>
+                    <span class="text-[10px] text-slate-500 font-normal">
+                        PDF (Máx. 10 MB)
+                    </span>
 
+                </h3>
 
 
                 <!-- ========================================== -->
@@ -158,7 +61,6 @@
                     >
 
 
-
                     <!-- Upload Area -->
 
                     <div
@@ -178,48 +80,45 @@
                                group"
                     >
 
-
                         <div
                             class="w-14 h-14
                                    mx-auto
                                    rounded-full
                                    bg-white
+                                   group-hover:bg-[#02bc4d]/10
                                    flex
                                    items-center
                                    justify-center
                                    text-slate-400
                                    group-hover:text-[#02bc4d]
-                                   group-hover:bg-[#02bc4d]/10
+                                   transition
                                    mb-3
-                                   border border-slate-200
-                                   transition"
+                                   shadow-sm
+                                   border border-slate-200"
                         >
 
-                            <i
-                                class="fa-solid
-                                       fa-cloud-arrow-up
-                                       text-2xl"
-                            ></i>
+                            <i class="fa-solid fa-file-arrow-up text-2xl"></i>
 
                         </div>
 
 
-                        <p
-                            class="text-sm
-                                   font-bold
-                                   text-[#13223a]"
-                        >
-                            Haz clic para cargar tu CV
+                        <p class="text-sm font-bold text-[#13223a]">
+                            Haz clic para cargar tu CV (.pdf)
                         </p>
 
 
-                        <p
-                            class="text-xs
-                                   text-slate-500
-                                   mt-1"
-                        >
-                            O arrastra el archivo aquí
+                        <p class="text-xs text-slate-500 mt-1">
+                            O arrastra el archivo directamente aquí
                         </p>
+
+
+                        <div class="flex items-center justify-center gap-2 mt-3">
+
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700 border border-red-200">
+                                <i class="fa-solid fa-file-pdf mr-1"></i>PDF
+                            </span>
+
+                        </div>
 
 
                         <p
@@ -233,7 +132,6 @@
                         </p>
 
                     </div>
-
 
 
                     <!-- Process Button -->
@@ -275,85 +173,130 @@
 
 
         <!-- ================================================== -->
-        <!-- VACÍOS -->
+        <!-- CHAT IA (solo interfaz, aún sin backend) -->
         <!-- ================================================== -->
 
-        <div class="lg:col-span-6">
+        <div class="lg:col-span-7 flex flex-col h-[560px]">
 
-            <div
-                class="p-6
-                       rounded-2xl
-                       bg-white
-                       border border-slate-200
-                       shadow-sm
-                       h-full"
-            >
+            <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col h-full overflow-hidden">
 
+                <!-- Chat Header -->
 
-                <div
-                    class="flex
-                           items-center
-                           justify-between
-                           mb-4"
-                >
+                <div class="pb-3 border-b border-slate-200 flex items-center justify-between shrink-0">
 
-                    <h3
-                        class="text-sm
-                               font-bold
-                               text-[#13223a]"
-                    >
+                    <div class="flex items-center space-x-3">
 
-                        <i
-                            class="fa-solid
-                                   fa-triangle-exclamation
-                                   text-amber-500
-                                   mr-2"
-                        ></i>
+                        <div class="w-9 h-9 rounded-full bg-[#13223a] text-[#00d461] flex items-center justify-center border border-[#00d461]/40 shadow-sm relative">
 
-                        Vacíos Detectados
+                            <i class="fa-solid fa-robot text-sm"></i>
 
-                    </h3>
+                            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00d461] rounded-full ring-2 ring-white"></span>
 
+                        </div>
 
-                    <span
-                        id="profile-status-badge"
-                        class="text-[10px]
-                               px-2 py-0.5
-                               rounded-full
-                               bg-slate-100
-                               text-slate-500"
-                    >
-                        Esperando CV...
-                    </span>
+                        <div>
+
+                            <h3 class="text-xs font-bold text-[#13223a] flex items-center gap-2">
+
+                                Profilia AI - Asistente de Perfil
+
+                                <!-- JS (profilia.js) actualiza este badge -->
+                                <span
+                                    id="profile-status-badge"
+                                    class="text-[10px]
+                                           px-2 py-0.5
+                                           rounded-full
+                                           bg-slate-100
+                                           text-slate-500"
+                                >
+                                    Esperando CV...
+                                </span>
+
+                            </h3>
+
+                            <p class="text-[10px] text-slate-500">
+                                Orientado a optimizar tu postulación en Magneto 365
+                            </p>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
 
+                <!-- Chat Messages Feed -->
 
-                <div
-                    class="text-center
-                           py-14
-                           text-slate-400"
-                >
+                <div id="profile-chat-messages" class="flex-1 overflow-y-auto py-4 space-y-3.5 pr-1 text-xs">
 
-                    <i
-                        class="fa-solid
-                               fa-robot
-                               text-3xl
-                               text-slate-300"
-                    ></i>
+                    <div class="flex items-start space-x-2.5 max-w-[88%]">
+
+                        <div class="w-7 h-7 rounded-full bg-[#13223a] text-[#00d461] flex items-center justify-center shrink-0 text-xs mt-0.5">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+
+                        <div class="p-3.5 rounded-2xl bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200 space-y-1">
+
+                            <p class="font-semibold text-[#13223a]">
+                                ¡Hola{% if request.user.full_name %}, {{ request.user.full_name.split.0 }}{% endif %}! 👋
+                            </p>
+
+                            <p class="text-slate-600 leading-relaxed">
+                                Soy tu <strong>Agente de Perfil</strong>.
+                                Carga tu Hoja de Vida en formato <strong>PDF</strong>
+                                en el panel de la izquierda. Analizaré tu experiencia
+                                y detectaré la información faltante para perfeccionar
+                                los detalles clave de tu candidatura.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
 
 
-                    <p
-                        class="text-xs
-                               max-w-sm
-                               mx-auto
-                               mt-3"
+                <!-- Chat Input (deshabilitado hasta implementar el chat) -->
+
+                <div class="pt-2 border-t border-slate-200 shrink-0">
+
+                    <div class="flex items-center space-x-2">
+
+                        <input
+                            type="text"
+                            disabled
+                            placeholder="Responde al agente o haz una pregunta..."
+                            class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800
+                                   focus:outline-none focus:border-[#02bc4d] transition cursor-not-allowed opacity-70"
+                        >
+
+                        <button
+                            type="button"
+                            disabled
+                            class="p-2.5 rounded-xl bg-[#02bc4d] text-white flex items-center justify-center shrink-0
+                                   w-10 h-10 shadow-md shadow-[#02bc4d]/20 cursor-not-allowed opacity-60"
+                        >
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Confirm & Unlock Next Agent -->
+
+                <div class="pt-3 mt-3 border-t border-slate-100 shrink-0">
+
+                    <button
+                        type="button"
+                        disabled
+                        class="w-full py-2.5 px-4 rounded-xl bg-slate-200 text-slate-400 font-bold text-xs
+                               transition-all flex items-center justify-center gap-2 cursor-not-allowed"
                     >
-                        Cuando el Agente de Perfil procese tu CV,
-                        aquí aparecerá la información que necesite
-                        completar.
-                    </p>
+                        <span>Completar Perfil y Desbloquear Agente de Vacantes</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
 
                 </div>
 
@@ -407,20 +350,12 @@
 
         <div>
 
-            <p
-                class="text-xs
-                       font-bold
-                       text-[#13223a]"
-            >
+            <p class="text-xs font-bold text-[#13223a]">
                 Hoja de vida procesada
             </p>
 
 
-            <p
-                class="text-[11px]
-                       text-slate-500
-                       mt-1"
-            >
+            <p class="text-[11px] text-slate-500 mt-1">
                 El Agente de Perfil procesó el archivo correctamente.
             </p>
 
@@ -472,20 +407,14 @@
 
         <div>
 
-            <p
-                class="text-xs
-                       font-bold
-                       text-[#13223a]"
-            >
+            <p class="text-xs font-bold text-[#13223a]">
                 No se pudo procesar
             </p>
 
 
             <p
                 id="profile-error-message"
-                class="text-[11px]
-                       text-slate-500
-                       mt-1"
+                class="text-[11px] text-slate-500 mt-1"
             >
                 Ocurrió un error procesando la hoja de vida.
             </p>

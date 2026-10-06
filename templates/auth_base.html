@@ -27,7 +27,7 @@
     >
 
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Nunito:wght@800;900&display=swap"
         rel="stylesheet"
     >
 
@@ -40,7 +40,8 @@
                 extend: {
 
                     fontFamily: {
-                        sans: ["Inter", "sans-serif"]
+                        sans: ["Inter", "sans-serif"],
+                        logo: ["Nunito", "sans-serif"]
                     },
 
                     colors: {
@@ -68,11 +69,20 @@
 
             background-image:
                 radial-gradient(
-                    rgba(255, 255, 255, 0.07) 1px,
+                    rgba(0, 212, 97, 0.1) 1px,
                     transparent 1px
                 );
 
             background-size: 24px 24px;
+        }
+
+        .auth-card-fade {
+            animation: fadeInScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
         }
 
     </style>

@@ -30,7 +30,7 @@
 
 
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Nunito:wght@800;900&display=swap"
         rel="stylesheet"
     >
 
@@ -44,7 +44,8 @@
                 extend: {
 
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif']
+                        sans: ['Inter', 'sans-serif'],
+                        logo: ['Nunito', 'sans-serif']
                     },
 
                     colors: {
@@ -108,7 +109,8 @@
         <div
             class="flex-1
                    overflow-y-auto
-                   p-6 md:p-8"
+                   p-6 md:p-8
+                   space-y-6"
         >
 
             {% block content %}
