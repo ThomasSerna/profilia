@@ -1,5 +1,6 @@
 import os
 import tempfile
+import logging
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -8,6 +9,8 @@ from agents.profile.graph import profile_graph
 
 
 MAX_PDF_SIZE = 10 * 1024 * 1024
+
+logger = logging.getLogger(__name__)
 
 
 @require_POST
@@ -74,6 +77,7 @@ def debug_profile(request):
         })
 
     except Exception as error:
+        logger.error(error)
         return JsonResponse(
             {
                 "success": False,
