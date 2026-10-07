@@ -1,11 +1,13 @@
 import logging
 import os
 import tempfile
+import hashlib
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
+from agents.profile.pdf_reader import EmptyPDFTextError
 from agents.profile.graph import profile_graph
 from core.models import Profile
 
@@ -50,13 +52,15 @@ def process_profile(request):
     temp_path = None
 
     try:
-        with tempfile.NamedTemporaryFile(
-            delete=False,
-            suffix=".pdf"
-        ) as temp_file:
+        document_hasher = hashlib.sha256()
 
+        with tempfile.NamedTemporaryFile(
+                delete=False,
+                suffix=".pdf",
+        ) as temp_file:
             for chunk in pdf.chunks():
                 temp_file.write(chunk)
+                document_hasher.update(chunk)
 
             temp_path = temp_file.name
 
@@ -65,6 +69,8 @@ def process_profile(request):
             "raw_text": "",
             "profile": None
         })
+
+        raw_text = result["raw_text"]
 
         profile_data = result.get("profile")
 
@@ -79,6 +85,8 @@ def process_profile(request):
             user=request.user,
             defaults={
                 "data": profile_dict,
+                "raw_text": raw_text,
+                "document_hash": document_hasher.hexdigest(),
                 "career_data": {},
             },
         )
@@ -88,6 +96,17 @@ def process_profile(request):
             "profile": profile.data,
             "created": created
         })
+
+    except EmptyPDFTextError as error:
+        logger.exception(error)
+
+        return JsonResponse(
+            {
+                "success": False,
+                "error": str(error),
+            },
+            status=422,
+        )
 
     except Exception as error:
         logger.exception(error)

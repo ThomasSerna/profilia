@@ -18,6 +18,14 @@ class Profile(models.Model):
         blank=True,
     )
 
+    raw_text = models.TextField(default="", blank=True)
+
+    document_hash = models.CharField(
+        max_length=64,
+        default="",
+        blank=True,
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True
     )

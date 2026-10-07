@@ -10,6 +10,8 @@ def build_assessment_key(profile, roles) -> str:
     payload = {
         "profile_id": profile.pk,
         "profile": profile.data,
+        "document_hash": profile.document_hash,
+        "raw_text": profile.raw_text,
         "roles": [
             role.model_dump()
             for role in sorted(roles, key=lambda role: role.name)
