@@ -19,11 +19,11 @@ Proyecto de Ingeniería de Software orientado a una arquitectura agéntica para 
 
 ## Funcionalidades actuales
 
-- Carga y procesamiento de hojas de vida en formato PDF desde la interfaz principal y el panel de depuración.
+- Carga y procesamiento de hojas de vida en formato PDF desde la interfaz principal.
 - Extracción del texto contenido en el PDF.
 - Flujo del Agente de Perfil implementado con LangGraph.
 - Extracción estructurada de datos del candidato mediante un LLM.
-- Interfaz base de Profilia para el flujo agéntico y panel global de depuración.
+- Interfaz base de Profilia para el flujo agéntico.
 - Sistema básico de autenticación con registro, inicio y cierre de sesión.
 - Visualización de los datos del usuario autenticado dentro de la interfaz.
 
@@ -43,10 +43,4 @@ La aplicación principal se encuentra en:
 
 ```text
 http://127.0.0.1:8000/
-```
-
-El panel de depuración se encuentra en:
-
-```text
-http://127.0.0.1:8000/debug/
 ```
