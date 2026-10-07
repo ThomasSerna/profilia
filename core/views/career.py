@@ -4,6 +4,7 @@ from django.views.decorators.http import require_POST
 
 from pydantic import ValidationError
 
+from agents.career.cache import build_assessment_key
 from agents.career.roles import get_role_by_name
 from agents.career.assessment import assess_role
 from agents.profile.schemas import ProfileData
@@ -68,10 +69,27 @@ def assess_career(request):
             status=409,
         )
 
-    assessments = [
-        assess_role(profile_data, role).model_dump()
-        for role in roles
-    ]
+    key = build_assessment_key(profile, roles)
+
+    saved = profile.career_data
+    reused = saved.get("key") == key
+
+    if reused:
+        assessments = saved["assessments"]
+
+    else:
+        assessments = [
+            assess_role(profile_data, role).model_dump()
+            for role in roles
+        ]
+
+        profile.career_data = {
+            "key": key,
+            "role_names": [role.name for role in roles],
+            "assessments": assessments,
+        }
+
+        profile.save(update_fields=["career_data"])
 
     return JsonResponse(
         {
@@ -80,5 +98,6 @@ def assess_career(request):
             "profile": profile.data,
             "roles": [role.model_dump() for role in roles],
             "assessments": assessments,
+            "reused": reused,
         }
     )

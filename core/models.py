@@ -13,6 +13,11 @@ class Profile(models.Model):
         default=dict
     )
 
+    career_data = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True
     )

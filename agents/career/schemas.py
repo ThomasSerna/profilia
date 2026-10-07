@@ -2,6 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+EVALUATOR_VERSION = "skill_matching_v1"
 
 class RoleProfile(BaseModel):
     name: str
@@ -24,5 +25,5 @@ class RequirementMatch(BaseModel):
 
 class RoleAssessment(BaseModel):
     role_name: str
-    evaluator: str = "skill_matching_v1"
+    evaluator: str = EVALUATOR_VERSION
     requirements: list[RequirementMatch] = Field(default_factory=list)

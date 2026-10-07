@@ -78,8 +78,9 @@ def process_profile(request):
         profile, created = Profile.objects.update_or_create(
             user=request.user,
             defaults={
-                "data": profile_dict
-            }
+                "data": profile_dict,
+                "career_data": {},
+            },
         )
 
         return JsonResponse({

@@ -80,6 +80,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const selectedRolesInputs =
         document.getElementById("selected-roles-inputs");
 
+    const careerResultsSection =
+    document.getElementById("career-results-section");
+
+    const careerResultsTitle =
+        document.getElementById("career-results-title");
+
+    const careerResults =
+        document.getElementById("career-results");
+
+    const careerRoleTemplate =
+        document.getElementById("career-role-template");
+
+    const careerRequirementTemplate =
+        document.getElementById("career-requirement-template");
+
 
     if (
         !form ||
@@ -216,6 +231,126 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     );
 
+    /*
+     * ============================================================
+     * restore saved state
+     * ============================================================
+     */
+    function restoreSavedState() {
+        const element =
+            document.getElementById("saved-profile-state");
+
+        if (!element) {
+            return;
+        }
+
+        const saved = JSON.parse(element.textContent);
+
+        if (!saved.profile) {
+            return;
+        }
+
+        processedProfile = saved.profile;
+
+        setProcessedState();
+        disableProcessButton();
+
+        statusBadge.textContent = "Perfil guardado";
+
+        enableRoleFlowButton();
+
+        if (saved.assessments.length === 0) {
+            return;
+        }
+
+        selectedRoles = new Set(saved.role_names);
+        currentRoleMode = "manual";
+
+        setRoleModeButton(chooseRolesButton);
+        updateRoleSelectionUI();
+        syncSelectedRolesInputs();
+        updateRoleFlowButton();
+
+        renderAssessments(saved.assessments, false);
+    }
+
+    /*
+     * ============================================================
+     * Render assessment
+     * ============================================================
+     */
+
+    function renderAssessments(assessments, moveFocus = true) {
+    careerResults.replaceChildren();
+
+    for (const assessment of assessments) {
+        const article =
+            careerRoleTemplate.content.firstElementChild.cloneNode(true);
+
+        article.querySelector("[data-role-name]").textContent =
+            assessment.role_name;
+
+        for (const requirement of assessment.requirements) {
+            const row =
+                careerRequirementTemplate.content.firstElementChild.cloneNode(true);
+
+            const found =
+                requirement.status === "evidencia_en_perfil";
+
+            row.querySelector("[data-skill-name]").textContent =
+                requirement.skill;
+
+            const badge =
+                row.querySelector("[data-skill-status]");
+
+            badge.textContent =
+                found ? "Con evidencia" : "Sin evidencia";
+
+            badge.classList.add(
+                found ? "bg-emerald-50" : "bg-slate-100",
+                found ? "text-emerald-800" : "text-slate-600"
+            );
+
+            const mentions = requirement.evidence.map(item => {
+                const origin = item.source.startsWith("skills[")
+                    ? "Habilidades"
+                    : "Experiencia";
+
+                return `${origin}: ${item.value}`;
+            });
+
+            const evidenceText =
+                row.querySelector("[data-skill-evidence]");
+
+            evidenceText.textContent =
+                mentions.join(" · ");
+
+            evidenceText.hidden =
+                mentions.length === 0;
+
+            const selector = requirement.category === "required"
+                ? "[data-required-skills]"
+                : "[data-preferred-skills]";
+
+            article.querySelector(selector).append(row);
+        }
+
+        careerResults.append(article);
+    }
+
+    careerResultsSection.classList.toggle(
+        "hidden",
+        assessments.length === 0
+    );
+
+    if (moveFocus && assessments.length > 0) {
+        careerResultsTitle.focus({ preventScroll: true });
+
+        careerResultsSection.scrollIntoView({
+            block: "start",
+        });
+    }
+}
 
 
     /*
@@ -586,6 +721,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 syncSelectedRolesInputs();
                 closeRoleModal();
                 updateRoleFlowButton();
+                restoreSavedState();
+                renderAssessments(data.assessments);
 
             } catch (error) {
                 showErrorNotification(error.message);
