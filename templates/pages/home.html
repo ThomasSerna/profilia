@@ -35,10 +35,6 @@
                 </h3>
 
 
-                <!-- ========================================== -->
-                <!-- FORM -->
-                <!-- ========================================== -->
-
                 <form
                     id="profile-form"
                     action="{% url 'process_profile' %}"
@@ -49,9 +45,6 @@
 
                     {% csrf_token %}
 
-
-                    <!-- File input -->
-
                     <input
                         id="pdf-input"
                         name="pdf"
@@ -61,7 +54,10 @@
                     >
 
 
-                    <!-- Upload Area -->
+                    <!-- Se llenará después de seleccionar roles -->
+
+                    <div id="selected-roles-inputs"></div>
+
 
                     <div
                         id="pdf-upload-box"
@@ -134,8 +130,6 @@
                     </div>
 
 
-                    <!-- Process Button -->
-
                     <button
                         id="process-profile-button"
                         type="submit"
@@ -173,14 +167,15 @@
 
 
         <!-- ================================================== -->
-        <!-- CHAT IA (solo interfaz, aún sin backend) -->
+        <!-- CHAT IA -->
         <!-- ================================================== -->
 
         <div class="lg:col-span-7 flex flex-col h-[560px]">
 
             <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col h-full overflow-hidden">
 
-                <!-- Chat Header -->
+
+                <!-- Header -->
 
                 <div class="pb-3 border-b border-slate-200 flex items-center justify-between shrink-0">
 
@@ -200,7 +195,6 @@
 
                                 Profilia AI - Asistente de Perfil
 
-                                <!-- JS (profilia.js) actualiza este badge -->
                                 <span
                                     id="profile-status-badge"
                                     class="text-[10px]
@@ -225,9 +219,12 @@
                 </div>
 
 
-                <!-- Chat Messages Feed -->
+                <!-- Chat -->
 
-                <div id="profile-chat-messages" class="flex-1 overflow-y-auto py-4 space-y-3.5 pr-1 text-xs">
+                <div
+                    id="profile-chat-messages"
+                    class="flex-1 overflow-y-auto py-4 space-y-3.5 pr-1 text-xs"
+                >
 
                     <div class="flex items-start space-x-2.5 max-w-[88%]">
 
@@ -245,8 +242,7 @@
                                 Soy tu <strong>Agente de Perfil</strong>.
                                 Carga tu Hoja de Vida en formato <strong>PDF</strong>
                                 en el panel de la izquierda. Analizaré tu experiencia
-                                y detectaré la información faltante para perfeccionar
-                                los detalles clave de tu candidatura.
+                                y detectaré la información principal de tu perfil.
                             </p>
 
                         </div>
@@ -256,7 +252,7 @@
                 </div>
 
 
-                <!-- Chat Input (deshabilitado hasta implementar el chat) -->
+                <!-- Chat input -->
 
                 <div class="pt-2 border-t border-slate-200 shrink-0">
 
@@ -284,17 +280,30 @@
                 </div>
 
 
-                <!-- Confirm & Unlock Next Agent -->
+                <!-- Continuar -->
 
                 <div class="pt-3 mt-3 border-t border-slate-100 shrink-0">
 
                     <button
+                        id="open-role-modal-button"
                         type="button"
                         disabled
-                        class="w-full py-2.5 px-4 rounded-xl bg-slate-200 text-slate-400 font-bold text-xs
-                               transition-all flex items-center justify-center gap-2 cursor-not-allowed"
+                        class="w-full
+                               py-2.5
+                               px-4
+                               rounded-xl
+                               bg-slate-200
+                               text-slate-400
+                               font-bold
+                               text-xs
+                               transition-all
+                               flex
+                               items-center
+                               justify-center
+                               gap-2
+                               cursor-not-allowed"
                     >
-                        <span>Completar Perfil y Desbloquear Agente de Vacantes</span>
+                        <span>Procesa tu CV para continuar</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
 
@@ -307,6 +316,445 @@
     </div>
 
 </section>
+
+
+
+<!-- ========================================================== -->
+<!-- ROLE SELECTION MODAL -->
+<!-- ========================================================== -->
+
+<div
+    id="role-modal"
+    class="hidden
+           fixed
+           inset-0
+           z-[100]
+           bg-slate-950/50
+           backdrop-blur-sm
+           px-4
+           py-8
+           overflow-y-auto"
+>
+
+    <div class="min-h-full flex items-center justify-center">
+
+        <div
+            class="w-full
+                   max-w-3xl
+                   bg-white
+                   rounded-2xl
+                   shadow-2xl
+                   border
+                   border-slate-200
+                   overflow-hidden"
+        >
+
+
+            <!-- Modal header -->
+
+            <div class="px-6 py-5 border-b border-slate-200 flex items-start justify-between gap-4">
+
+                <div class="flex items-start gap-3">
+
+                    <div
+                        class="w-10 h-10
+                               rounded-xl
+                               bg-[#13223a]
+                               text-[#00d461]
+                               flex
+                               items-center
+                               justify-center
+                               shrink-0"
+                    >
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+
+                    <div>
+
+                        <h2 class="text-base font-bold text-[#13223a]">
+                            ¿Qué tipo de trabajo estás buscando?
+                        </h2>
+
+                        <p class="text-xs text-slate-500 mt-1">
+                            Puedes escoger hasta 3 roles para continuar con el análisis de tu perfil.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    id="close-role-modal-button"
+                    type="button"
+                    class="w-9 h-9
+                           rounded-lg
+                           text-slate-400
+                           hover:text-slate-700
+                           hover:bg-slate-100
+                           transition
+                           flex
+                           items-center
+                           justify-center"
+                >
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+            </div>
+
+
+
+            <!-- Modal body -->
+
+            <div class="p-6 space-y-6">
+
+
+                <!-- Mode selection -->
+
+                <div>
+
+                    <p class="text-xs font-bold text-[#13223a] mb-3">
+                        Elige cómo quieres encontrar tus roles
+                    </p>
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+
+                        <button
+                            id="choose-roles-button"
+                            type="button"
+                            class="role-mode-button
+                                   text-left
+                                   p-4
+                                   rounded-xl
+                                   border-2
+                                   border-slate-200
+                                   hover:border-[#02bc4d]
+                                   hover:bg-emerald-50/30
+                                   transition"
+                        >
+
+                            <div class="flex items-start gap-3">
+
+                                <div
+                                    class="w-9 h-9
+                                           rounded-lg
+                                           bg-emerald-100
+                                           text-[#02bc4d]
+                                           flex
+                                           items-center
+                                           justify-center
+                                           shrink-0"
+                                >
+                                    <i class="fa-solid fa-crosshairs"></i>
+                                </div>
+
+                                <div>
+
+                                    <p class="text-xs font-bold text-[#13223a]">
+                                        Ya sé a qué quiero aspirar
+                                    </p>
+
+                                    <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                                        Seleccionaré manualmente los roles que me interesan.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </button>
+
+
+
+                        <button
+                            id="recommend-roles-button"
+                            type="button"
+                            class="role-mode-button
+                                   text-left
+                                   p-4
+                                   rounded-xl
+                                   border-2
+                                   border-slate-200
+                                   hover:border-[#02bc4d]
+                                   hover:bg-emerald-50/30
+                                   transition"
+                        >
+
+                            <div class="flex items-start gap-3">
+
+                                <div
+                                    class="w-9 h-9
+                                           rounded-lg
+                                           bg-[#13223a]/10
+                                           text-[#13223a]
+                                           flex
+                                           items-center
+                                           justify-center
+                                           shrink-0"
+                                >
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                </div>
+
+                                <div>
+
+                                    <p class="text-xs font-bold text-[#13223a]">
+                                        No estoy seguro
+                                    </p>
+
+                                    <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                                        Recomiéndame roles basándote en mi hoja de vida.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Role selection -->
+
+                <div
+                    id="role-selection-section"
+                    class="hidden
+                           pt-5
+                           border-t
+                           border-slate-200
+                           space-y-4"
+                >
+
+                    <div class="flex items-start justify-between gap-4">
+
+                        <div>
+
+                            <h3
+                                id="role-selection-title"
+                                class="text-sm font-bold text-[#13223a]"
+                            >
+                                Selecciona tus roles
+                            </h3>
+
+                            <p
+                                id="role-selection-description"
+                                class="text-[11px] text-slate-500 mt-1"
+                            >
+                                Puedes seleccionar hasta 3.
+                            </p>
+
+                        </div>
+
+
+                        <span
+                            id="role-counter"
+                            class="text-[10px]
+                                   font-bold
+                                   px-2.5
+                                   py-1
+                                   rounded-full
+                                   bg-slate-100
+                                   text-slate-500
+                                   whitespace-nowrap"
+                        >
+                            0 / 3
+                        </span>
+
+                    </div>
+
+
+
+                    <div
+                        id="recommendation-hint"
+                        class="hidden
+                               p-3
+                               rounded-xl
+                               bg-emerald-50
+                               border
+                               border-emerald-200"
+                    >
+
+                        <div class="flex items-start gap-2">
+
+                            <i class="fa-solid fa-sparkles text-[#02bc4d] mt-0.5"></i>
+
+                            <p class="text-[11px] text-emerald-800">
+                                Estos roles presentan las mayores coincidencias con las habilidades detectadas en tu CV.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div
+                        id="role-list"
+                        class="grid
+                               grid-cols-1
+                               sm:grid-cols-2
+                               gap-2
+                               max-h-[340px]
+                               overflow-y-auto
+                               pr-1"
+                    >
+
+                        {% for role in roles %}
+
+                            <label
+                                class="role-option
+                                       flex
+                                       items-start
+                                       gap-3
+                                       p-3
+                                       rounded-xl
+                                       border-2
+                                       border-slate-200
+                                       bg-white
+                                       cursor-pointer
+                                       hover:border-[#02bc4d]
+                                       hover:bg-emerald-50/30
+                                       transition"
+                                data-role-name="{{ role.name }}"
+                                data-required-skills="{{ role.required_skills|join:'|' }}"
+                                data-preferred-skills="{{ role.preferred_skills|join:'|' }}"
+                                data-experience-areas="{{ role.experience_areas|join:'|' }}"
+                                data-original-index="{{ forloop.counter0 }}"
+                            >
+
+                                <input
+                                    type="checkbox"
+                                    value="{{ role.name }}"
+                                    class="role-checkbox
+                                           mt-0.5
+                                           accent-[#02bc4d]"
+                                >
+
+
+                                <div class="min-w-0 flex-1">
+
+                                    <div class="flex items-center justify-between gap-2">
+
+                                        <span
+                                            class="text-[11px]
+                                                   font-bold
+                                                   text-[#13223a]"
+                                        >
+                                            {{ role.name }}
+                                        </span>
+
+
+                                        <span
+                                            class="role-recommendation-badge
+                                                   hidden
+                                                   text-[9px]
+                                                   font-bold
+                                                   px-2
+                                                   py-0.5
+                                                   rounded-full
+                                                   bg-emerald-100
+                                                   text-emerald-700
+                                                   whitespace-nowrap"
+                                        >
+                                            Sugerido
+                                        </span>
+
+                                    </div>
+
+
+                                    {% if role.required_skills %}
+
+                                        <p
+                                            class="text-[10px]
+                                                   text-slate-500
+                                                   mt-1
+                                                   line-clamp-2"
+                                        >
+                                            {{ role.required_skills|join:", " }}
+                                        </p>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </label>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Footer -->
+
+            <div
+                class="px-6
+                       py-4
+                       border-t
+                       border-slate-200
+                       bg-slate-50
+                       flex
+                       items-center
+                       justify-end
+                       gap-3"
+            >
+
+                <button
+                    id="cancel-role-modal-button"
+                    type="button"
+                    class="px-4
+                           py-2.5
+                           rounded-xl
+                           text-xs
+                           font-bold
+                           text-slate-600
+                           hover:bg-slate-200
+                           transition"
+                >
+                    Ahora no
+                </button>
+
+
+                <button
+                    id="confirm-roles-button"
+                    type="button"
+                    disabled
+                    class="px-5
+                           py-2.5
+                           rounded-xl
+                           bg-slate-200
+                           text-slate-400
+                           text-xs
+                           font-bold
+                           flex
+                           items-center
+                           gap-2
+                           cursor-not-allowed
+                           transition"
+                >
+
+                    <span>Continuar</span>
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
 
 
