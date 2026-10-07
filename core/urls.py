@@ -4,6 +4,7 @@ from .views.home import home
 from .views.debug.home import debug_home
 from .views.debug.profile import debug_profile
 from .views.profile import process_profile
+from .views.career import assess_career
 
 
 urlpatterns = [
@@ -15,6 +16,11 @@ urlpatterns = [
         "profile/process/",
         process_profile,
         name="process_profile"
+    ),
+    path(
+        "career/assess/",
+        assess_career,
+        name="assess_career",
     ),
 
     # Debug

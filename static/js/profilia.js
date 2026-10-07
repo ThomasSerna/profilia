@@ -531,27 +531,69 @@ document.addEventListener("DOMContentLoaded", () => {
      */
 
     if (confirmRolesButton) {
+        confirmRolesButton.addEventListener("click", async () => {
+            if (selectedRoles.size === 0) {
+                return;
+            }
 
-        confirmRolesButton.addEventListener(
-            "click",
-            () => {
+            confirmRolesButton.disabled = true;
+            hideNotifications();
 
-                if (
-                    selectedRoles.size === 0
-                ) {
-                    return;
+            try {
+                const formData = new FormData();
+
+                for (const name of selectedRoles) {
+                    formData.append("roles", name);
                 }
 
+                const csrfToken = form.querySelector(
+                    "[name=csrfmiddlewaretoken]"
+                ).value;
 
+                const response = await fetch(
+                    confirmRolesButton.dataset.assessmentUrl,
+                    {
+                        method: "POST",
+                        mode: "same-origin",
+                        body: formData,
+                        headers: {
+                            "X-CSRFToken": csrfToken,
+                        },
+                    }
+                );
+
+                if (response.redirected) {
+                    throw new Error(
+                        "Vuelve a iniciar sesión para continuar."
+                    );
+                }
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.error || "No se pudo validar la selección."
+                    );
+                }
+
+                selectedRoles = new Set(
+                    data.roles.map(role => role.name)
+                );
+
+                console.log("Selección validada por Django:", data);
+
+                updateRoleSelectionUI();
                 syncSelectedRolesInputs();
-
                 closeRoleModal();
-
                 updateRoleFlowButton();
 
-            }
-        );
+            } catch (error) {
+                showErrorNotification(error.message);
 
+            } finally {
+                updateConfirmRolesButton();
+            }
+        });
     }
 
 
