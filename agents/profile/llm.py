@@ -1,9 +1,13 @@
+import os
+
 from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 
 load_dotenv()
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-3.5-flash-lite",
-    temperature=0
+llm = ChatGroq(
+    model = "openai/gpt-oss-20b",
+    temperature=0,
+    reasoning_effort="low",
+    api_key=os.getenv("GROQ_API_KEY")
 )
