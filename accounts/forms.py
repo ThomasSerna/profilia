@@ -17,7 +17,6 @@ class RegisterForm(forms.ModelForm):
 
         fields = [
             "full_name",
-            "professional_role",
             "email",
         ]
 

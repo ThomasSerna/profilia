@@ -60,11 +60,6 @@ class User(AbstractUser):
         max_length=150
     )
 
-    professional_role = models.CharField(
-        max_length=150,
-        blank=True
-    )
-
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["full_name"]
 
