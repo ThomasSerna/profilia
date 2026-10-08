@@ -12,12 +12,11 @@ ROLE_CATALOG = [
     RoleProfile(
         name="Backend Developer",
         required_skills=[
-            "Python",
-            "Java",
             "REST APIs",
             "SQL",
             "Git",
         ],
+        required_skill_alternatives=[["Python", "Java"]],
         preferred_skills=[
             "Docker",
             "Cloud",

@@ -6,8 +6,36 @@ class KevError(RuntimeError):
     pass
 
 
-def ask_kev(state: str, questions: dict) -> dict:
-    if not state.strip() or not questions:
+def get_kev_metadata() -> dict:
+    url = f"{settings.KEV_BASE_URL.rstrip('/')}/v1/models"
+    try:
+        response = requests.get(url, timeout=(5, settings.KEV_TIMEOUT))
+        response.raise_for_status()
+        result = response.json()
+    except (requests.RequestException, ValueError) as error:
+        raise KevError("No fue posible verificar el modelo del servicio Kev.") from error
+
+    if not isinstance(result, dict) or not isinstance(result.get("models"), list):
+        raise KevError("Kev devolvió metadatos incompatibles.")
+
+    model = next(
+        (
+            item for item in result["models"]
+            if isinstance(item, dict) and item.get("name") == "kev-latest"
+        ),
+        None,
+    )
+    if model is None or model.get("run") != settings.KEV_CHECKPOINT:
+        raise KevError("El modelo cargado en Kev no coincide con el checkpoint configurado.")
+
+    return {
+        "checkpoint": model["run"],
+        **{key: model.get(key) for key in ("base", "backend", "device", "dtype")},
+    }
+
+
+def ask_kev(state: str | dict, questions: dict) -> dict:
+    if not state or (isinstance(state, str) and not state.strip()) or not questions:
         raise ValueError(
             "Debes enviar texto y al menos una pregunta."
         )

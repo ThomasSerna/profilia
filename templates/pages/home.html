@@ -44,6 +44,7 @@
                 >
 
                     {% csrf_token %}
+                    <input id="profile-revision-input" type="hidden" name="profile_revision">
 
                     <input
                         id="pdf-input"
@@ -61,6 +62,9 @@
 
                     <div
                         id="pdf-upload-box"
+                        role="button"
+                        tabindex="0"
+                        aria-label="Seleccionar hoja de vida en PDF"
                         class="border-2
                                border-dashed
                                border-slate-300
@@ -197,6 +201,7 @@
 
                                 <span
                                     id="profile-status-badge"
+                                    role="status"
                                     class="text-[10px]
                                            px-2 py-0.5
                                            rounded-full
@@ -221,8 +226,13 @@
 
                 <!-- Chat -->
 
+                <p id="career-operation-status" role="status" class="pt-2 text-xs text-slate-600"></p>
+
                 <div
                     id="profile-chat-messages"
+                    role="log"
+                    aria-live="polite"
+                    aria-relevant="additions text"
                     class="flex-1 overflow-y-auto py-4 space-y-3.5 pr-1 text-xs"
                 >
 
@@ -335,7 +345,45 @@
     </p>
 
     <div id="career-results" class="mt-6 space-y-6"></div>
+
+    <form id="career-clarification-form" class="hidden mt-6 border-t border-slate-200 pt-5 space-y-4">
+        <h3 id="career-clarification-title" tabindex="-1" class="text-sm font-bold text-[#13223a]">Completa la información pendiente</h3>
+        <p class="text-sm text-slate-600">Responde solo sobre habilidades que conoces. Estas declaraciones se guardan aparte del CV; la información que no puedas confirmar seguirá pendiente.</p>
+        <div id="career-clarification-fields" class="space-y-4"></div>
+        <button type="submit" class="rounded-xl bg-[#02bc4d] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50 disabled:cursor-wait">Guardar y revisar mis cargos</button>
+    </form>
 </section>
+
+<template id="career-chat-template">
+    <div data-career-message class="flex items-start space-x-2.5 max-w-[95%]">
+        <div class="w-7 h-7 rounded-full bg-[#13223a] text-[#00d461] flex items-center justify-center shrink-0 text-xs mt-0.5" aria-hidden="true"><i class="fa-solid fa-robot"></i></div>
+        <div class="min-w-0 p-3.5 rounded-2xl bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200 space-y-2">
+            <p data-chat-role class="font-bold text-[#13223a] break-words"></p>
+            <p data-chat-group class="font-semibold"></p>
+            <p data-chat-text class="whitespace-pre-line leading-relaxed break-words"></p>
+            <ul data-chat-actions class="list-disc pl-4 space-y-2"></ul>
+            <p data-recommendation-status class="text-slate-600"></p>
+            <button data-complete-information type="button" class="hidden font-bold text-[#13223a] underline">Completar información</button>
+            <button data-retry-recommendation type="button" class="hidden font-bold text-[#13223a] underline disabled:opacity-50">Reintentar recomendación</button>
+        </div>
+    </div>
+</template>
+
+<template id="career-clarification-template">
+    <fieldset class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+        <legend data-question-label class="px-1 text-sm font-semibold text-[#13223a]"></legend>
+        <p data-question-roles class="text-xs text-slate-500"></p>
+        <label data-answer-label class="block text-xs font-medium text-slate-700">¿Qué puedes confirmar?</label>
+        <select data-question-answer required class="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm disabled:opacity-50">
+            <option value="">Elige una respuesta</option>
+            <option value="yes">Tengo conocimiento o experiencia</option>
+            <option value="no">No tengo esta habilidad</option>
+            <option value="unknown">No puedo confirmarlo</option>
+        </select>
+        <label data-detail-label class="block text-xs font-medium text-slate-700">Describe dónde y cómo has usado esta habilidad</label>
+        <textarea data-question-detail rows="3" maxlength="1000" disabled class="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm disabled:opacity-50"></textarea>
+    </fieldset>
+</template>
 
 <template id="career-role-template">
     <article class="border-t border-slate-200 pt-5">
@@ -344,10 +392,15 @@
             class="break-words text-sm font-bold text-[#13223a]"
         ></h3>
 
+        <p data-role-group class="mt-2 text-sm font-semibold"></p>
+        <p data-role-score class="mt-1 text-xs text-slate-500"></p>
+
         <p
             data-role-summary
             class="mt-2 text-sm leading-relaxed text-slate-600"
         ></p>
+
+        <div data-role-findings class="mt-3 space-y-2 text-sm text-slate-600"></div>
 
         <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
             <section>
@@ -398,6 +451,8 @@
             data-skill-probabilities
             class="mt-1 text-xs leading-relaxed text-slate-500"
         ></p>
+        <p data-skill-original class="mt-1 text-xs leading-relaxed text-slate-500"></p>
+        <ul data-skill-alternatives class="mt-2 border-l border-slate-200 pl-3 space-y-2"></ul>
     </li>
 </template>
 
@@ -412,6 +467,7 @@
 
 <div
     id="role-modal"
+    aria-hidden="true"
     class="hidden
            fixed
            inset-0
@@ -426,6 +482,11 @@
     <div class="min-h-full flex items-center justify-center">
 
         <div
+            id="role-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="role-modal-title"
+            tabindex="-1"
             class="w-full
                    max-w-3xl
                    bg-white
@@ -458,7 +519,7 @@
 
                     <div>
 
-                        <h2 class="text-base font-bold text-[#13223a]">
+                        <h2 id="role-modal-title" class="text-base font-bold text-[#13223a]">
                             ¿Qué tipo de trabajo estás buscando?
                         </h2>
 
@@ -474,6 +535,7 @@
                 <button
                     id="close-role-modal-button"
                     type="button"
+                    aria-label="Cerrar selección de cargos"
                     class="w-9 h-9
                            rounded-lg
                            text-slate-400
@@ -494,6 +556,8 @@
             <!-- Modal body -->
 
             <div class="p-6 space-y-6">
+
+                <p id="role-operation-status" role="status" class="text-xs text-slate-600"></p>
 
 
                 <!-- Mode selection -->
@@ -670,8 +734,8 @@
 
                             <i class="fa-solid fa-sparkles text-[#02bc4d] mt-0.5"></i>
 
-                            <p class="text-[11px] text-emerald-800">
-                                Estos roles presentan las mayores coincidencias con las habilidades detectadas en tu CV.
+                            <p id="recommendation-hint-text" class="text-[11px] text-emerald-800">
+                                Estas opciones se basan en la evidencia disponible. Un resultado pendiente necesita información adicional.
                             </p>
 
                         </div>
@@ -708,9 +772,6 @@
                                        hover:bg-emerald-50/30
                                        transition"
                                 data-role-name="{{ role.name }}"
-                                data-required-skills="{{ role.required_skills|join:'|' }}"
-                                data-preferred-skills="{{ role.preferred_skills|join:'|' }}"
-                                data-experience-areas="{{ role.experience_areas|join:'|' }}"
                                 data-original-index="{{ forloop.counter0 }}"
                             >
 
@@ -766,6 +827,10 @@
                                         </p>
 
                                     {% endif %}
+                                    {% for alternatives in role.required_skill_alternatives %}
+                                        <p class="text-[10px] text-slate-500 mt-1">{{ alternatives|join:" o " }}</p>
+                                    {% endfor %}
+                                    <p data-role-suggestion class="hidden mt-2 text-[10px] text-slate-600 leading-relaxed"></p>
 
                                 </div>
 
@@ -816,6 +881,9 @@
                     type="button"
                     disabled
                     data-assessment-url="{% url 'assess_career' %}"
+                    data-exploration-url="{% url 'explore_career' %}"
+                    data-clarification-url="{% url 'clarify_career' %}"
+                    data-retry-url="{% url 'retry_career_recommendation' %}"
                     class="px-5
                            py-2.5
                            rounded-xl

@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
-from agents.career.cache import get_saved_career_data
+from agents.career.cache import get_profile_state
 from agents.career.roles import ROLE_CATALOG
 from core.models import Profile
 
@@ -12,13 +12,7 @@ def home(request):
         user=request.user
     ).first()
 
-    saved = get_saved_career_data(profile)
-
-    saved_state = {
-        "profile": profile.data if profile else None,
-        "role_names": saved["role_names"] if saved else [],
-        "assessments": saved["assessments"] if saved else [],
-    }
+    saved_state = get_profile_state(profile)
 
     return render(
         request,

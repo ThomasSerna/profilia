@@ -92,6 +92,14 @@ def collect_skill_evidence(profile: ProfileData) -> dict[str, list[SkillEvidence
     return evidence
 
 
+def role_skills(role: RoleProfile) -> list[str]:
+    return (
+        role.required_skills
+        + [skill for alternatives in role.required_skill_alternatives for skill in alternatives]
+        + role.preferred_skills
+    )
+
+
 def assess_role(profile: ProfileData, role: RoleProfile) -> RoleAssessment:
     evidence = collect_skill_evidence(profile)
     requirements = []

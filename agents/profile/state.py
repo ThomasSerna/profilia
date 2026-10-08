@@ -7,3 +7,5 @@ class ProfileState(TypedDict):
     pdf_path: str
     raw_text: str
     profile: ProfileData | None
+    extraction_usage: dict
+    extraction_latency_ms: float

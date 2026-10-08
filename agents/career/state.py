@@ -9,4 +9,9 @@ class CareerState(TypedDict):
     raw_text: str
     roles: list[RoleProfile]
     assessments: list[RoleAssessment]
-    reused: bool
+    skill_results: dict
+    clarifications: dict
+    cached_assessments: dict[str, RoleAssessment]
+    generate_recommendations: bool
+    retry_recommendation: bool
+    inference_runs: list[dict]

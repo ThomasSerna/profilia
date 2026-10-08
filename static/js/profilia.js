@@ -1,4 +1,3 @@
-import { renderAssessments } from "./profilia/career-results.js";
 import { initProfileUpload } from "./profilia/profile-upload.js";
 import { initRoleSelection } from "./profilia/role-selection.js";
 
@@ -14,11 +13,26 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    const roles = initRoleSelection(form);
-    const upload = initProfileUpload(form, profile => {
-        roles.setProfile(profile);
-        setTimeout(() => roles.openRoleModal(true), 350);
-    });
+    let busy = false;
+    let roles;
+    let upload;
+    const operations = {
+        isBusy: () => busy,
+        setBusy(value) {
+            busy = value;
+            roles?.setBusy(value);
+            upload?.setBusy(value);
+        },
+        invalidateProfile: () => roles.invalidateProfile(),
+    };
+    roles = initRoleSelection(form, operations);
+    upload = initProfileUpload(form, data => {
+        roles.setProfile(data);
+
+        if (!(data.assessments || []).length) {
+            roles.openRoleModal(true);
+        }
+    }, operations);
 
     restoreSavedState();
 
@@ -36,11 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         upload.restoreProcessedState();
-        roles.setProfile(saved.profile);
-
-        if (saved.assessments.length > 0) {
-            roles.restoreSelection(saved.role_names);
-            renderAssessments(saved.assessments, false);
-        }
+        roles.setProfile(saved);
     }
 });

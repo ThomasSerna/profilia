@@ -1,7 +1,6 @@
 from langgraph.graph import END, START, StateGraph
 
 from .nodes import (
-    choose_entry,
     evaluate_roles_node,
     summarize_roles_node,
 )
@@ -20,14 +19,7 @@ builder.add_node(
     summarize_roles_node,
 )
 
-builder.add_conditional_edges(
-    START,
-    choose_entry,
-    {
-        "evaluate": "evaluate",
-        "summarize": "summarize",
-    },
-)
+builder.add_edge(START, "evaluate")
 
 builder.add_edge(
     "evaluate",
