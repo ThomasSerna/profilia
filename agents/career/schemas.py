@@ -49,6 +49,7 @@ class RoleAssessment(BaseModel):
     role_name: str
     evaluator: str = EVALUATOR_VERSION
     requirements: list[RequirementMatch] = Field(default_factory=list)
+    summary: str = ""
 
     usage: dict[str, int] = Field(default_factory=dict)
     latency_ms: float | None = Field(default=None, ge=0)

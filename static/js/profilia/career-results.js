@@ -11,6 +11,15 @@ export function renderAssessments(assessments, moveFocus = true) {
         const article = careerRoleTemplate.content.firstElementChild.cloneNode(true);
         article.querySelector("[data-role-name]").textContent = assessment.role_name;
 
+        const summaryElement =
+            article.querySelector("[data-role-summary]");
+
+        summaryElement.textContent =
+            assessment.summary || "";
+
+        summaryElement.hidden =
+            !assessment.summary;
+
         for (const requirement of assessment.requirements) {
             const row = careerRequirementTemplate.content.firstElementChild.cloneNode(true);
             row.querySelector("[data-skill-name]").textContent = requirement.skill;

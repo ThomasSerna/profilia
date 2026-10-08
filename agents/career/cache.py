@@ -1,6 +1,10 @@
 import hashlib
 import json
 
+from pydantic import ValidationError
+
+from .schemas import RoleAssessment
+from .summary import add_assessment_summary
 from .assessment import SKILL_ALIASES
 from .roles import get_role_by_name
 from .schemas import KEV_EVALUATOR_VERSION
@@ -51,4 +55,18 @@ def get_saved_career_data(profile):
     if saved.get("key") != build_assessment_key(profile, roles):
         return None
 
-    return saved
+    try:
+        assessments = [
+            add_assessment_summary(
+                RoleAssessment.model_validate(item)
+            ).model_dump()
+            for item in saved["assessments"]
+        ]
+
+    except (KeyError, TypeError, ValidationError):
+        return None
+
+    return {
+        **saved,
+        "assessments": assessments,
+    }

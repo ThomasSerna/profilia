@@ -4,6 +4,14 @@ from django.views.decorators.http import require_POST
 
 from pydantic import ValidationError
 
+from agents.career.cache import (
+    build_assessment_key,
+    get_saved_career_data,
+)
+
+from agents.career.graph import career_graph
+from agents.career.kev import KevError
+from agents.career.schemas import RoleAssessment
 from agents.career.cache import build_assessment_key
 from agents.career.roles import get_role_by_name
 from agents.career.kev import KevError
@@ -84,44 +92,58 @@ def assess_career(request):
 
     key = build_assessment_key(profile, roles)
 
-    saved = profile.career_data
-    reused = saved.get("key") == key
+    saved = get_saved_career_data(profile)
 
-    if reused:
-        assessments = saved["assessments"]
+    reused = (
+            saved is not None
+            and saved["key"] == key
+    )
 
-    else:
-        try:
-            assessments = [
-                assess_role_with_kev(
-                    profile_data,
-                    profile.raw_text,
-                    role,
-                ).model_dump()
-                for role in roles
-            ]
+    cached_assessments = [
+        RoleAssessment.model_validate(item)
+        for item in saved["assessments"]
+    ] if reused else []
 
-        except KevError as error:
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": str(error),
-                },
-                status=502,
-            )
+    try:
+        result = career_graph.invoke({
+            "profile": profile_data,
+            "raw_text": profile.raw_text,
+            "roles": roles,
+            "assessments": cached_assessments,
+            "reused": reused,
+        })
 
+    except KevError as error:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": str(error),
+            },
+            status=502,
+        )
+
+    assessments = [
+        assessment.model_dump()
+        for assessment in result["assessments"]
+    ]
+
+    if not reused:
         profile.career_data = {
             "key": key,
-            "role_names": [role.name for role in roles],
+            "role_names": [
+                role.name for role in roles
+            ],
             "assessments": assessments,
         }
 
-        profile.save(update_fields=["career_data"])
+        profile.save(
+            update_fields=["career_data"]
+        )
 
     return JsonResponse(
         {
             "success": True,
-            "stage": "kev_assessment_completed",
+            "stage": "career_graph_completed",
             "profile": profile.data,
             "roles": [role.model_dump() for role in roles],
             "assessments": assessments,
