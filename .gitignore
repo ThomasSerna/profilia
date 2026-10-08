@@ -29,4 +29,9 @@ Thumbs.db
 .coverage
 htmlcov/
 
+# Profilia
 *.pdf
+vendor/
+AGENTS.md
+private-docs/
+private-tests/

@@ -14,7 +14,8 @@ Proyecto de Ingeniería de Software orientado a una arquitectura agéntica para 
 - Python 3.13
 - Django
 - LangGraph
-- Groq / GPT-OSS 20B
+- Groq / GPT-OSS 20B y GPT-OSS 120B
+- Kev / Qwen3.5-0.8B y Qwen3.5-4B
 - PyPDF
 
 ## Funcionalidades actuales
@@ -29,15 +30,46 @@ Proyecto de Ingeniería de Software orientado a una arquitectura agéntica para 
 
 ## Configuración local
 
+### Servidor django
+
+Clonar el repositorio y descargar requerimientos del servicio en django:
+
 ```bash
 git clone https://github.com/ThomasSerna/profilia.git
 cd profilia
 pip install -r requirements.txt
 python manage.py migrate
-python manage.py runserver
+```
+
+### Modelo de decisión Kev
+
+Clonar el repositorio y descargar requerimientos del modelo de decisión:
+
+```bash
+git clone --depth 1 --branch kev-1.0 https://github.com/jaredpalmer/kev.git vendor/kev
+cd vendor/kev
+uv sync --extra serve
+```
+
+Para levantarlo, ejecuta desde `vendor/kev`:
+
+Modelo `kev-0.8b` (recomendado para prototipado):
+```bash
+uv run --extra serve python -m kev.serve --run jaredpalmer/kev-0.8b@v1.0 --port 8009
+```
+
+Modelo `kev-4b` (recomendado para producción):
+```bash
+uv run --extra serve python -m kev.serve --run jaredpalmer/kev-4b@v1.0 --port 8009
 ```
 
 Antes de iniciar el proyecto, crea el archivo `.env` a partir de `.env.example` y configura las claves necesarias.
+
+### Iniciar el servidor
+
+```bash
+python manage.py runserver
+```
 
 La aplicación principal se encuentra en:
 
