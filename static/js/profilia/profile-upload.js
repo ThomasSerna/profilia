@@ -71,9 +71,9 @@ export function initProfileUpload(form, onProcessed, operations) {
             return;
         }
 
+        const formData = new FormData(form);
         operations.setBusy(true);
         setProcessingState();
-        const formData = new FormData(form);
 
         try {
             const csrfToken = form.querySelector("[name=csrfmiddlewaretoken]").value;
