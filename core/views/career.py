@@ -6,7 +6,8 @@ from pydantic import ValidationError
 
 from agents.career.cache import build_assessment_key
 from agents.career.roles import get_role_by_name
-from agents.career.assessment import assess_role
+from agents.career.kev import KevError
+from agents.career.kev_assessment import assess_role_with_kev
 from agents.profile.schemas import ProfileData
 from core.models import Profile
 
@@ -69,6 +70,18 @@ def assess_career(request):
             status=409,
         )
 
+    if not profile.raw_text.strip():
+        return JsonResponse(
+            {
+                "success": False,
+                "error": (
+                    "Vuelve a procesar tu CV "
+                    "para guardar su texto."
+                ),
+            },
+            status=409,
+        )
+
     key = build_assessment_key(profile, roles)
 
     saved = profile.career_data
@@ -78,10 +91,24 @@ def assess_career(request):
         assessments = saved["assessments"]
 
     else:
-        assessments = [
-            assess_role(profile_data, role).model_dump()
-            for role in roles
-        ]
+        try:
+            assessments = [
+                assess_role_with_kev(
+                    profile_data,
+                    profile.raw_text,
+                    role,
+                ).model_dump()
+                for role in roles
+            ]
+
+        except KevError as error:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": str(error),
+                },
+                status=502,
+            )
 
         profile.career_data = {
             "key": key,
@@ -94,7 +121,7 @@ def assess_career(request):
     return JsonResponse(
         {
             "success": True,
-            "stage": "skill_matching_completed",
+            "stage": "kev_assessment_completed",
             "profile": profile.data,
             "roles": [role.model_dump() for role in roles],
             "assessments": assessments,

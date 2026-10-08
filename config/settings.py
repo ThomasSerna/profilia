@@ -166,3 +166,16 @@ LOGGING = {
         'level': 'DEBUG' if os.environ.get('DJANGO_DEBUG', 'True') == 'True' else 'INFO',
     },
 }
+
+# Kev - Modelo de decision
+KEV_BASE_URL = os.getenv(
+    "KEV_BASE_URL",
+    "http://127.0.0.1:8009",
+)
+
+KEV_TIMEOUT = int(os.getenv("KEV_TIMEOUT", "120"))
+
+KEV_CHECKPOINT = os.getenv(
+    "KEV_CHECKPOINT",
+    "jaredpalmer/kev-0.8b@v1.0",
+)

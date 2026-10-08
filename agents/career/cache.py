@@ -3,7 +3,8 @@ import json
 
 from .assessment import SKILL_ALIASES
 from .roles import get_role_by_name
-from .schemas import EVALUATOR_VERSION
+from .schemas import KEV_EVALUATOR_VERSION
+from django.conf import settings
 
 
 def build_assessment_key(profile, roles) -> str:
@@ -16,7 +17,8 @@ def build_assessment_key(profile, roles) -> str:
             role.model_dump()
             for role in sorted(roles, key=lambda role: role.name)
         ],
-        "evaluator": EVALUATOR_VERSION,
+        "evaluator": KEV_EVALUATOR_VERSION,
+        "checkpoint": settings.KEV_CHECKPOINT,
         "aliases": SKILL_ALIASES,
     }
 
