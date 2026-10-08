@@ -72,10 +72,13 @@ def add_assessment_summary(assessment: RoleAssessment) -> RoleAssessment:
         if unknowns:
             summary += f"Necesitamos más información sobre: {', '.join(unknowns)}. "
     else:
+        # The chat shows this text only after the user has answered every question, so it closes the conversation.
         summary = (
-            f"Para orientarte hacia {assessment.role_name}, necesitamos conocer mejor tu experiencia "
-            f"con estas habilidades: {', '.join(unknowns)}. "
-            "Que no aparezcan en tu hoja de vida no significa que no las conozcas."
+            f"Todavía no tenemos información suficiente para darte una orientación completa hacia {assessment.role_name}. "
+            f"No encontramos datos suficientes sobre {', '.join(unknowns)} en tu hoja de vida ni en tus respuestas, "
+            "y eso no significa que no tengas la capacidad. "
+            "Si has utilizado alguna de estas habilidades, Profilia te recomienda incluirla en tu hoja de vida "
+            "con un ejemplo concreto; si todavía no la conoces, puede ser un buen punto de partida para aprender."
         )
 
     declared = [item.skill for item in assessment.requirements if item.source == "user_clarification"

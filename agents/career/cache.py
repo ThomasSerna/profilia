@@ -133,23 +133,22 @@ def pending_questions(assessments, clarifications):
 
 
 def answered_questions(role_names, clarifications):
-    questions = {}
+    active_skills = {}
     for name in role_names:
         role = get_role_by_name(name)
         if role is None:
             continue
         for label in role_skills(role):
-            skill = normalize_skill(label)
-            answer = clarifications.get(skill)
-            if answer is None:
-                continue
-            question = questions.setdefault(skill, {
-                "skill": skill, "label": label, "roles": [],
-                "answer": answer.get("answer", ""), "detail": answer.get("detail", ""),
-            })
-            if role.name not in question["roles"]:
-                question["roles"].append(role.name)
-    return list(questions.values())
+            skill = active_skills.setdefault(normalize_skill(label), {"label": label, "roles": []})
+            if role.name not in skill["roles"]:
+                skill["roles"].append(role.name)
+    # The chat replays answers in the order they were saved, which is the insertion order of clarifications.
+    # shortcut: relies on JSON key order kept by SQLite; store an explicit answer order before moving to PostgreSQL jsonb.
+    return [
+        {"skill": skill, "label": active_skills[skill]["label"], "roles": active_skills[skill]["roles"],
+         "answer": answer.get("answer", ""), "detail": answer.get("detail", "")}
+        for skill, answer in clarifications.items() if skill in active_skills
+    ]
 
 
 def get_profile_state(profile):

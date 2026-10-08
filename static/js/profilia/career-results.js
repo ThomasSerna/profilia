@@ -1,5 +1,6 @@
 const chat = document.getElementById("profile-chat-messages");
 const chatTemplate = document.getElementById("career-chat-template");
+const noticeTemplate = document.getElementById("career-notice-template");
 const questionTemplate = document.getElementById("career-question-template");
 const chatForm = document.getElementById("career-chat-form");
 const detailInput = document.getElementById("career-chat-input");
@@ -8,15 +9,14 @@ const groups = {
     high: "Encontramos fortalezas relacionadas con este cargo.",
     medium: "Hay fortalezas que puedes desarrollar para acercarte a este cargo.",
     low: "Podemos ayudarte a preparar tus próximos pasos hacia este cargo.",
-    pending: "Necesitamos conocer un poco más de ti para orientar este cargo.",
+    pending: "Todavía no tenemos información suficiente para orientar este cargo.",
 };
 let busy = false;
+let assessments = [];
 let questions = [];
 let answers = [];
 let currentQuestion = null;
 let selectedAnswer = "";
-let reviewQueue = null;
-let activeRoles = "";
 let submitClarification;
 
 export function initCareerResults(onClarify, onRetry) {
@@ -62,12 +62,6 @@ export function initCareerResults(onClarify, onRetry) {
         if (retryButton) {
             await onRetry(retryButton.dataset.roleName);
         }
-
-        if (event.target.closest("[data-review-unknown]")) {
-            reviewQueue = questions.filter(question => question.answer === "unknown")
-                .map(question => question.skill);
-            renderNextQuestion(true);
-        }
     });
 }
 
@@ -78,28 +72,11 @@ export function setCareerResultsBusy(value) {
     updateQuestionControls();
 }
 
-export function renderAssessments(assessments, pendingQuestions = [], answeredQuestions = [], moveFocus = true) {
+export function renderAssessments(roleAssessments, pendingQuestions = [], answeredQuestions = [], moveFocus = true) {
+    assessments = roleAssessments;
     questions = pendingQuestions;
     answers = answeredQuestions;
-    chat.querySelectorAll("[data-career-message]").forEach(message => message.remove());
-
-    const roleNames = assessments.map(assessment => assessment.role_name).sort().join("\n");
-
-    if (roleNames !== activeRoles || assessments.length === 0) {
-        reviewQueue = null;
-    }
-    activeRoles = roleNames;
-
-    for (const assessment of assessments) {
-        renderRecommendation(assessment);
-    }
-
-    for (const answer of answers) {
-        renderSavedAnswer(answer);
-    }
-
-    renderNextQuestion(moveFocus && assessments.length > 0);
-    setCareerResultsBusy(busy);
+    renderConversation(moveFocus && assessments.length > 0);
 }
 
 export function focusCareerQuestion() {
@@ -119,17 +96,84 @@ async function saveAnswer(answer, detail) {
     const recorded = answers.some(item => item.skill === skill && item.answer === answer && item.detail === detail);
 
     if (saved || recorded) {
-        if (reviewQueue) {
-            reviewQueue = reviewQueue.filter(item => item !== skill);
-            if (reviewQueue.length === 0) {
-                reviewQueue = null;
-            }
-        }
         selectedAnswer = "";
         detailInput.value = "";
         detailInput.setCustomValidity("");
-        renderNextQuestion(true);
+        renderConversation(true);
     }
+}
+
+// The chat is rebuilt from the saved state in conversation order: a notice, each question followed by
+// its answer, then the next question or, once nothing is left to ask, the final orientation.
+function renderConversation(moveFocus) {
+    chat.querySelectorAll("[data-career-message]").forEach(message => message.remove());
+    const answeredSkills = new Set(answers.map(answer => answer.skill));
+    // An "unknown" answer is final for the conversation; it is not asked again.
+    const next = questions.find(question => !answeredSkills.has(question.skill) && !question.answer);
+
+    if (next?.skill !== currentQuestion?.skill || !next) {
+        selectedAnswer = "";
+        detailInput.value = "";
+        detailInput.setCustomValidity("");
+    }
+    currentQuestion = next || null;
+
+    if (assessments.length > 0 && (answers.length > 0 || next)) {
+        renderNotice("Antes de darte tu orientación, queremos confirmar algunas habilidades que no encontramos en tu hoja de vida.");
+    }
+
+    for (const answer of answers) {
+        renderQuestion(answer, false);
+        renderSavedAnswer(answer);
+    }
+
+    if (next) {
+        renderQuestion(next, true);
+    } else if (assessments.length > 0) {
+        renderNotice(answers.length
+            ? "Gracias por tus respuestas. Esta es la orientación que Profilia preparó para tus cargos."
+            : "Esta es la orientación que Profilia preparó para tus cargos.", true);
+        assessments.forEach(renderRecommendation);
+    } else if (answers.length > 0) {
+        renderNotice("Conservamos tus respuestas. Elige los cargos que te interesan para actualizar tu orientación.", true);
+    }
+
+    setCareerResultsBusy(busy);
+    scrollChatToEnd();
+
+    if (moveFocus) {
+        focusCareerQuestion();
+    }
+}
+
+function renderNotice(text, finish = false) {
+    const message = noticeTemplate.content.firstElementChild.cloneNode(true);
+    message.querySelector("[data-notice-text]").textContent = text;
+
+    if (finish) {
+        message.dataset.careerFinish = "";
+    }
+
+    chat.append(message);
+}
+
+function renderQuestion(question, active) {
+    const message = questionTemplate.content.firstElementChild.cloneNode(true);
+    message.dataset.skill = question.skill;
+    const title = message.querySelector("[data-question-title]");
+    title.textContent = `¿Conoces o has utilizado ${question.label}?`;
+    message.querySelector("[data-question-roles]").textContent = `Nos ayudará a orientar: ${question.roles.join(" · ")}.`;
+
+    if (!active) {
+        // Questions already answered stay in the conversation as plain text, without answer controls.
+        delete message.dataset.careerQuestion;
+        message.dataset.careerAskedQuestion = "";
+        title.removeAttribute("tabindex");
+        message.querySelector("[role=group]").remove();
+        message.querySelector("[data-question-context]").remove();
+    }
+
+    chat.append(message);
 }
 
 function renderRecommendation(assessment) {
@@ -162,7 +206,7 @@ function renderRecommendation(assessment) {
 
     message.querySelector("[data-chat-text]").textContent = assessment.recommendation?.text || assessment.summary ||
         (assessment.group === "pending"
-            ? "La información que falta en tu hoja de vida no significa que no tengas la capacidad. Conversemos sobre ella."
+            ? "La información que falta en tu hoja de vida no significa que no tengas la capacidad."
             : "Profilia te orienta con la información que compartiste. Estos resultados no garantizan una contratación.");
 
     const actions = message.querySelector("[data-chat-actions]");
@@ -209,67 +253,6 @@ function renderSavedAnswer(answer) {
     chat.append(message);
 }
 
-function renderNextQuestion(moveFocus) {
-    chat.querySelectorAll("[data-career-question], [data-career-finish]")
-        .forEach(message => message.remove());
-    const answeredSkills = new Set(answers.map(answer => answer.skill));
-    const next = reviewQueue
-        ? reviewQueue.map(skill => questions.find(question => question.skill === skill)).find(Boolean)
-        : questions.find(question => !answeredSkills.has(question.skill) && !question.answer);
-
-    if (next?.skill !== currentQuestion?.skill || !next) {
-        selectedAnswer = "";
-        detailInput.value = "";
-        detailInput.setCustomValidity("");
-    }
-    currentQuestion = next || null;
-
-    if (next) {
-        const message = questionTemplate.content.firstElementChild.cloneNode(true);
-        message.dataset.skill = next.skill;
-        message.querySelector("[data-question-title]").textContent = `¿Conoces o has utilizado ${next.label}?`;
-        message.querySelector("[data-question-roles]").textContent = `Nos ayudará a orientar: ${next.roles.join(" · ")}.`;
-        chat.append(message);
-    } else if (chat.querySelector("[data-career-message]")) {
-        renderConversationEnd();
-    }
-
-    updateQuestionControls();
-    scrollChatToEnd();
-
-    if (moveFocus) {
-        focusCareerQuestion();
-    }
-}
-
-function renderConversationEnd() {
-    const message = document.createElement("div");
-    message.dataset.careerMessage = "";
-    message.dataset.careerFinish = "";
-    message.className = "max-w-[95%] rounded-2xl rounded-tl-none border border-slate-200 bg-slate-100 p-3.5 space-y-2";
-    const text = document.createElement("p");
-    text.tabIndex = -1;
-    const uncertain = questions.some(question => question.answer === "unknown");
-    text.textContent = !chat.querySelector("[data-chat-role]")
-        ? "Conservamos tus respuestas. Elige los cargos que te interesan para actualizar tu orientación."
-        : uncertain
-        ? "Guardamos tus respuestas. Algunas dudas todavía impiden completar la orientación. Puedes revisarlas cuando estés listo; tener dudas no significa que te falte capacidad."
-        : `${answers.length ? "Guardamos tus respuestas." : "Tu orientación está lista."} Puedes consultar la orientación de tus cargos en este chat o elegir otros cargos para continuar.`;
-    message.append(text);
-
-    if (uncertain) {
-        const review = document.createElement("button");
-        review.type = "button";
-        review.dataset.reviewUnknown = "";
-        review.textContent = "Revisar mis dudas";
-        review.className = "min-h-[44px] font-bold text-[#13223a] underline disabled:opacity-50";
-        review.disabled = busy;
-        message.append(review);
-    }
-
-    chat.append(message);
-}
-
 function scrollChatToEnd() {
     requestAnimationFrame(() => { chat.scrollTop = chat.scrollHeight; });
 }
@@ -282,7 +265,8 @@ function updateQuestionControls() {
     detailInput.placeholder = needsDetail
         ? "Cuéntame dónde y cómo la conoces o has utilizado"
         : currentQuestion ? "Elige Sí, No o No estoy seguro en el chat"
-            : "Las preguntas aparecerán aquí en el chat";
+            : assessments.length > 0 ? "Tu orientación está lista. Puedes cambiar tus cargos para continuar"
+                : "Las preguntas aparecerán aquí en el chat";
     const yes = chat.querySelector('[data-question-answer="yes"]');
     yes?.setAttribute("aria-pressed", String(needsDetail));
     yes?.classList.toggle("border-[#02bc4d]", needsDetail);
