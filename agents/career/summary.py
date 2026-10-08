@@ -50,34 +50,38 @@ def add_assessment_summary(assessment: RoleAssessment) -> RoleAssessment:
 
     if group == "high":
         summary = (
-            f"Tu perfil tiene un ajuste alto a {assessment.role_name}. "
-            f"Tus fortalezas para este cargo son: {', '.join(strengths)}. "
-            "Destaca proyectos y resultados que demuestren esas habilidades en tu CV."
+            f"Encontramos una base sólida en tu perfil para {assessment.role_name}. "
+            f"Estas son tus fortalezas para este cargo: {', '.join(strengths)}. "
+            "Profilia te recomienda destacar proyectos y resultados que muestren esas habilidades "
+            "en tu hoja de vida."
         )
     elif group == "low":
-        summary = f"Tu perfil tiene un ajuste bajo a los criterios de {assessment.role_name}. "
+        summary = f"Profilia te recomienda preparar algunas habilidades para acercarte a {assessment.role_name}. "
         if gaps:
             summary += f"Prioriza desarrollar: {', '.join(gaps)}. "
         if strengths:
             summary += f"Puedes apoyarte en: {', '.join(strengths)}. "
         if unknowns:
-            summary += f"Falta evidencia sobre: {', '.join(unknowns)}; esto no significa que no las conozcas."
+            summary += f"Necesitamos más información sobre: {', '.join(unknowns)}; esto no significa que no las conozcas."
     elif group == "medium":
         summary = f"Tu perfil tiene una base para aspirar a {assessment.role_name}. "
         if strengths:
-            summary += f"Fortalezas: {', '.join(strengths)}. "
+            summary += f"Encontramos estas fortalezas en tu perfil: {', '.join(strengths)}. "
         if gaps:
             summary += f"Habilidades por desarrollar: {', '.join(gaps)}. "
         if unknowns:
-            summary += f"Falta evidencia sobre: {', '.join(unknowns)}. "
+            summary += f"Necesitamos más información sobre: {', '.join(unknowns)}. "
     else:
         summary = (
-            f"La evaluación para {assessment.role_name} está pendiente. "
-            f"Necesitamos aclarar estas habilidades: {', '.join(unknowns)}. "
-            "La falta de evidencia no significa que no tengas esas habilidades."
+            f"Para orientarte hacia {assessment.role_name}, necesitamos conocer mejor tu experiencia "
+            f"con estas habilidades: {', '.join(unknowns)}. "
+            "Que no aparezcan en tu hoja de vida no significa que no las conozcas."
         )
 
-    summary = summary.strip() + " El ajuste refleja los criterios del catálogo, no una probabilidad de contratación."
+    declared = [item.skill for item in assessment.requirements if item.source == "user_clarification"
+                or any(alternative.source == "user_clarification" for alternative in item.alternatives)]
+    if declared:
+        summary += f" También tomamos en cuenta lo que nos contaste sobre: {', '.join(declared)}."
     return assessment.model_copy(update={
         "score_min": float(minimum),
         "score_max": float(maximum),
@@ -89,7 +93,7 @@ def add_assessment_summary(assessment: RoleAssessment) -> RoleAssessment:
         "gaps": gaps,
         "unknowns": unknowns,
         "unknown_skills": unknown_skills,
-        "summary": summary,
+        "summary": summary.strip(),
         "recommendation": None,
         "recommendation_status": "ready" if group in ("high", "low") else "not_requested",
         "recommendation_source": "template" if group in ("high", "low", "pending") else "none",

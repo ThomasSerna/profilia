@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -13,6 +14,8 @@ from agents.career.kev import KevError
 from agents.career.roles import ROLE_CATALOG, get_role_by_name
 from agents.profile.schemas import ProfileData
 from core.models import Profile
+
+logger = logging.getLogger(__name__)
 
 
 class CareerRequestError(ValueError):
@@ -43,12 +46,12 @@ def load_profile(request):
     try:
         ProfileData.model_validate(profile.data)
     except ValidationError as error:
-        raise CareerRequestError("Vuelve a procesar el CV: el perfil guardado es incompatible.", 409) from error
+        raise CareerRequestError("No pudimos recuperar tu hoja de vida. Vuelve a cargarla para continuar.", 409) from error
     if not profile.raw_text.strip():
-        raise CareerRequestError("Vuelve a procesar tu CV para guardar su texto.", 409)
+        raise CareerRequestError("Vuelve a cargar tu hoja de vida para que podamos revisarla.", 409)
     revision = request.POST.get("profile_revision")
     if not revision:
-        raise CareerRequestError("Falta la revisión del perfil. Recarga la página.")
+        raise CareerRequestError("Recarga la página para continuar con tu orientación.")
     if revision != get_profile_revision(profile):
         raise StaleProfileError("El perfil cambió. Recarga la página antes de continuar.")
     return profile
@@ -57,30 +60,32 @@ def load_profile(request):
 def read_clarifications(request, state):
     raw = request.POST.get("clarifications", "")
     if len(raw) > 60000:
-        raise CareerRequestError("Las aclaraciones son demasiado extensas.")
+        raise CareerRequestError("Tu respuesta es demasiado extensa. Describe tu experiencia de forma breve.")
     try:
         answers = json.loads(raw)
     except (TypeError, ValueError) as error:
-        raise CareerRequestError("Las aclaraciones no tienen un formato válido.") from error
+        raise CareerRequestError("No pudimos leer tu respuesta. Elige una opción e inténtalo de nuevo.") from error
     allowed = {question["skill"] for question in state["pending_questions"]}
     if not isinstance(answers, dict) or not answers or not answers.keys() <= allowed:
         raise CareerRequestError("Responde únicamente a las habilidades pendientes de tus cargos.")
     clean = {}
     for skill, item in answers.items():
         if not isinstance(item, dict) or set(item) - {"answer", "detail"}:
-            raise CareerRequestError("Una aclaración tiene un formato incompatible.")
+            raise CareerRequestError("No pudimos guardar tu respuesta. Revísala e inténtalo de nuevo.")
         answer = item.get("answer")
         detail = item.get("detail", "")
         if answer not in ("yes", "no", "unknown") or not isinstance(detail, str) or len(detail) > 1000:
             raise CareerRequestError("Elige una respuesta válida y usa como máximo 1000 caracteres.")
         detail = detail.strip()
         if answer == "yes" and not detail:
-            raise CareerRequestError("Describe brevemente dónde utilizaste la habilidad que declaras.")
+            raise CareerRequestError("Cuéntanos dónde y cómo conoces o has utilizado esta habilidad.")
         clean[skill] = {"answer": answer, "detail": detail}
     return clean
 
 
 def run_operation(request, operation):
+    profile = None
+    answers_saved = False
     try:
         profile = load_profile(request)
         revision = get_profile_revision(profile)
@@ -95,7 +100,7 @@ def run_operation(request, operation):
             if not assessment:
                 raise CareerRequestError("Selecciona y evalúa este cargo antes de solicitar su recomendación.", 409)
             if assessment["group"] != "medium" or assessment["recommendation_status"] != "pending":
-                raise CareerRequestError("Solo puedes reintentar recomendaciones pendientes de ajuste medio.")
+                raise CareerRequestError("Esta recomendación ya está disponible o todavía necesitamos completar tu información.")
             roles = [role]
         else:
             roles = selected_roles(request)
@@ -105,6 +110,7 @@ def run_operation(request, operation):
                     raise CareerRequestError("Completa información para la selección actualmente evaluada.", 409)
                 answers = read_clarifications(request, state)
                 profile = persist_career_data(profile, revision, clarifications=answers)
+                answers_saved = True
                 revision = get_profile_revision(profile)
                 saved = get_career_data(profile)
 
@@ -139,13 +145,27 @@ def run_operation(request, operation):
         return JsonResponse(response)
     except CareerRequestError as error:
         return JsonResponse({"success": False, "error": str(error)}, status=error.status)
-    except StaleProfileError as error:
-        return JsonResponse({"success": False, "error": str(error)}, status=409)
-    except KevError as error:
-        response = {"success": False, "error": str(error)}
-        if operation == "clarify":
-            response["profile_revision"] = get_profile_revision(profile)
-        return JsonResponse(response, status=502)
+    except (StaleProfileError, KevError) as error:
+        if isinstance(error, StaleProfileError):
+            message, status = str(error), 409
+        else:
+            logger.exception("No se pudo completar la operación de orientación %s", operation)
+            message, status = "No pudimos completar tu orientación. Puedes volver a intentarlo.", 502
+        response = {"success": False, "error": message}
+        if answers_saved:
+            profile.refresh_from_db()
+            response.update(get_profile_state(profile))
+            if isinstance(error, KevError):
+                response["error"] = "Tu respuesta está guardada. No pudimos actualizar tu orientación; puedes volver a intentarlo."
+        return JsonResponse(response, status=status)
+    except Exception:
+        logger.exception("Error inesperado en la operación de orientación %s", operation)
+        response = {"success": False, "error": "No pudimos completar tu orientación. Puedes volver a intentarlo."}
+        if answers_saved:
+            profile.refresh_from_db()
+            response.update(get_profile_state(profile))
+            response["error"] = "Tu respuesta está guardada. No pudimos actualizar tu orientación; puedes volver a intentarlo."
+        return JsonResponse(response, status=500)
 
 
 @require_POST

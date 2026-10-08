@@ -2,7 +2,7 @@
 
 
 {% block title %}
-    Profilia - Agente de Perfil
+    Profilia - Tu orientación profesional
 {% endblock %}
 
 
@@ -17,9 +17,9 @@
         <!-- PDF UPLOAD -->
         <!-- ================================================== -->
 
-        <div class="lg:col-span-5 space-y-4">
+        <div class="lg:col-span-4 min-w-0 space-y-4">
 
-            <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm">
+            <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
 
                 <h3 class="text-sm font-bold text-[#13223a] mb-4 flex items-center justify-between">
 
@@ -70,7 +70,7 @@
                                border-slate-300
                                hover:border-[#02bc4d]
                                rounded-xl
-                               p-8
+                               p-5
                                text-center
                                cursor-pointer
                                transition-all
@@ -81,7 +81,7 @@
                     >
 
                         <div
-                            class="w-14 h-14
+                            class="w-10 h-10
                                    mx-auto
                                    rounded-full
                                    bg-white
@@ -97,13 +97,13 @@
                                    border border-slate-200"
                         >
 
-                            <i class="fa-solid fa-file-arrow-up text-2xl"></i>
+                            <i class="fa-solid fa-file-arrow-up text-lg"></i>
 
                         </div>
 
 
                         <p class="text-sm font-bold text-[#13223a]">
-                            Haz clic para cargar tu CV (.pdf)
+                            Selecciona tu hoja de vida
                         </p>
 
 
@@ -139,7 +139,7 @@
                         type="submit"
                         disabled
                         class="w-full
-                               py-3
+                               py-2.5 min-h-[44px]
                                px-4
                                rounded-xl
                                bg-slate-200
@@ -157,7 +157,7 @@
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
 
                         <span>
-                            Procesar Hoja de Vida
+                            Revisar hoja de vida
                         </span>
 
                     </button>
@@ -171,12 +171,12 @@
 
 
         <!-- ================================================== -->
-        <!-- CHAT IA -->
+        <!-- ORIENTACIÓN PROFESIONAL -->
         <!-- ================================================== -->
 
-        <div class="lg:col-span-7 flex flex-col h-[560px]">
+        <div class="lg:col-span-8 min-w-0 flex flex-col h-[600px] lg:h-[620px]">
 
-            <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col h-full overflow-hidden">
+            <div class="p-4 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col h-full overflow-hidden">
 
 
                 <!-- Header -->
@@ -195,9 +195,9 @@
 
                         <div>
 
-                            <h3 class="text-xs font-bold text-[#13223a] flex items-center gap-2">
+                            <h3 class="text-xs font-bold text-[#13223a] flex flex-wrap items-center gap-2">
 
-                                Profilia AI - Asistente de Perfil
+                                Tu orientación profesional
 
                                 <span
                                     id="profile-status-badge"
@@ -208,13 +208,13 @@
                                            bg-slate-100
                                            text-slate-500"
                                 >
-                                    Esperando CV...
+                                    Esperando tu hoja de vida
                                 </span>
 
                             </h3>
 
                             <p class="text-[10px] text-slate-500">
-                                Orientado a optimizar tu postulación en Magneto 365
+                                Profilia te acompaña en tu próximo paso profesional
                             </p>
 
                         </div>
@@ -249,10 +249,9 @@
                             </p>
 
                             <p class="text-slate-600 leading-relaxed">
-                                Soy tu <strong>Agente de Perfil</strong>.
-                                Carga tu Hoja de Vida en formato <strong>PDF</strong>
-                                en el panel de la izquierda. Analizaré tu experiencia
-                                y detectaré la información principal de tu perfil.
+                                En <strong>Profilia</strong> te ayudamos a explorar tus opciones profesionales.
+                                Sube tu hoja de vida en <strong>PDF</strong> y elige los cargos que te interesan.
+                                Conversaremos sobre lo que conoces y has utilizado para orientar tus próximos pasos.
                             </p>
 
                         </div>
@@ -264,30 +263,30 @@
 
                 <!-- Chat input -->
 
-                <div class="pt-2 border-t border-slate-200 shrink-0">
-
-                    <div class="flex items-center space-x-2">
-
-                        <input
-                            type="text"
+                <form id="career-chat-form" novalidate class="pt-2 border-t border-slate-200 shrink-0">
+                    <label for="career-chat-input" class="sr-only">Dónde y cómo conoces o has utilizado esta habilidad</label>
+                    <div class="flex items-end gap-2">
+                        <textarea
+                            id="career-chat-input"
+                            rows="2"
+                            maxlength="1000"
                             disabled
-                            placeholder="Responde al agente o haz una pregunta..."
-                            class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800
-                                   focus:outline-none focus:border-[#02bc4d] transition cursor-not-allowed opacity-70"
-                        >
-
+                            aria-describedby="career-chat-help"
+                            placeholder="Las preguntas aparecerán aquí en el chat"
+                            class="min-w-0 flex-1 resize-none bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#02bc4d] transition disabled:opacity-70 disabled:cursor-not-allowed"
+                        ></textarea>
                         <button
-                            type="button"
+                            id="career-chat-send"
+                            type="submit"
                             disabled
-                            class="p-2.5 rounded-xl bg-[#02bc4d] text-white flex items-center justify-center shrink-0
-                                   w-10 h-10 shadow-md shadow-[#02bc4d]/20 cursor-not-allowed opacity-60"
+                            aria-label="Enviar tu respuesta"
+                            class="rounded-xl bg-[#02bc4d] text-white flex items-center justify-center shrink-0 w-11 h-11 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                            <i class="fa-solid fa-paper-plane text-xs" aria-hidden="true"></i>
                         </button>
-
                     </div>
-
-                </div>
+                    <p id="career-chat-help" class="mt-1 text-[10px] text-slate-500">Elige una respuesta en el chat. Si respondes Sí, cuéntanos dónde y cómo la conoces o has utilizado.</p>
+                </form>
 
 
                 <!-- Continuar -->
@@ -299,7 +298,7 @@
                         type="button"
                         disabled
                         class="w-full
-                               py-2.5
+                               py-2.5 min-h-[44px]
                                px-4
                                rounded-xl
                                bg-slate-200
@@ -313,7 +312,7 @@
                                gap-2
                                cursor-not-allowed"
                     >
-                        <span>Procesa tu CV para continuar</span>
+                        <span>Revisa tu hoja de vida para continuar</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
 
@@ -325,138 +324,36 @@
 
     </div>
 
-<section
-    id="career-results-section"
-    class="hidden rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"
-    aria-labelledby="career-results-title"
->
-    <h2
-        id="career-results-title"
-        tabindex="-1"
-        class="text-base font-bold text-[#13223a]"
-    >
-        Comparación con tus cargos
-    </h2>
-
-    <p class="mt-2 text-sm leading-relaxed text-slate-600">
-        Kev propone una clasificación por habilidad usando el texto de tu CV.
-        “Sin evidencia” indica información insuficiente, no falta de capacidad.
-        Las probabilidades corresponden a esas opciones, no a conseguir empleo.
-    </p>
-
-    <div id="career-results" class="mt-6 space-y-6"></div>
-
-    <form id="career-clarification-form" class="hidden mt-6 border-t border-slate-200 pt-5 space-y-4">
-        <h3 id="career-clarification-title" tabindex="-1" class="text-sm font-bold text-[#13223a]">Completa la información pendiente</h3>
-        <p class="text-sm text-slate-600">Responde solo sobre habilidades que conoces. Estas declaraciones se guardan aparte del CV; la información que no puedas confirmar seguirá pendiente.</p>
-        <div id="career-clarification-fields" class="space-y-4"></div>
-        <button type="submit" class="rounded-xl bg-[#02bc4d] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50 disabled:cursor-wait">Guardar y revisar mis cargos</button>
-    </form>
-</section>
-
 <template id="career-chat-template">
-    <div data-career-message class="flex items-start space-x-2.5 max-w-[95%]">
+    <div data-career-message class="flex items-start gap-2.5 max-w-[95%]">
         <div class="w-7 h-7 rounded-full bg-[#13223a] text-[#00d461] flex items-center justify-center shrink-0 text-xs mt-0.5" aria-hidden="true"><i class="fa-solid fa-robot"></i></div>
         <div class="min-w-0 p-3.5 rounded-2xl bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200 space-y-2">
-            <p data-chat-role class="font-bold text-[#13223a] break-words"></p>
+            <p data-chat-role tabindex="-1" class="font-bold text-[#13223a] break-words"></p>
             <p data-chat-group class="font-semibold"></p>
+            <div data-chat-findings class="space-y-2 leading-relaxed break-words"></div>
             <p data-chat-text class="whitespace-pre-line leading-relaxed break-words"></p>
-            <ul data-chat-actions class="list-disc pl-4 space-y-2"></ul>
+            <ul data-chat-actions class="list-disc pl-4 space-y-2 break-words"></ul>
             <p data-recommendation-status class="text-slate-600"></p>
-            <button data-complete-information type="button" class="hidden font-bold text-[#13223a] underline">Completar información</button>
-            <button data-retry-recommendation type="button" class="hidden font-bold text-[#13223a] underline disabled:opacity-50">Reintentar recomendación</button>
+            <button data-retry-recommendation type="button" class="hidden min-h-[44px] font-bold text-[#13223a] underline disabled:opacity-50">Volver a preparar la recomendación</button>
         </div>
     </div>
 </template>
 
-<template id="career-clarification-template">
-    <fieldset class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2">
-        <legend data-question-label class="px-1 text-sm font-semibold text-[#13223a]"></legend>
-        <p data-question-roles class="text-xs text-slate-500"></p>
-        <label data-answer-label class="block text-xs font-medium text-slate-700">¿Qué puedes confirmar?</label>
-        <select data-question-answer required class="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm disabled:opacity-50">
-            <option value="">Elige una respuesta</option>
-            <option value="yes">Tengo conocimiento o experiencia</option>
-            <option value="no">No tengo esta habilidad</option>
-            <option value="unknown">No puedo confirmarlo</option>
-        </select>
-        <label data-detail-label class="block text-xs font-medium text-slate-700">Describe dónde y cómo has usado esta habilidad</label>
-        <textarea data-question-detail rows="3" maxlength="1000" disabled class="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm disabled:opacity-50"></textarea>
-    </fieldset>
-</template>
-
-<template id="career-role-template">
-    <article class="border-t border-slate-200 pt-5">
-        <h3
-            data-role-name
-            class="break-words text-sm font-bold text-[#13223a]"
-        ></h3>
-
-        <p data-role-group class="mt-2 text-sm font-semibold"></p>
-        <p data-role-score class="mt-1 text-xs text-slate-500"></p>
-
-        <p
-            data-role-summary
-            class="mt-2 text-sm leading-relaxed text-slate-600"
-        ></p>
-
-        <div data-role-findings class="mt-3 space-y-2 text-sm text-slate-600"></div>
-
-        <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
-            <section>
-                <h4 class="text-sm font-semibold text-slate-700">
-                    Obligatorias
-                </h4>
-
-                <ul
-                    data-required-skills
-                    class="mt-2 divide-y divide-slate-100"
-                ></ul>
-            </section>
-
-            <section>
-                <h4 class="text-sm font-semibold text-slate-700">
-                    Deseables
-                </h4>
-
-                <ul
-                    data-preferred-skills
-                    class="mt-2 divide-y divide-slate-100"
-                ></ul>
-            </section>
+<template id="career-question-template">
+    <div data-career-message data-career-question class="flex items-start gap-2.5 max-w-[95%]">
+        <div class="w-7 h-7 rounded-full bg-[#13223a] text-[#00d461] flex items-center justify-center shrink-0 text-xs mt-0.5" aria-hidden="true"><i class="fa-solid fa-robot"></i></div>
+        <div class="min-w-0 p-3.5 rounded-2xl bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200 space-y-2">
+            <p data-question-title tabindex="-1" class="font-semibold text-[#13223a] break-words"></p>
+            <p data-question-roles class="text-slate-600 break-words"></p>
+            <div class="flex flex-wrap gap-2" role="group" aria-label="Elige una respuesta">
+                <button data-question-answer="yes" type="button" aria-pressed="false" class="min-h-[44px] rounded-lg border border-slate-300 bg-white px-3 py-2 font-semibold disabled:opacity-50">Sí</button>
+                <button data-question-answer="no" type="button" class="min-h-[44px] rounded-lg border border-slate-300 bg-white px-3 py-2 font-semibold disabled:opacity-50">No</button>
+                <button data-question-answer="unknown" type="button" class="min-h-[44px] rounded-lg border border-slate-300 bg-white px-3 py-2 font-semibold disabled:opacity-50">No estoy seguro</button>
+            </div>
+            <p data-question-context hidden class="text-slate-600 leading-relaxed">Cuéntame dónde y cómo la conoces o has utilizado: en el trabajo, en tus estudios o en proyectos personales. Puedes escribir hasta 1000 caracteres.</p>
         </div>
-    </article>
+    </div>
 </template>
-
-<template id="career-requirement-template">
-    <li class="py-3">
-        <div class="flex flex-wrap items-start justify-between gap-2">
-            <span
-                data-skill-name
-                class="min-w-0 flex-1 break-words text-sm font-medium text-slate-800"
-            ></span>
-
-            <span
-                data-skill-status
-                class="rounded-full px-2.5 py-1 text-xs font-medium"
-            ></span>
-        </div>
-
-        <p
-            data-skill-evidence
-            class="mt-1 break-words text-xs leading-relaxed text-slate-600"
-        ></p>
-
-        <p
-            data-skill-probabilities
-            class="mt-1 text-xs leading-relaxed text-slate-500"
-        ></p>
-        <p data-skill-original class="mt-1 text-xs leading-relaxed text-slate-500"></p>
-        <ul data-skill-alternatives class="mt-2 border-l border-slate-200 pl-3 space-y-2"></ul>
-    </li>
-</template>
-
-
 </section>
 
 
@@ -524,7 +421,7 @@
                         </h2>
 
                         <p class="text-xs text-slate-500 mt-1">
-                            Puedes escoger hasta 3 roles para continuar con el análisis de tu perfil.
+                            Puedes escoger entre 1 y 3 cargos para recibir orientación.
                         </p>
 
                     </div>
@@ -536,7 +433,7 @@
                     id="close-role-modal-button"
                     type="button"
                     aria-label="Cerrar selección de cargos"
-                    class="w-9 h-9
+                    class="w-11 h-11
                            rounded-lg
                            text-slate-400
                            hover:text-slate-700
@@ -565,7 +462,7 @@
                 <div>
 
                     <p class="text-xs font-bold text-[#13223a] mb-3">
-                        Elige cómo quieres encontrar tus roles
+                        Elige cómo quieres encontrar tus cargos
                     </p>
 
 
@@ -608,7 +505,7 @@
                                     </p>
 
                                     <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
-                                        Seleccionaré manualmente los roles que me interesan.
+                                        Elegiré los cargos que me interesan.
                                     </p>
 
                                 </div>
@@ -655,7 +552,7 @@
                                     </p>
 
                                     <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
-                                        Recomiéndame roles basándote en mi hoja de vida.
+                                        Quiero que Profilia me sugiera cargos según mi hoja de vida.
                                     </p>
 
                                 </div>
@@ -689,7 +586,7 @@
                                 id="role-selection-title"
                                 class="text-sm font-bold text-[#13223a]"
                             >
-                                Selecciona tus roles
+                                Selecciona tus cargos
                             </h3>
 
                             <p
@@ -735,7 +632,7 @@
                             <i class="fa-solid fa-sparkles text-[#02bc4d] mt-0.5"></i>
 
                             <p id="recommendation-hint-text" class="text-[11px] text-emerald-800">
-                                Estas opciones se basan en la evidencia disponible. Un resultado pendiente necesita información adicional.
+                                Estas opciones se basan en lo que encontramos en tu hoja de vida. Podemos conversar sobre la información que falta.
                             </p>
 
                         </div>
@@ -864,7 +761,7 @@
                     id="cancel-role-modal-button"
                     type="button"
                     class="px-4
-                           py-2.5
+                           py-2.5 min-h-[44px]
                            rounded-xl
                            text-xs
                            font-bold
@@ -885,7 +782,7 @@
                     data-clarification-url="{% url 'clarify_career' %}"
                     data-retry-url="{% url 'retry_career_recommendation' %}"
                     class="px-5
-                           py-2.5
+                           py-2.5 min-h-[44px]
                            rounded-xl
                            bg-slate-200
                            text-slate-400
@@ -923,9 +820,9 @@
     class="hidden
            fixed
            top-20
-           right-6
+           right-4
            z-50
-           w-80
+           w-80 max-w-[calc(100vw-2rem)]
            bg-white
            border
            border-emerald-200
@@ -955,12 +852,12 @@
         <div>
 
             <p class="text-xs font-bold text-[#13223a]">
-                Hoja de vida procesada
+                Tu hoja de vida está lista
             </p>
 
 
             <p class="text-[11px] text-slate-500 mt-1">
-                El Agente de Perfil procesó el archivo correctamente.
+                Profilia revisó tu hoja de vida. Ya puedes continuar con tu orientación.
             </p>
 
         </div>
@@ -980,9 +877,9 @@
     class="hidden
            fixed
            top-20
-           right-6
+           right-4
            z-50
-           w-80
+           w-80 max-w-[calc(100vw-2rem)]
            bg-white
            border
            border-red-200
@@ -1012,7 +909,7 @@
         <div>
 
             <p class="text-xs font-bold text-[#13223a]">
-                No se pudo procesar
+                No pudimos completar este paso
             </p>
 
 
@@ -1020,7 +917,7 @@
                 id="profile-error-message"
                 class="text-[11px] text-slate-500 mt-1"
             >
-                Ocurrió un error procesando la hoja de vida.
+                No pudimos revisar tu hoja de vida. Vuelve a intentarlo.
             </p>
 
         </div>

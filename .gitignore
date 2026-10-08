@@ -33,5 +33,5 @@ htmlcov/
 *.pdf
 vendor/
 AGENTS.md
-private-docs/
-private-tests/
+/private-docs/
+/private-tests/

@@ -92,7 +92,7 @@ export function initProfileUpload(form, onProcessed, operations) {
 
             if (!response.ok || !data.success) {
                 const error = new Error(
-                    data.error || "Ocurrió un error procesando la hoja de vida."
+                    data.error || "No pudimos revisar tu hoja de vida. Inténtalo de nuevo."
                 );
                 error.staleProfile = response.status === 409;
                 throw error;
@@ -108,7 +108,9 @@ export function initProfileUpload(form, onProcessed, operations) {
                 operations.invalidateProfile();
             }
 
-            showErrorNotification(error.message);
+            showErrorNotification(error instanceof TypeError
+                ? "No pudimos conectar para revisar tu hoja de vida. Inténtalo de nuevo."
+                : error.message);
         } finally {
             operations.setBusy(false);
         }
@@ -179,7 +181,7 @@ export function initProfileUpload(form, onProcessed, operations) {
     function enableProcessButton() {
         processButton.disabled = false;
         processButton.className =
-            "w-full py-3 px-4 rounded-xl " +
+            "w-full min-h-[44px] py-2.5 px-4 rounded-xl " +
             "bg-[#02bc4d] hover:bg-[#00a943] " +
             "text-white font-bold text-xs transition-all " +
             "flex items-center justify-center gap-2 " +
@@ -187,14 +189,14 @@ export function initProfileUpload(form, onProcessed, operations) {
 
         processButton.innerHTML = `
             <i class="fa-solid fa-wand-magic-sparkles"></i>
-            <span>Procesar Hoja de Vida</span>
+            <span>Revisar hoja de vida</span>
         `;
     }
 
     function disableProcessButton() {
         processButton.disabled = true;
         processButton.className =
-            "w-full py-3 px-4 rounded-xl " +
+            "w-full min-h-[44px] py-2.5 px-4 rounded-xl " +
             "bg-slate-200 text-slate-400 " +
             "font-bold text-xs transition-all " +
             "flex items-center justify-center gap-2 cursor-not-allowed";
@@ -203,16 +205,16 @@ export function initProfileUpload(form, onProcessed, operations) {
     function setProcessingState() {
         processButton.disabled = true;
         processButton.className =
-            "w-full py-3 px-4 rounded-xl " +
+            "w-full min-h-[44px] py-2.5 px-4 rounded-xl " +
             "bg-[#02bc4d]/70 text-white font-bold text-xs " +
             "flex items-center justify-center gap-2 cursor-wait";
 
         processButton.innerHTML = `
             <i class="fa-solid fa-spinner fa-spin"></i>
-            <span>Procesando hoja de vida...</span>
+            <span>Revisando tu hoja de vida...</span>
         `;
 
-        statusBadge.textContent = "Procesando...";
+        statusBadge.textContent = "Revisando...";
         statusBadge.className =
             "text-[10px] px-2 py-0.5 rounded-full " +
             "bg-amber-100 text-amber-700 font-semibold";
@@ -220,7 +222,7 @@ export function initProfileUpload(form, onProcessed, operations) {
 
     function setProcessedState() {
         enableProcessButton();
-        statusBadge.textContent = "Procesado";
+        statusBadge.textContent = "Hoja de vida revisada";
         statusBadge.className =
             "text-[10px] px-2 py-0.5 rounded-full " +
             "bg-emerald-100 text-[#02bc4d] font-semibold";

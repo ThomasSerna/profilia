@@ -107,6 +107,8 @@ def get_saved_career_data(profile):
                 "recommendation_source": previous.recommendation_source,
                 "recommendation_key": previous.recommendation_key,
             })
+        if assessment.group == "medium" and assessment.recommendation_status == "not_requested":
+            assessment = assessment.model_copy(update={"recommendation_status": "pending"})
         assessments.append(assessment.model_dump())
     return {**saved, "role_names": names, "assessments": assessments}
 
@@ -130,15 +132,38 @@ def pending_questions(assessments, clarifications):
     return list(questions.values())
 
 
+def answered_questions(role_names, clarifications):
+    questions = {}
+    for name in role_names:
+        role = get_role_by_name(name)
+        if role is None:
+            continue
+        for label in role_skills(role):
+            skill = normalize_skill(label)
+            answer = clarifications.get(skill)
+            if answer is None:
+                continue
+            question = questions.setdefault(skill, {
+                "skill": skill, "label": label, "roles": [],
+                "answer": answer.get("answer", ""), "detail": answer.get("detail", ""),
+            })
+            if role.name not in question["roles"]:
+                question["roles"].append(role.name)
+    return list(questions.values())
+
+
 def get_profile_state(profile):
     if profile is None:
         return {"profile": None, "profile_revision": "", "role_names": [],
-                "assessments": [], "pending_questions": []}
+                "assessments": [], "pending_questions": [], "answered_questions": []}
     saved = get_saved_career_data(profile)
     assessments = saved["assessments"] if saved else []
+    names = saved["role_names"] if saved else []
+    clarifications = saved["clarifications"] if saved else {}
     return {"profile": profile.data, "profile_revision": get_profile_revision(profile),
-            "role_names": saved["role_names"] if saved else [], "assessments": assessments,
-            "pending_questions": pending_questions(assessments, saved["clarifications"] if saved else {})}
+            "role_names": names, "assessments": assessments,
+            "pending_questions": pending_questions(assessments, clarifications),
+            "answered_questions": answered_questions(names, clarifications)}
 
 
 def persist_career_data(profile, expected_revision, *, skill_results=None, assessments=None,

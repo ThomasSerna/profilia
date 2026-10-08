@@ -1,4 +1,5 @@
 import {
+    focusCareerQuestion,
     initCareerResults,
     renderAssessments,
     setCareerResultsBusy,
@@ -136,6 +137,7 @@ export function initRoleSelection(form, operations) {
             result => {
                 applyAssessmentResult(result);
                 closeRoleModal(true);
+                focusCareerQuestion();
             }
         );
     });
@@ -153,7 +155,7 @@ export function initRoleSelection(form, operations) {
         roleSelectionSection.classList.add("hidden");
         recommendationHint.classList.add("hidden");
         clearRoleModeButtons();
-        renderAssessments([], [], false);
+        renderAssessments([], [], [], false);
         syncSelectedRolesInputs();
         document.getElementById("profile-status-badge").textContent = "Perfil actualizado: recarga";
         setOperationStatus("El perfil cambió. Recarga la página antes de continuar.");
@@ -173,30 +175,30 @@ export function initRoleSelection(form, operations) {
         }
 
         syncSelectedRolesInputs();
-        renderAssessments(data.assessments || [], data.pending_questions || [], moveFocus);
+        renderAssessments(data.assessments || [], data.pending_questions || [], data.answered_questions || [], moveFocus);
         setOperationStatus("");
         updateControls();
     }
 
     function applyAssessmentResult(data) {
         profileRevision = data.profile_revision;
-        confirmedRoles = data.role_names || data.roles.map(role => role.name);
+        confirmedRoles = data.role_names || data.roles?.map(role => role.name) || confirmedRoles;
         selectedRoles = new Set(confirmedRoles);
         suggestions = [];
         currentRoleMode = "manual";
         setRoleModeButton(chooseRolesButton);
         syncSelectedRolesInputs();
-        renderAssessments(data.assessments, data.pending_questions || []);
+        renderAssessments(data.assessments || [], data.pending_questions || [], data.answered_questions || []);
         updateControls();
     }
 
     async function submitClarifications(clarifications) {
         const data = rolesFormData(confirmedRoles);
         data.append("clarifications", JSON.stringify(clarifications));
-        await postCareer(
+        return await postCareer(
             confirmRolesButton.dataset.clarificationUrl,
             data,
-            "Guardando tus declaraciones y revisando los cargos...",
+            "Guardando tu respuesta y actualizando tu orientación...",
             applyAssessmentResult
         );
     }
@@ -204,7 +206,7 @@ export function initRoleSelection(form, operations) {
     async function retryRecommendation(roleName) {
         const data = new FormData();
         data.append("role", roleName);
-        await postCareer(
+        return await postCareer(
             confirmRolesButton.dataset.retryUrl,
             data,
             "Preparando la recomendación personalizada...",
@@ -220,7 +222,7 @@ export function initRoleSelection(form, operations) {
 
     async function postCareer(url, data, loadingMessage, onSuccess) {
         if (operations.isBusy() || !profileRevision) {
-            return;
+            return false;
         }
 
         const requestedRevision = profileRevision;
@@ -246,14 +248,19 @@ export function initRoleSelection(form, operations) {
             const result = await response.json().catch(() => ({}));
 
             if (requestedRevision !== profileRevision) {
-                return;
+                return false;
             }
 
             if (!response.ok || !result.success) {
                 if (response.status === 409) {
                     invalidateProfile();
-                } else if (result.profile_revision) {
-                    profileRevision = result.profile_revision;
+                } else {
+                    if (result.profile_revision) {
+                        profileRevision = result.profile_revision;
+                    }
+                    if (Array.isArray(result.assessments) && Array.isArray(result.answered_questions)) {
+                        applyAssessmentResult(result);
+                    }
                 }
 
                 throw new Error(result.error || "No se pudo completar la solicitud.");
@@ -262,9 +269,14 @@ export function initRoleSelection(form, operations) {
             profileRevision = result.profile_revision;
             onSuccess(result);
             setOperationStatus("");
+            return true;
         } catch (error) {
-            showErrorNotification(error.message);
-            setOperationStatus(error.message);
+            const message = error instanceof TypeError
+                ? "No pudimos conectar con Profilia. Conservamos lo que escribiste; vuelve a intentarlo."
+                : error.message;
+            showErrorNotification(message);
+            setOperationStatus(message);
+            return false;
         } finally {
             operations.setBusy(false);
         }
@@ -352,8 +364,8 @@ export function initRoleSelection(form, operations) {
         roleSelectionTitle.textContent = "Opciones para explorar";
         roleSelectionDescription.textContent = usefulSuggestions.length > 0
             ? "Confirma entre 1 y 3 opciones para recibir orientación."
-            : "No hay evidencia suficiente para sugerir cargos. Puedes elegirlos manualmente.";
-        recommendationHintText.textContent = "Estas opciones se basan en la evidencia disponible. La información pendiente no significa falta de capacidad.";
+            : "No encontramos información suficiente para sugerir cargos. Puedes elegir los que te interesan.";
+        recommendationHintText.textContent = "Profilia encontró estas opciones en tu hoja de vida. La información que falta no significa que no tengas la capacidad.";
 
         for (const card of roleCards) {
             card.classList.add("hidden");
@@ -377,9 +389,7 @@ export function initRoleSelection(form, operations) {
             const detail = card.querySelector("[data-role-suggestion]");
             detail.classList.remove("hidden");
             detail.textContent =
-                `Afinidad: ${Math.round(suggestion.score_min)}–${Math.round(suggestion.score_max)} / 100. ` +
-                `Cobertura obligatoria confirmada: ${Math.round(suggestion.required_coverage * 100)}%. ` +
-                `Fortalezas: ${suggestion.strengths.join(", ")}.` +
+                `Fortalezas que encontramos: ${suggestion.strengths.join(", ")}.` +
                 (suggestion.unknowns.length > 0 ? ` Por confirmar: ${suggestion.unknowns.join(", ")}.` : "");
             roleList.append(card);
         }
@@ -396,10 +406,10 @@ export function initRoleSelection(form, operations) {
         closeRoleModalButton.disabled = busy;
         cancelRoleModalButton.disabled = busy;
         roleDialog.setAttribute("aria-busy", String(busy));
-        openRoleModalButton.className = "w-full py-2.5 px-4 rounded-xl bg-[#13223a] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed";
+        openRoleModalButton.className = "w-full min-h-[44px] py-2.5 px-4 rounded-xl bg-[#13223a] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed";
         const label = openRoleModalButton.querySelector("span");
         label.textContent = !profileRevision
-            ? "Procesa tu CV para continuar"
+            ? "Revisa tu hoja de vida para continuar"
             : confirmedRoles.length > 0
                 ? `${confirmedRoles.length} ${confirmedRoles.length === 1 ? "cargo seleccionado" : "cargos seleccionados"} · Cambiar`
                 : "Seleccionar cargos y continuar";
@@ -428,7 +438,7 @@ export function initRoleSelection(form, operations) {
 
         roleCounter.textContent = `${selectedRoles.size} / 3`;
         confirmRolesButton.disabled = busy || !profileRevision || selectedRoles.size === 0;
-        confirmRolesButton.className = "px-5 py-2.5 rounded-xl bg-[#02bc4d] text-white text-xs font-bold flex items-center gap-2 transition disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed";
+        confirmRolesButton.className = "min-h-[44px] px-5 py-2.5 rounded-xl bg-[#02bc4d] text-white text-xs font-bold flex items-center gap-2 transition disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed";
     }
 
     function syncSelectedRolesInputs() {

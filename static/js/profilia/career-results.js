@@ -1,256 +1,298 @@
-const careerResultsSection = document.getElementById("career-results-section");
-const careerResultsTitle = document.getElementById("career-results-title");
-const careerResults = document.getElementById("career-results");
-const roleTemplate = document.getElementById("career-role-template");
-const requirementTemplate = document.getElementById("career-requirement-template");
 const chat = document.getElementById("profile-chat-messages");
 const chatTemplate = document.getElementById("career-chat-template");
-const clarificationForm = document.getElementById("career-clarification-form");
-const clarificationFields = document.getElementById("career-clarification-fields");
-const clarificationTemplate = document.getElementById("career-clarification-template");
+const questionTemplate = document.getElementById("career-question-template");
+const chatForm = document.getElementById("career-chat-form");
+const detailInput = document.getElementById("career-chat-input");
+const sendButton = document.getElementById("career-chat-send");
 const groups = {
-    high: "Alta afinidad",
-    medium: "Afinidad media",
-    low: "Baja afinidad",
-    pending: "Resultado pendiente",
-};
-const requirementLabels = {
-    evidencia_en_perfil: "Con evidencia",
-    cumple: "Compatible",
-    incumple: "No cumple según la información disponible",
-    sin_evidencia: "Sin evidencia suficiente",
+    high: "Encontramos fortalezas relacionadas con este cargo.",
+    medium: "Hay fortalezas que puedes desarrollar para acercarte a este cargo.",
+    low: "Podemos ayudarte a preparar tus próximos pasos hacia este cargo.",
+    pending: "Necesitamos conocer un poco más de ti para orientar este cargo.",
 };
 let busy = false;
+let questions = [];
+let answers = [];
+let currentQuestion = null;
+let selectedAnswer = "";
+let reviewQueue = null;
+let activeRoles = "";
+let submitClarification;
 
 export function initCareerResults(onClarify, onRetry) {
-    clarificationForm.addEventListener("change", updateClarificationControls);
-    clarificationForm.addEventListener("submit", event => {
+    submitClarification = onClarify;
+    document.fonts.ready.then(scrollChatToEnd);
+    chatForm.addEventListener("submit", async event => {
         event.preventDefault();
 
+        if (busy || !currentQuestion || selectedAnswer !== "yes") {
+            return;
+        }
+
+        const detail = detailInput.value.trim();
+        detailInput.setCustomValidity(!detail
+            ? "Cuéntanos dónde y cómo conoces o has utilizado esta habilidad."
+            : detail.length > 1000 ? "Puedes escribir hasta 1000 caracteres." : "");
+
+        if (chatForm.reportValidity()) {
+            await saveAnswer("yes", detail);
+        }
+    });
+    detailInput.addEventListener("input", () => detailInput.setCustomValidity(""));
+    chat.addEventListener("click", async event => {
         if (busy) {
             return;
         }
 
-        const clarifications = Object.create(null);
+        const answerButton = event.target.closest("[data-question-answer]");
 
-        for (const field of clarificationFields.children) {
-            const answer = field.querySelector("[data-question-answer]").value;
-            const detailInput = field.querySelector("[data-question-detail]");
-            const detail = detailInput.value.trim();
-            detailInput.setCustomValidity(answer === "yes" && !detail
-                ? "Describe dónde y cómo has usado esta habilidad."
-                : "");
-            clarifications[field.dataset.skill] = { answer, detail: answer === "yes" ? detail : "" };
-        }
-
-        if (clarificationForm.reportValidity()) {
-            onClarify(clarifications);
-        }
-    });
-
-    clarificationForm.addEventListener("input", event => {
-        if (event.target.matches("[data-question-detail]")) {
-            event.target.setCustomValidity("");
-        }
-    });
-
-    chat.addEventListener("click", event => {
-        if (busy) {
+        if (answerButton && currentQuestion) {
+            if (answerButton.dataset.questionAnswer === "yes") {
+                selectedAnswer = "yes";
+                updateQuestionControls();
+                detailInput.focus();
+            } else {
+                await saveAnswer(answerButton.dataset.questionAnswer, "");
+            }
             return;
         }
 
         const retryButton = event.target.closest("[data-retry-recommendation]");
 
         if (retryButton) {
-            onRetry(retryButton.dataset.roleName);
+            await onRetry(retryButton.dataset.roleName);
         }
 
-        if (event.target.closest("[data-complete-information]")) {
-            document.getElementById("career-clarification-title").focus();
-            clarificationForm.scrollIntoView({ block: "start" });
+        if (event.target.closest("[data-review-unknown]")) {
+            reviewQueue = questions.filter(question => question.answer === "unknown")
+                .map(question => question.skill);
+            renderNextQuestion(true);
         }
     });
 }
 
 export function setCareerResultsBusy(value) {
     busy = value;
-    careerResultsSection.setAttribute("aria-busy", String(value));
     chat.setAttribute("aria-busy", String(value));
     chat.querySelectorAll("button").forEach(button => { button.disabled = value; });
-    clarificationForm.querySelector("button[type=submit]").disabled = value;
-    updateClarificationControls();
+    updateQuestionControls();
 }
 
-export function renderAssessments(assessments, pendingQuestions = [], moveFocus = true) {
-    careerResults.replaceChildren();
+export function renderAssessments(assessments, pendingQuestions = [], answeredQuestions = [], moveFocus = true) {
+    questions = pendingQuestions;
+    answers = answeredQuestions;
     chat.querySelectorAll("[data-career-message]").forEach(message => message.remove());
 
+    const roleNames = assessments.map(assessment => assessment.role_name).sort().join("\n");
+
+    if (roleNames !== activeRoles || assessments.length === 0) {
+        reviewQueue = null;
+    }
+    activeRoles = roleNames;
+
     for (const assessment of assessments) {
-        const article = roleTemplate.content.firstElementChild.cloneNode(true);
-        article.querySelector("[data-role-name]").textContent = assessment.role_name;
-        article.querySelector("[data-role-group]").textContent = groups[assessment.group];
-        article.querySelector("[data-role-score]").textContent =
-            `Afinidad con los criterios: ${Math.round(assessment.score_min)}–` +
-            `${Math.round(assessment.score_max)} / 100. Es un índice de ajuste, no una probabilidad de contratación.`;
-        article.querySelector("[data-role-summary]").textContent = assessment.summary;
+        renderRecommendation(assessment);
+    }
 
-        const findings = article.querySelector("[data-role-findings]");
+    for (const answer of answers) {
+        renderSavedAnswer(answer);
+    }
 
-        for (const [label, items] of [
-            ["Fortalezas", assessment.strengths],
-            ["Brechas conocidas", assessment.gaps],
-            ["Por confirmar", assessment.unknowns],
-        ]) {
-            if (items.length > 0) {
-                const paragraph = document.createElement("p");
-                paragraph.textContent = `${label}: ${items.join(" · ")}`;
-                findings.append(paragraph);
+    renderNextQuestion(moveFocus && assessments.length > 0);
+    setCareerResultsBusy(busy);
+}
+
+export function focusCareerQuestion() {
+    const message = chat.querySelector("[data-career-question]") || chat.querySelector("[data-career-finish]");
+    const target = message?.querySelector("[tabindex]") || chat.querySelector("[data-chat-role]");
+    target?.focus({ preventScroll: true });
+    requestAnimationFrame(() => (message || target)?.scrollIntoView({ block: "nearest" }));
+}
+
+async function saveAnswer(answer, detail) {
+    if (busy || !currentQuestion) {
+        return;
+    }
+
+    const skill = currentQuestion.skill;
+    const saved = await submitClarification({ [skill]: { answer, detail } });
+    const recorded = answers.some(item => item.skill === skill && item.answer === answer && item.detail === detail);
+
+    if (saved || recorded) {
+        if (reviewQueue) {
+            reviewQueue = reviewQueue.filter(item => item !== skill);
+            if (reviewQueue.length === 0) {
+                reviewQueue = null;
             }
         }
-
-        for (const requirement of assessment.requirements) {
-            const row = renderRequirement(requirement);
-            article.querySelector(requirement.category === "required"
-                ? "[data-required-skills]"
-                : "[data-preferred-skills]").append(row);
-        }
-
-        careerResults.append(article);
-        renderChatMessage(assessment, pendingQuestions.length > 0);
+        selectedAnswer = "";
+        detailInput.value = "";
+        detailInput.setCustomValidity("");
+        renderNextQuestion(true);
     }
-
-    renderClarificationQuestions(pendingQuestions);
-    careerResultsSection.classList.toggle("hidden", assessments.length === 0);
-    setCareerResultsBusy(busy);
-
-    if (moveFocus && assessments.length > 0) {
-        careerResultsTitle.focus({ preventScroll: true });
-        careerResultsSection.scrollIntoView({ block: "start" });
-    }
-
-    chat.scrollTop = chat.scrollHeight;
 }
 
-function renderRequirement(requirement) {
-    const row = requirementTemplate.content.firstElementChild.cloneNode(true);
-    row.querySelector("[data-skill-name]").textContent = requirement.skill;
-    const badge = row.querySelector("[data-skill-status]");
-    const origin = requirement.source === "user_clarification"
-        ? "declaración del usuario"
-        : requirement.source === "rule" ? "regla del cargo" : "Kev";
-    badge.textContent = `${requirementLabels[requirement.status]} · ${origin}`;
-    badge.classList.add(...(requirement.status === "cumple" || requirement.status === "evidencia_en_perfil"
-        ? ["bg-emerald-50", "text-emerald-800"]
-        : requirement.status === "incumple"
-            ? ["bg-rose-50", "text-rose-800"]
-            : ["bg-slate-100", "text-slate-600"]));
-
-    const evidenceText = row.querySelector("[data-skill-evidence]");
-    evidenceText.textContent = requirement.evidence.map(item => {
-        const source = item.source.startsWith("skills[")
-            ? "Habilidades del CV"
-            : item.source.startsWith("experience[") ? "Experiencia del CV" : "Declaración del usuario";
-        return `${source}: ${item.value}`;
-    }).join(" · ");
-    evidenceText.hidden = requirement.evidence.length === 0;
-
-    const probabilities = requirement.probabilities;
-    const probabilitiesText = row.querySelector("[data-skill-probabilities]");
-    probabilitiesText.hidden = !probabilities;
-
-    if (probabilities) {
-        probabilitiesText.textContent = probabilityText(probabilities) +
-            ` Certeza reportada: ${Math.round(requirement.confidence * 100)}%.`;
-    }
-
-    const original = row.querySelector("[data-skill-original]");
-    original.hidden = !requirement.kev_answer || (requirement.source === "kev" &&
-        requirement.kev_answer.choice === requirement.status);
-
-    if (!original.hidden) {
-        original.textContent = `Lectura original de Kev: ${requirementLabels[requirement.kev_answer.choice]}. ` +
-            probabilityText(requirement.kev_answer.probabilities);
-    }
-
-    const alternatives = row.querySelector("[data-skill-alternatives]");
-    alternatives.hidden = !requirement.alternatives?.length;
-
-    for (const alternative of requirement.alternatives || []) {
-        alternatives.append(renderRequirement(alternative));
-    }
-
-    return row;
-}
-
-function probabilityText(probabilities) {
-    return `Opciones de Kev: compatible ${Math.round(probabilities.cumple * 100)}% · ` +
-        `no cumple ${Math.round(probabilities.incumple * 100)}% · ` +
-        `sin evidencia ${Math.round(probabilities.sin_evidencia * 100)}%`;
-}
-
-function renderChatMessage(assessment, hasPendingQuestions) {
+function renderRecommendation(assessment) {
     const message = chatTemplate.content.firstElementChild.cloneNode(true);
     message.querySelector("[data-chat-role]").textContent = assessment.role_name;
-    message.querySelector("[data-chat-group]").textContent = groups[assessment.group];
-    message.querySelector("[data-chat-text]").textContent =
-        assessment.recommendation?.text || assessment.summary;
+    const group = message.querySelector("[data-chat-group]");
+    group.textContent = groups[assessment.group] || groups.pending;
+    group.hidden = Boolean(assessment.summary && !assessment.recommendation);
+    const findings = message.querySelector("[data-chat-findings]");
+
+    for (const [label, items, showWithSummary] of [
+        ["Fortalezas que encontramos", assessment.strengths, assessment.group === "pending"],
+        ["Habilidades por desarrollar según lo que compartiste", assessment.gaps, ["high", "pending"].includes(assessment.group)],
+        ["Información por confirmar", assessment.unknowns, assessment.group === "high"],
+    ]) {
+        if (items?.length > 0 && (assessment.recommendation || !assessment.summary || showWithSummary)) {
+            const paragraph = document.createElement("p");
+            paragraph.textContent = `${label}: ${items.join(" · ")}.`;
+            findings.append(paragraph);
+        }
+    }
+
+    if (assessment.recommendation && assessment.requirements?.some(requirement =>
+        requirement.source === "user_clarification" || requirement.alternatives?.some(alternative =>
+            alternative.source === "user_clarification"))) {
+        const note = document.createElement("p");
+        note.textContent = "Esta orientación también tiene en cuenta tus respuestas; no confirma por sí sola tus conocimientos.";
+        findings.append(note);
+    }
+
+    message.querySelector("[data-chat-text]").textContent = assessment.recommendation?.text || assessment.summary ||
+        (assessment.group === "pending"
+            ? "La información que falta en tu hoja de vida no significa que no tengas la capacidad. Conversemos sobre ella."
+            : "Profilia te orienta con la información que compartiste. Estos resultados no garantizan una contratación.");
 
     const actions = message.querySelector("[data-chat-actions]");
-    actions.hidden = !assessment.recommendation?.actions.length;
+    actions.hidden = !assessment.recommendation?.actions?.length;
 
     for (const action of assessment.recommendation?.actions || []) {
         const item = document.createElement("li");
-        item.textContent = `${action.skill}: ${action.action} Para comprobar tu avance: ${action.evidence_of_progress}`;
+        item.textContent = `${action.skill}: ${action.action} Para reconocer tu avance: ${action.evidence_of_progress}`;
         actions.append(item);
     }
 
     const recommendationPending = assessment.recommendation_status === "pending";
     const recommendationStatus = message.querySelector("[data-recommendation-status]");
     recommendationStatus.hidden = !recommendationPending;
-    recommendationStatus.textContent = "La evaluación está guardada; la recomendación personalizada sigue pendiente. Puedes reintentarla.";
+    recommendationStatus.textContent = "Tu evaluación está guardada. Aún falta preparar la recomendación; puedes volver a intentarlo.";
     const retry = message.querySelector("[data-retry-recommendation]");
     retry.hidden = !recommendationPending;
     retry.classList.toggle("hidden", !recommendationPending);
     retry.dataset.roleName = assessment.role_name;
-    const complete = message.querySelector("[data-complete-information]");
-    complete.hidden = assessment.group !== "pending" || !hasPendingQuestions;
-    complete.classList.toggle("hidden", complete.hidden);
     chat.append(message);
 }
 
-function renderClarificationQuestions(questions) {
-    clarificationFields.replaceChildren();
-    clarificationForm.classList.toggle("hidden", questions.length === 0);
+function renderSavedAnswer(answer) {
+    const message = document.createElement("div");
+    message.dataset.careerMessage = "";
+    message.dataset.careerAnswer = "";
+    message.dataset.skill = answer.skill;
+    message.className = "ml-auto max-w-[88%] rounded-2xl rounded-tr-none border border-emerald-200 bg-emerald-50 p-3.5 space-y-1 break-words";
+    const text = document.createElement("p");
+    text.className = "font-semibold text-[#13223a]";
+    text.textContent = answer.answer === "yes"
+        ? `Sí, conozco o he utilizado ${answer.label}.`
+        : answer.answer === "no" ? `No conozco ni he utilizado ${answer.label}.`
+            : `No estoy seguro sobre ${answer.label}.`;
+    message.append(text);
 
-    questions.forEach((question, index) => {
-        const field = clarificationTemplate.content.firstElementChild.cloneNode(true);
-        field.dataset.skill = question.skill;
-        field.querySelector("[data-question-label]").textContent = question.label;
-        field.querySelector("[data-question-roles]").textContent = `Cargos: ${question.roles.join(" · ")}`;
-        const answer = field.querySelector("[data-question-answer]");
-        answer.id = `career-answer-${index}`;
-        answer.value = question.answer || "";
-        field.querySelector("[data-answer-label]").htmlFor = answer.id;
-        const detail = field.querySelector("[data-question-detail]");
-        detail.id = `career-detail-${index}`;
-        detail.value = question.detail || "";
-        field.querySelector("[data-detail-label]").htmlFor = detail.id;
-        clarificationFields.append(field);
-    });
+    if (answer.answer === "yes" && answer.detail) {
+        const detail = document.createElement("p");
+        detail.className = "whitespace-pre-line leading-relaxed";
+        detail.textContent = answer.detail;
+        message.append(detail);
+    }
 
-    updateClarificationControls();
+    chat.append(message);
 }
 
-function updateClarificationControls() {
-    for (const field of clarificationFields.children) {
-        const answer = field.querySelector("[data-question-answer]");
-        const detail = field.querySelector("[data-question-detail]");
-        answer.disabled = busy;
-        detail.required = answer.value === "yes";
-        detail.disabled = busy || answer.value !== "yes";
+function renderNextQuestion(moveFocus) {
+    chat.querySelectorAll("[data-career-question], [data-career-finish]")
+        .forEach(message => message.remove());
+    const answeredSkills = new Set(answers.map(answer => answer.skill));
+    const next = reviewQueue
+        ? reviewQueue.map(skill => questions.find(question => question.skill === skill)).find(Boolean)
+        : questions.find(question => !answeredSkills.has(question.skill) && !question.answer);
 
-        if (!detail.required) {
-            detail.setCustomValidity("");
-        }
+    if (next?.skill !== currentQuestion?.skill || !next) {
+        selectedAnswer = "";
+        detailInput.value = "";
+        detailInput.setCustomValidity("");
+    }
+    currentQuestion = next || null;
+
+    if (next) {
+        const message = questionTemplate.content.firstElementChild.cloneNode(true);
+        message.dataset.skill = next.skill;
+        message.querySelector("[data-question-title]").textContent = `¿Conoces o has utilizado ${next.label}?`;
+        message.querySelector("[data-question-roles]").textContent = `Nos ayudará a orientar: ${next.roles.join(" · ")}.`;
+        chat.append(message);
+    } else if (chat.querySelector("[data-career-message]")) {
+        renderConversationEnd();
+    }
+
+    updateQuestionControls();
+    scrollChatToEnd();
+
+    if (moveFocus) {
+        focusCareerQuestion();
+    }
+}
+
+function renderConversationEnd() {
+    const message = document.createElement("div");
+    message.dataset.careerMessage = "";
+    message.dataset.careerFinish = "";
+    message.className = "max-w-[95%] rounded-2xl rounded-tl-none border border-slate-200 bg-slate-100 p-3.5 space-y-2";
+    const text = document.createElement("p");
+    text.tabIndex = -1;
+    const uncertain = questions.some(question => question.answer === "unknown");
+    text.textContent = !chat.querySelector("[data-chat-role]")
+        ? "Conservamos tus respuestas. Elige los cargos que te interesan para actualizar tu orientación."
+        : uncertain
+        ? "Guardamos tus respuestas. Algunas dudas todavía impiden completar la orientación. Puedes revisarlas cuando estés listo; tener dudas no significa que te falte capacidad."
+        : `${answers.length ? "Guardamos tus respuestas." : "Tu orientación está lista."} Puedes consultar la orientación de tus cargos en este chat o elegir otros cargos para continuar.`;
+    message.append(text);
+
+    if (uncertain) {
+        const review = document.createElement("button");
+        review.type = "button";
+        review.dataset.reviewUnknown = "";
+        review.textContent = "Revisar mis dudas";
+        review.className = "min-h-[44px] font-bold text-[#13223a] underline disabled:opacity-50";
+        review.disabled = busy;
+        message.append(review);
+    }
+
+    chat.append(message);
+}
+
+function scrollChatToEnd() {
+    requestAnimationFrame(() => { chat.scrollTop = chat.scrollHeight; });
+}
+
+function updateQuestionControls() {
+    const needsDetail = Boolean(currentQuestion && selectedAnswer === "yes");
+    detailInput.disabled = busy || !needsDetail;
+    detailInput.required = needsDetail;
+    sendButton.disabled = busy || !needsDetail;
+    detailInput.placeholder = needsDetail
+        ? "Cuéntame dónde y cómo la conoces o has utilizado"
+        : currentQuestion ? "Elige Sí, No o No estoy seguro en el chat"
+            : "Las preguntas aparecerán aquí en el chat";
+    const yes = chat.querySelector('[data-question-answer="yes"]');
+    yes?.setAttribute("aria-pressed", String(needsDetail));
+    yes?.classList.toggle("border-[#02bc4d]", needsDetail);
+    const context = chat.querySelector("[data-question-context]");
+
+    if (context) {
+        context.hidden = !needsDetail;
+    }
+
+    if (!needsDetail) {
+        detailInput.setCustomValidity("");
     }
 }

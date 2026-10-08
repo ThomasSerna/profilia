@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field, model_validator
 EVALUATOR_VERSION = "skill_matching_v1"
 KEV_EVALUATOR_VERSION = "kev_skills_v2"
 RUBRIC_VERSION = "career_rubric_v1"
-RECOMMENDATION_VERSION = "career_recommendation_v2"
+RECOMMENDATION_VERSION = "career_recommendation_v3"
 RECOMMENDATION_MODEL = "openai/gpt-oss-120b"
 MIN_KEV_CONFIDENCE = 0.60
 
