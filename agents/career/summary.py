@@ -76,15 +76,10 @@ def add_assessment_summary(assessment: RoleAssessment) -> RoleAssessment:
         summary = (
             f"Todavía no tenemos información suficiente para darte una orientación completa hacia {assessment.role_name}. "
             f"No encontramos datos suficientes sobre {', '.join(unknowns)} en tu hoja de vida ni en tus respuestas, "
-            "y eso no significa que no tengas la capacidad. "
             "Si has utilizado alguna de estas habilidades, Profilia te recomienda incluirla en tu hoja de vida "
             "con un ejemplo concreto; si todavía no la conoces, puede ser un buen punto de partida para aprender."
         )
 
-    declared = [item.skill for item in assessment.requirements if item.source == "user_clarification"
-                or any(alternative.source == "user_clarification" for alternative in item.alternatives)]
-    if declared:
-        summary += f" También tomamos en cuenta lo que nos contaste sobre: {', '.join(declared)}."
     return assessment.model_copy(update={
         "score_min": float(minimum),
         "score_max": float(maximum),

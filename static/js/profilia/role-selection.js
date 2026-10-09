@@ -365,7 +365,7 @@ export function initRoleSelection(form, operations) {
         roleSelectionDescription.textContent = usefulSuggestions.length > 0
             ? "Confirma entre 1 y 3 opciones para recibir orientación."
             : "No encontramos información suficiente para sugerir cargos. Puedes elegir los que te interesan.";
-        recommendationHintText.textContent = "Profilia encontró estas opciones en tu hoja de vida. La información que falta no significa que no tengas la capacidad.";
+        recommendationHintText.textContent = "Profilia encontró estas opciones en tu hoja de vida.";
 
         for (const card of roleCards) {
             card.classList.add("hidden");
