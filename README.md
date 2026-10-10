@@ -20,13 +20,20 @@ Proyecto de Ingeniería de Software orientado a una arquitectura agéntica para 
 
 ## Funcionalidades actuales
 
-- Carga y procesamiento de hojas de vida en formato PDF desde la interfaz principal.
-- Extracción del texto contenido en el PDF.
-- Flujo del Agente de Perfil implementado con LangGraph.
-- Extracción estructurada de datos del candidato mediante un LLM.
-- Interfaz base de Profilia para el flujo agéntico.
-- Sistema básico de autenticación con registro, inicio y cierre de sesión.
-- Visualización de los datos del usuario autenticado dentro de la interfaz.
+- Sistema de autenticación con registro, inicio y cierre de sesión.
+- Carga y procesamiento de hojas de vida en PDF, con validación de formato y tamaño máximo de 10 MB.
+- Extracción de texto y datos estructurados del candidato mediante el Agente de Perfil, implementado con LangGraph y un LLM.
+- Almacenamiento del perfil y recuperación de los resultados al volver a ingresar.
+- Reutilización de hojas de vida ya procesadas para evitar análisis repetidos.
+- Selección y evaluación de entre uno y tres cargos del catálogo profesional.
+- Evaluación de habilidades y coincidencia con los requisitos de cada cargo mediante Kev.
+- Visualización de fortalezas, brechas e información pendiente para orientar la búsqueda de empleo.
+- Exploración del catálogo para sugerir hasta tres cargos afines al perfil.
+- Preguntas de aclaración sobre habilidades y actualización de la evaluación con las respuestas del usuario.
+- Generación de recomendaciones profesionales para evaluaciones de coincidencia intermedia y reintento de recomendaciones pendientes.
+- Guardado de preferencias de empleo por modalidad, ciudad y salario mínimo.
+- Consulta y clasificación de vacantes de un conjunto de datos local según el perfil, las habilidades y las preferencias del usuario.
+- Interfaz integrada para cargar la hoja de vida, consultar la orientación profesional y explorar vacantes.
 
 ## Configuración local
 
