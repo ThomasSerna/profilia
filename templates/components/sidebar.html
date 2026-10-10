@@ -179,6 +179,40 @@
 
 
             <!-- Agent 2 -->
+            {% if user.is_authenticated and user.profile.raw_text %}
+            <a
+                href="{% url 'vacancies' %}"
+                class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl
+                       transition-all duration-200 bg-white/5 hover:bg-slate-800 text-white
+                       font-medium group"
+            >
+
+                <div class="flex items-center space-x-3">
+
+                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-white transition">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+
+                    <div class="text-left">
+
+                        <p class="text-xs font-semibold">
+                            2. Vacantes
+                        </p>
+
+                        <p class="text-[10px] text-slate-400">
+                            Oportunidades para ti
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#02bc4d]/20 text-[#02bc4d] font-semibold border border-[#02bc4d]/30">
+                    Disponible
+                </span>
+
+            </a>
+            {% else %}
             <button
                 disabled
                 class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl
@@ -215,6 +249,7 @@
                 </span>
 
             </button>
+            {% endif %}
 
 
             <!-- Agent 3 -->

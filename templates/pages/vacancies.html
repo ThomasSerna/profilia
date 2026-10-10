@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}
+    Profilia - Vacantes para ti
+{% endblock %}
+
+
+{% block content %}
+
+<section class="space-y-6 max-w-5xl mx-auto">
+
+    <!-- Preferencias y búsqueda -->
+    <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+
+        <h2 class="text-sm font-bold text-[#13223a] mb-1 flex items-center">
+            <i class="fa-solid fa-briefcase text-[#02bc4d] mr-2"></i>
+            Vacantes para ti
+        </h2>
+
+        <p class="text-xs text-slate-500 mb-4">
+            Calculamos qué tan bien encaja tu hoja de vida con cada vacante. Las coincidencias son orientativas
+            y usan vacantes de demostración.
+        </p>
+
+        <form
+            id="vacancy-filter-form"
+            action="{% url 'match_vacancies' %}"
+            method="POST"
+            class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs items-end"
+        >
+            {% csrf_token %}
+
+            <label class="flex flex-col gap-1">
+                <span class="font-semibold text-slate-700">Modalidad</span>
+                <select name="modality" class="rounded-lg border border-slate-300 px-2.5 py-2 bg-white">
+                    <option value="any">Todas</option>
+                    <option value="remoto">100% remoto</option>
+                    <option value="hibrido">Híbrido</option>
+                    <option value="presencial">Presencial</option>
+                </select>
+            </label>
+
+            <label class="flex flex-col gap-1">
+                <span class="font-semibold text-slate-700">Ciudad (si no es remoto)</span>
+                <input name="city" type="text" maxlength="80" placeholder="Ej. Medellín"
+                       class="rounded-lg border border-slate-300 px-2.5 py-2">
+            </label>
+
+            <label class="flex flex-col gap-1">
+                <span class="font-semibold text-slate-700">Aspiración salarial (COP)</span>
+                <input name="salary_min" type="number" min="0" step="100000" placeholder="Ej. 6000000"
+                       class="rounded-lg border border-slate-300 px-2.5 py-2">
+            </label>
+
+            <button
+                type="submit"
+                class="min-h-[44px] rounded-xl bg-[#02bc4d] hover:bg-[#00d461] text-white font-bold px-4 py-2.5 transition"
+            >
+                Buscar coincidencias
+            </button>
+        </form>
+
+        <p id="vacancy-status" role="status" class="pt-3 text-xs text-slate-600"></p>
+    </div>
+
+    <!-- Resultados -->
+    <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
+
+        <p id="vacancy-summary" class="text-xs font-semibold text-[#13223a]"></p>
+
+        <div id="vacancy-list" class="space-y-3"></div>
+
+        <!-- Selección: el Agente de Postulación aún no existe, así que solo confirma la elección -->
+        <div class="pt-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+            <p id="vacancy-selection-count" class="text-slate-600">Ninguna vacante seleccionada.</p>
+            <button
+                id="confirm-vacancies-button"
+                type="button"
+                disabled
+                class="min-h-[44px] rounded-xl bg-[#13223a] text-white font-bold px-4 py-2.5 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+                Confirmar selección
+            </button>
+        </div>
+        <p id="vacancy-confirm-message" role="status" class="text-xs text-emerald-800"></p>
+    </div>
+
+</section>
+
+{% endblock %}
+
+
+{% block extra_js %}
+    <script type="module" src="{% static 'js/profilia/vacancies.js' %}"></script>
+{% endblock %}
