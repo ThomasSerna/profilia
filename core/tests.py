@@ -290,3 +290,33 @@ class ChangingPreferencesAffectsMatchingTests(TestCase):
         self.client.post("/vacancies/preferences/", {"modality": "remoto"})
         self.client.post("/vacancies/preferences/", {"modality": "any", "city": "", "salary_min": ""})
         self.assertTrue(self._match()["vac-004"]["meets_preferences"])
+
+
+class SidebarStateTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(email="estado@test.com", password="clave-segura-123")
+        self.client.force_login(self.user)
+
+    def test_new_user_sees_profile_in_progress_and_zero_progress(self):
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.context["profile_completed"], False)
+        self.assertEqual(response.context["flow_progress"], 0)
+        self.assertContains(response, "En curso")
+        self.assertContains(response, 'id="vacancies-nav-locked"')
+
+    def test_profile_with_cv_is_completed_and_unlocks_vacancies(self):
+        Profile.objects.create(user=self.user, data=ProfileData(skills=["Python"]).model_dump(),
+                               raw_text="CV de prueba.")
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.context["profile_completed"], True)
+        self.assertEqual(response.context["flow_progress"], 25)
+        self.assertContains(response, "Completado")
+        self.assertContains(response, 'href="/vacantes/"')
+        self.assertContains(response, "width: 25%")
+
+    def test_active_page_is_marked_in_sidebar(self):
+        Profile.objects.create(user=self.user, data=ProfileData(skills=["Python"]).model_dump(),
+                               raw_text="CV de prueba.")
+        response = self.client.get("/vacantes/")
+        self.assertEqual(response.context["current_url_name"], "vacancies")
+        self.assertContains(response, "bg-[#02bc4d] text-white font-medium")

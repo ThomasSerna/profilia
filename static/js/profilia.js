@@ -1,5 +1,6 @@
 import { initProfileUpload } from "./profilia/profile-upload.js";
 import { initRoleSelection } from "./profilia/role-selection.js";
+import { markProfileCompleted } from "./profilia/sidebar.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("profile-form");
@@ -27,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     roles = initRoleSelection(form, operations);
     upload = initProfileUpload(form, data => {
+        markProfileCompleted();
         roles.setProfile(data);
 
         if (!(data.assessments || []).length) {

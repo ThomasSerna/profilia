@@ -145,25 +145,26 @@
 
             <!-- Agent 1 -->
             <a
+                id="profile-nav-link"
                 href="{% url 'home' %}"
-                class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl
-                       transition-all duration-200 bg-[#02bc4d] text-white font-medium
-                       shadow-md shadow-[#02bc4d]/20 group"
+                class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl transition-all duration-200 group
+                       {% if current_url_name == 'home' %}bg-[#02bc4d] text-white font-medium shadow-md shadow-[#02bc4d]/20{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
             >
 
                 <div class="flex items-center space-x-3">
 
-                    <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white transition">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center transition
+                                {% if current_url_name == 'home' %}bg-white/20 text-white{% else %}bg-slate-800 text-slate-400{% endif %}">
                         <i class="fa-solid fa-id-card"></i>
                     </div>
 
-                    <div class="text-left">
+                    <div class="text-left min-w-0">
 
                         <p class="text-xs font-bold">
                             1. Mi perfil
                         </p>
 
-                        <p class="text-[10px] text-emerald-100">
+                        <p class="text-[10px] font-medium whitespace-nowrap {% if current_url_name == 'home' %}text-white/90{% else %}text-slate-300{% endif %}">
                             Experiencia y orientación
                         </p>
 
@@ -171,35 +172,39 @@
 
                 </div>
 
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-white/20 text-white font-semibold">
-                    En curso
+                <span
+                    id="profile-nav-badge"
+                    class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 font-semibold
+                           {% if profile_completed %}bg-emerald-900 text-emerald-300{% else %}bg-white/20 text-white{% endif %}"
+                >
+                    {% if profile_completed %}Completado{% else %}En curso{% endif %}
                 </span>
 
             </a>
 
 
             <!-- Agent 2 -->
-            {% if user.is_authenticated and user.profile.raw_text %}
+            {% if profile_completed %}
             <a
                 href="{% url 'vacancies' %}"
-                class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl
-                       transition-all duration-200 bg-white/5 hover:bg-slate-800 text-white
-                       font-medium group"
+                class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl transition-all duration-200 group
+                       {% if current_url_name == 'vacancies' %}bg-[#02bc4d] text-white font-medium shadow-md shadow-[#02bc4d]/20{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
             >
 
                 <div class="flex items-center space-x-3">
 
-                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-white transition">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center transition
+                                {% if current_url_name == 'vacancies' %}bg-white/20 text-white{% else %}bg-slate-800 text-slate-400{% endif %}">
                         <i class="fa-solid fa-briefcase"></i>
                     </div>
 
-                    <div class="text-left">
+                    <div class="text-left min-w-0">
 
                         <p class="text-xs font-semibold">
                             2. Vacantes
                         </p>
 
-                        <p class="text-[10px] text-slate-400">
+                        <p class="text-[10px] font-medium whitespace-nowrap {% if current_url_name == 'vacancies' %}text-white/90{% else %}text-slate-300{% endif %}">
                             Oportunidades para ti
                         </p>
 
@@ -207,13 +212,15 @@
 
                 </div>
 
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#02bc4d]/20 text-[#02bc4d] font-semibold border border-[#02bc4d]/30">
+                <span class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 font-semibold border
+                             {% if current_url_name == 'vacancies' %}bg-white/20 text-white border-white/30{% else %}bg-[#02bc4d]/20 text-[#02bc4d] border-[#02bc4d]/30{% endif %}">
                     Disponible
                 </span>
 
             </a>
             {% else %}
             <button
+                id="vacancies-nav-locked"
                 disabled
                 class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl
                        transition-all duration-200 text-slate-400 hover:text-slate-200
@@ -226,13 +233,13 @@
                         <i class="fa-solid fa-briefcase"></i>
                     </div>
 
-                    <div class="text-left">
+                    <div class="text-left min-w-0">
 
                         <p class="text-xs font-semibold">
                             2. Vacantes
                         </p>
 
-                        <p class="text-[10px] text-slate-400">
+                        <p class="text-[10px] font-medium whitespace-nowrap text-slate-300">
                             Oportunidades para ti
                         </p>
 
@@ -240,7 +247,7 @@
 
                 </div>
 
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-semibold">
+                <span class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 bg-slate-800 text-slate-400 font-semibold">
 
                     <i class="fa-solid fa-lock text-[9px] mr-1"></i>
 
@@ -249,6 +256,38 @@
                 </span>
 
             </button>
+            <template id="vacancies-nav-unlocked-template">
+                <a
+                    data-vacancies-url="{% url 'vacancies' %}"
+                    class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl transition-all duration-200 group text-slate-300 hover:bg-slate-800 hover:text-white"
+                >
+
+                    <div class="flex items-center space-x-3">
+
+                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 transition">
+                            <i class="fa-solid fa-briefcase"></i>
+                        </div>
+
+                        <div class="text-left min-w-0">
+
+                            <p class="text-xs font-semibold">
+                                2. Vacantes
+                            </p>
+
+                            <p class="text-[10px] font-medium whitespace-nowrap text-slate-300">
+                                Oportunidades para ti
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <span class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 bg-[#02bc4d]/20 text-[#02bc4d] font-semibold border border-[#02bc4d]/30">
+                        Disponible
+                    </span>
+
+                </a>
+            </template>
             {% endif %}
 
 
@@ -266,13 +305,13 @@
                         <i class="fa-solid fa-paper-plane"></i>
                     </div>
 
-                    <div class="text-left">
+                    <div class="text-left min-w-0">
 
                         <p class="text-xs font-semibold">
                             3. Postulaciones
                         </p>
 
-                        <p class="text-[10px] text-slate-400">
+                        <p class="text-[10px] font-medium whitespace-nowrap text-slate-300">
                             Envía tu candidatura
                         </p>
 
@@ -280,7 +319,7 @@
 
                 </div>
 
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-semibold">
+                <span class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 bg-slate-800 text-slate-400 font-semibold">
 
                     <i class="fa-solid fa-lock text-[9px] mr-1"></i>
 
@@ -305,13 +344,13 @@
                         <i class="fa-solid fa-chart-line"></i>
                     </div>
 
-                    <div class="text-left">
+                    <div class="text-left min-w-0">
 
                         <p class="text-xs font-semibold">
                             4. Seguimiento
                         </p>
 
-                        <p class="text-[10px] text-slate-400">
+                        <p class="text-[10px] font-medium whitespace-nowrap text-slate-300">
                             Novedades y recordatorios
                         </p>
 
@@ -319,7 +358,7 @@
 
                 </div>
 
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-semibold">
+                <span class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 bg-slate-800 text-slate-400 font-semibold">
 
                     <i class="fa-solid fa-lock text-[9px] mr-1"></i>
 
@@ -356,13 +395,13 @@
                             <i class="fa-solid fa-list-check"></i>
                         </div>
 
-                        <div class="text-left">
+                        <div class="text-left min-w-0">
 
                             <p class="text-xs font-semibold">
                                 Historial de actividad
                             </p>
 
-                            <p class="text-[10px] text-slate-400">
+                            <p class="text-[10px] font-medium whitespace-nowrap text-slate-300">
                                 Revisa tus avances
                             </p>
 
@@ -370,7 +409,7 @@
 
                     </div>
 
-                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#00d461]/20 text-[#00d461] font-semibold border border-[#00d461]/30">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 bg-[#00d461]/20 text-[#00d461] font-semibold border border-[#00d461]/30">
                         Próximamente
                     </span>
 
@@ -415,7 +454,8 @@
 
             <div
                 id="flow-progress-bar"
-                class="bg-gradient-to-r from-[#02bc4d] to-[#00d461] h-full w-0 transition-all duration-500"
+                style="width: {{ flow_progress }}%"
+                class="bg-gradient-to-r from-[#02bc4d] to-[#00d461] h-full transition-all duration-500"
             >
             </div>
 
@@ -425,7 +465,7 @@
             id="flow-progress-text"
             class="text-[10px] text-slate-400 text-right"
         >
-            Progreso total: 0%
+            Progreso total: {{ flow_progress }}%
         </p>
 
     </div>
