@@ -1,6 +1,8 @@
 import re
 import unicodedata
 
+from agents.career.roles import get_role_by_name
+
 from .schemas import Vacancy
 
 MODALITY_ALIASES = {
@@ -118,10 +120,15 @@ def normalize_vacancy(raw: dict) -> Vacancy:
     if modality is None:
         raise ValueError(f"Modalidad desconocida: {raw.get('modality')!r}")
 
+    role = get_role_by_name(str(raw.get("role", "")).strip())
+    if role is None:
+        raise ValueError(f"Cargo fuera del catálogo: {raw.get('role')!r}")
+
     return Vacancy(
         id=str(raw.get("id", "")).strip(),
         title=" ".join(str(raw.get("title", "")).split()),
         company=" ".join(str(raw.get("company", "")).split()),
+        role=role.name,
         modality=modality,
         city=normalize_city(raw.get("city")),
         salary_min=_to_int(raw.get("salary_min")),

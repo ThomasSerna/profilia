@@ -98,3 +98,87 @@ class VacanciesPageTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse("home"))
         self.assertNotContains(response, 'href="/vacantes/"')
+
+
+class VacancyClarificationsViewTests(TestCase):
+    url = "/vacancies/match/"
+
+    def setUp(self):
+        from agents.career.cache import get_profile_revision, persist_career_data
+
+        self.user = get_user_model().objects.create_user(
+            email="aclara@test.com", password="clave-segura-123",
+        )
+        profile = Profile.objects.create(
+            user=self.user,
+            data=ProfileData(skills=["Python", "SQL"]).model_dump(),
+            raw_text="CV de prueba para aclaraciones.",
+        )
+        persist_career_data(
+            profile,
+            get_profile_revision(profile),
+            clarifications={"git": {"answer": "yes", "detail": "Proyectos académicos con Git."}},
+        )
+        self.client.force_login(self.user)
+
+    def test_confirmed_skill_from_career_evaluation_is_used(self):
+        response = self.client.post(self.url, {})
+        self.assertEqual(response.status_code, 200)
+        vacancy = next(m for m in response.json()["matches"] if m["vacancy_id"] == "vac-004")
+        self.assertEqual(vacancy["missing_required"], [])
+        self.assertTrue(any("confirmaste" in reason for reason in vacancy["reasons"]))
+
+
+class VacancyRoleViewTests(TestCase):
+    url = "/vacancies/match/"
+
+    def setUp(self):
+        from agents.career.cache import get_profile_revision, persist_career_data
+
+        self.user = get_user_model().objects.create_user(
+            email="cargos@test.com", password="clave-segura-123",
+        )
+        profile = Profile.objects.create(
+            user=self.user,
+            data=ProfileData(skills=["Python", "SQL", "Git"]).model_dump(),
+            raw_text="CV de prueba para cargos.",
+        )
+        persist_career_data(profile, get_profile_revision(profile), role_names=["Data Analyst"])
+        self.client.force_login(self.user)
+
+    def test_selected_role_is_used_in_scoring(self):
+        response = self.client.post(self.url, {})
+        self.assertEqual(response.status_code, 200)
+        analyst = [m for m in response.json()["matches"] if m["role"] == "Data Analyst"]
+        self.assertTrue(analyst)
+        self.assertTrue(all(any("cargo que elegiste" in r for r in m["reasons"]) for m in analyst))
+
+
+class VacancyKevInferenceViewTests(TestCase):
+    url = "/vacancies/match/"
+
+    def setUp(self):
+        from agents.career.cache import get_profile_revision, persist_career_data
+
+        self.user = get_user_model().objects.create_user(
+            email="kev@test.com", password="clave-segura-123",
+        )
+        profile = Profile.objects.create(
+            user=self.user,
+            data=ProfileData(skills=["Python", "SQL", "Git"]).model_dump(),
+            raw_text="CV de prueba para inferencias de Kev.",
+        )
+        probabilities = {"cumple": 0.9, "incumple": 0.05, "sin_evidencia": 0.05}
+        persist_career_data(
+            profile,
+            get_profile_revision(profile),
+            skill_results={"docker": {"type": "choice", "choice": "cumple", "confidence": 0.9,
+                                      "probabilities": probabilities}},
+        )
+        self.client.force_login(self.user)
+
+    def test_kev_inferred_skill_is_used(self):
+        response = self.client.post(self.url, {})
+        self.assertEqual(response.status_code, 200)
+        vacancy = next(m for m in response.json()["matches"] if m["vacancy_id"] == "vac-001")
+        self.assertTrue(any("Kev dedujo de tu CV" in r for r in vacancy["reasons"]))

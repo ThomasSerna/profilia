@@ -21,11 +21,20 @@ builder.add_edge("match", END)
 vacancy_graph = builder.compile()
 
 
-def run_vacancy_agent(profile: ProfileData, preferences: Preferences) -> dict:
-    """Ejecuta el agente de vacantes y devuelve las coincidencias ordenadas."""
+def run_vacancy_agent(profile: ProfileData, preferences: Preferences,
+                      clarifications: dict | None = None, selected_roles: list[str] | None = None,
+                      skill_results: dict | None = None) -> dict:
+    """Ejecuta el agente de vacantes y devuelve las coincidencias ordenadas.
+
+    `clarifications` son las respuestas de la evaluación de carrera; solo las
+    habilidades respondidas con "Sí" suman al perfil.
+    """
     result = vacancy_graph.invoke({
         "profile": profile,
         "preferences": preferences,
+        "clarifications": clarifications or {},
+        "skill_results": skill_results or {},
+        "selected_roles": selected_roles or [],
         "raw_vacancies": [],
         "vacancies": [],
         "skipped": [],

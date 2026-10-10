@@ -3,12 +3,23 @@
     "id": "vac-001",
     "title": "Desarrollador Full Stack Senior (IA & Agentes)",
     "company": "TechCorp Solutions",
+    "role": "Full Stack Developer",
     "modality": "remoto",
     "city": null,
     "salary_min": 6500000,
     "salary_max": 7500000,
-    "required_skills": ["Python", "React", "FastAPI", "REST APIs", "Git"],
-    "nice_skills": ["Docker", "LangGraph", "PostgreSQL"],
+    "required_skills": [
+      "Python",
+      "React",
+      "FastAPI",
+      "REST APIs",
+      "Git"
+    ],
+    "nice_skills": [
+      "Docker",
+      "LangGraph",
+      "PostgreSQL"
+    ],
     "source": "Dataset curado (demo)",
     "description": "Desarrollo de APIs y frontends para productos de IA y agentes."
   },
@@ -16,12 +27,22 @@
     "id": "vac-002",
     "title": "Ingeniero de Software Backend (Python / LLMs)",
     "company": "InnovaAI Latam",
+    "role": "Backend Developer",
     "modality": "hibrido",
     "city": "Medellín",
     "salary_min": 6000000,
     "salary_max": 6000000,
-    "required_skills": ["Python", "REST APIs", "SQL"],
-    "nice_skills": ["LLMs", "LangChain", "Docker", "CI/CD"],
+    "required_skills": [
+      "Python",
+      "REST APIs",
+      "SQL"
+    ],
+    "nice_skills": [
+      "LLMs",
+      "LangChain",
+      "Docker",
+      "CI/CD"
+    ],
     "source": "Dataset curado (demo)",
     "description": "Servicios backend para integrar modelos de lenguaje en productos B2B."
   },
@@ -29,12 +50,21 @@
     "id": "vac-003",
     "title": "Líder Técnico Frontend (React / TypeScript)",
     "company": "Digital Enterprise",
+    "role": "Frontend Developer",
     "modality": "remoto",
     "city": null,
     "salary_min": 5800000,
     "salary_max": 6800000,
-    "required_skills": ["React", "TypeScript", "JavaScript", "Git"],
-    "nice_skills": ["Node.js", "CI/CD"],
+    "required_skills": [
+      "React",
+      "TypeScript",
+      "JavaScript",
+      "Git"
+    ],
+    "nice_skills": [
+      "Node.js",
+      "CI/CD"
+    ],
     "source": "Dataset curado (demo)",
     "description": "Liderazgo técnico de un equipo frontend de cinco personas."
   },
@@ -42,12 +72,20 @@
     "id": "vac-004",
     "title": "Desarrollador Python Junior",
     "company": "Soluciones Andinas",
+    "role": "Backend Developer",
     "modality": "presencial",
     "city": "Medellín",
     "salary_min": 3200000,
     "salary_max": 3800000,
-    "required_skills": ["Python", "SQL", "Git"],
-    "nice_skills": ["Django", "Docker"],
+    "required_skills": [
+      "Python",
+      "SQL",
+      "Git"
+    ],
+    "nice_skills": [
+      "Django",
+      "Docker"
+    ],
     "source": "Dataset curado (demo)",
     "description": "Mantenimiento de sistemas internos y automatización de reportes."
   },
@@ -55,12 +93,20 @@
     "id": "vac-005",
     "title": "Analista de Datos",
     "company": "Comercial Norte",
+    "role": "Data Analyst",
     "modality": "hibrido",
     "city": "Bogotá",
     "salary_min": 4000000,
     "salary_max": 5000000,
-    "required_skills": ["SQL", "Excel", "Power BI"],
-    "nice_skills": ["Python", "Pandas"],
+    "required_skills": [
+      "SQL",
+      "Excel",
+      "Power BI"
+    ],
+    "nice_skills": [
+      "Python",
+      "Pandas"
+    ],
     "source": "Dataset curado (demo)",
     "description": "Tableros comerciales y análisis de ventas para la dirección."
   },
@@ -68,12 +114,21 @@
     "id": "vac-006",
     "title": "Ingeniero de Datos",
     "company": "DataFlow Colombia",
+    "role": "Data Engineer",
     "modality": "remoto",
     "city": null,
     "salary_min": 7000000,
     "salary_max": 9000000,
-    "required_skills": ["Python", "SQL", "PostgreSQL"],
-    "nice_skills": ["Docker", "AWS", "Kubernetes"],
+    "required_skills": [
+      "Python",
+      "SQL",
+      "PostgreSQL"
+    ],
+    "nice_skills": [
+      "Docker",
+      "AWS",
+      "Kubernetes"
+    ],
     "source": "Dataset curado (demo)",
     "description": "Pipelines de ingesta y transformación de datos en la nube."
   },
@@ -81,12 +136,19 @@
     "id": "vac-007",
     "title": "Desarrollador Mobile (Flutter)",
     "company": "AppStudio Medellín",
+    "role": "Mobile Developer",
     "modality": "presencial",
     "city": "Medellín",
     "salary_min": 4500000,
     "salary_max": 5500000,
-    "required_skills": ["Flutter", "REST APIs", "Git"],
-    "nice_skills": ["Firebase"],
+    "required_skills": [
+      "Flutter",
+      "REST APIs",
+      "Git"
+    ],
+    "nice_skills": [
+      "Firebase"
+    ],
     "source": "Dataset curado (demo)",
     "description": "Aplicaciones móviles para clientes de retail."
   },
@@ -94,12 +156,22 @@
     "id": "vac-008",
     "title": "DevOps Engineer",
     "company": "CloudWorks",
+    "role": "DevOps Engineer",
     "modality": "remoto",
     "city": null,
     "salary_min": 6500000,
     "salary_max": 8000000,
-    "required_skills": ["Linux", "Docker", "CI/CD", "Git"],
-    "nice_skills": ["AWS", "Kubernetes", "Terraform"],
+    "required_skills": [
+      "Linux",
+      "Docker",
+      "CI/CD",
+      "Git"
+    ],
+    "nice_skills": [
+      "AWS",
+      "Kubernetes",
+      "Terraform"
+    ],
     "source": "Dataset curado (demo)",
     "description": "Infraestructura como código y despliegues continuos."
   },
@@ -107,12 +179,20 @@
     "id": "vac-009",
     "title": "QA Automation Engineer",
     "company": "Calidad Digital",
+    "role": "QA Automation Engineer",
     "modality": "hibrido",
     "city": "Medellín",
     "salary_min": 4200000,
     "salary_max": 5200000,
-    "required_skills": ["Software Testing", "Python", "Git"],
-    "nice_skills": ["Selenium", "CI/CD"],
+    "required_skills": [
+      "Software Testing",
+      "Python",
+      "Git"
+    ],
+    "nice_skills": [
+      "Selenium",
+      "CI/CD"
+    ],
     "source": "Dataset curado (demo)",
     "description": "Automatización de pruebas end-to-end para aplicaciones web."
   },
@@ -120,12 +200,20 @@
     "id": "vac-010",
     "title": "Desarrollador Full Stack Node.js",
     "company": "Startup Logística",
+    "role": "Full Stack Developer",
     "modality": "presencial",
     "city": "Bogotá",
     "salary_min": 5000000,
     "salary_max": 5500000,
-    "required_skills": ["Node.js", "JavaScript", "SQL"],
-    "nice_skills": ["React", "Docker"],
+    "required_skills": [
+      "Node.js",
+      "JavaScript",
+      "SQL"
+    ],
+    "nice_skills": [
+      "React",
+      "Docker"
+    ],
     "source": "Dataset curado (demo)",
     "description": "Plataforma de rastreo de envíos con equipo pequeño."
   },
@@ -133,12 +221,21 @@
     "id": "vac-011",
     "title": "Científico de Datos",
     "company": "Banca Digital",
+    "role": "Data Scientist",
     "modality": "hibrido",
     "city": "Bogotá",
     "salary_min": 8000000,
     "salary_max": 10000000,
-    "required_skills": ["Python", "Machine Learning", "SQL"],
-    "nice_skills": ["Pandas", "Scikit-learn", "PyTorch"],
+    "required_skills": [
+      "Python",
+      "Machine Learning",
+      "SQL"
+    ],
+    "nice_skills": [
+      "Pandas",
+      "Scikit-learn",
+      "PyTorch"
+    ],
     "source": "Dataset curado (demo)",
     "description": "Modelos de riesgo crediticio y analítica avanzada."
   },
@@ -146,12 +243,20 @@
     "id": "vac-012",
     "title": "Desarrollador Frontend Junior",
     "company": "Agencia Creativa",
+    "role": "Frontend Developer",
     "modality": "remoto",
     "city": null,
     "salary_min": null,
     "salary_max": null,
-    "required_skills": ["HTML", "CSS", "JavaScript", "Git"],
-    "nice_skills": ["React"],
+    "required_skills": [
+      "HTML",
+      "CSS",
+      "JavaScript",
+      "Git"
+    ],
+    "nice_skills": [
+      "React"
+    ],
     "source": "Dataset curado (demo)",
     "description": "Sitios y landing pages para clientes de marketing. No publica salario."
   }

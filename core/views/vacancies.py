@@ -6,6 +6,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 from pydantic import ValidationError
 
+from agents.career.cache import get_career_data
 from agents.profile.schemas import ProfileData
 from agents.vacancies.graph import run_vacancy_agent
 from agents.vacancies.schemas import Preferences
@@ -45,7 +46,10 @@ def match_vacancies(request):
         )
 
     try:
-        result = run_vacancy_agent(candidate, preferences)
+        saved = get_career_data(profile)
+        result = run_vacancy_agent(
+            candidate, preferences, saved["clarifications"], saved["role_names"], saved["skill_results"],
+        )
     except Exception:
         logger.exception("Error inesperado en el agente de vacantes")
         return JsonResponse(

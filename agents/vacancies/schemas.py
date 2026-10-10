@@ -20,6 +20,7 @@ class Vacancy(BaseModel):
     id: str = Field(min_length=1, max_length=64)
     title: str = Field(min_length=1, max_length=160)
     company: str = Field(min_length=1, max_length=120)
+    role: str = Field(min_length=1, max_length=80)
     modality: Modality
     city: str | None = None
     salary_min: int | None = Field(default=None, ge=0)
@@ -43,6 +44,7 @@ class VacancyMatch(BaseModel):
     vacancy_id: str
     title: str
     company: str
+    role: str
     modality: Modality
     city: str | None
     salary_min: int | None
