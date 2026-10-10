@@ -1,0 +1,10 @@
+<div class="profile-field{% if field.name == 'description' or field.name == 'technologies' %} profile-field-wide{% endif %}">
+    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="profile-required" aria-hidden="true"> *</span>{% endif %}</label>
+    {{ field }}
+    {% if field.help_text %}<p id="{{ field.auto_id }}-help" class="profile-field-help">{{ field.help_text }}</p>{% endif %}
+    {% if field.errors %}
+        <ul id="{{ field.auto_id }}-errors" class="profile-field-errors">
+            {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    {% endif %}
+</div>

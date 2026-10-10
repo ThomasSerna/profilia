@@ -1,0 +1,15 @@
+<div class="px-3 py-2 border-b border-slate-700/80">
+    <p class="text-[10px] text-slate-300 uppercase font-bold tracking-wider">Sesión activa</p>
+    <p class="text-[11px] text-emerald-300 truncate mt-0.5" title="{{ request.user.email }}">{{ request.user.email }}</p>
+</div>
+<a href="{% url 'edit_profile' %}"{% if current_url_name == 'edit_profile' %} aria-current="page"{% endif %} class="w-full px-3 py-2.5 min-h-[44px] rounded-lg flex items-center gap-2.5 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d461] {% if current_url_name == 'edit_profile' %}bg-slate-800 text-white{% else %}text-slate-200 hover:text-white hover:bg-slate-800{% endif %}">
+    <i class="fa-solid fa-user-pen text-[#00d461]" aria-hidden="true"></i><span>Editar perfil</span>
+</a>
+<form method="POST" action="{% url 'accounts:logout' %}">
+    {% csrf_token %}
+    <button type="submit" class="w-full px-3 py-2.5 min-h-[44px] rounded-lg text-slate-200 hover:text-white hover:bg-slate-800 flex items-center gap-2.5 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d461]"><i class="fa-solid fa-users text-[#00d461]" aria-hidden="true"></i><span>Cambiar cuenta</span></button>
+</form>
+<form method="POST" action="{% url 'accounts:logout' %}">
+    {% csrf_token %}
+    <button type="submit" class="w-full px-3 py-2.5 min-h-[44px] rounded-lg text-rose-300 hover:text-rose-200 hover:bg-rose-950/30 flex items-center gap-2.5 transition font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d461]"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span>Cerrar sesión</span></button>
+</form>

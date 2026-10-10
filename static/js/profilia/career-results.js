@@ -119,7 +119,7 @@ function renderConversation(moveFocus) {
     currentQuestion = next || null;
 
     if (assessments.length > 0 && (answers.length > 0 || next)) {
-        renderNotice("Antes de darte tu orientación, queremos confirmar algunas habilidades que no encontramos en tu hoja de vida.");
+        renderNotice("Antes de darte tu orientación, queremos confirmar algunas habilidades que no encontramos en tu perfil.");
     }
 
     for (const answer of answers) {
@@ -206,7 +206,7 @@ function renderRecommendation(assessment) {
 
     message.querySelector("[data-chat-text]").textContent = assessment.recommendation?.text || assessment.summary ||
         (assessment.group === "pending"
-            ? "La información que falta en tu hoja de vida no significa que no tengas la capacidad."
+            ? "La información que falta en tu perfil no significa que no tengas la capacidad."
             : "Profilia te orienta con la información que compartiste. Estos resultados no garantizan una contratación.");
 
     const actions = message.querySelector("[data-chat-actions]");

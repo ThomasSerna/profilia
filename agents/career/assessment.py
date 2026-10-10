@@ -63,7 +63,7 @@ def normalize_skill(value: str) -> str:
     return SKILL_ALIASES.get(text, text)
 
 
-def collect_skill_evidence(profile: ProfileData) -> dict[str, list[SkillEvidence]]:
+def collect_skill_evidence(profile: ProfileData, provenance: dict | None = None) -> dict[str, list[SkillEvidence]]:
     items = [
         (value, f"skills[{index}]")
         for index, value in enumerate(profile.skills)
@@ -85,8 +85,9 @@ def collect_skill_evidence(profile: ProfileData) -> dict[str, list[SkillEvidence
         if not key:
             continue
 
+        origin = (provenance or {}).get(source.split("[")[0])
         evidence.setdefault(key, []).append(
-            SkillEvidence(value=value, source=source)
+            SkillEvidence(value=value, source=f"{origin}.{source}" if origin else source)
         )
 
     return evidence

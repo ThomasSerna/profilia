@@ -201,7 +201,7 @@ class InferenceTests(unittest.TestCase):
         with_kev = score_vacancy(candidate, vacancy, Preferences(), inferred={"docker": "Docker"})
         self.assertGreater(with_kev.score, without.score)
         self.assertEqual(with_kev.missing_required, [])
-        self.assertTrue(any("Kev dedujo de tu CV" in r and "Docker" in r for r in with_kev.reasons))
+        self.assertTrue(any("Profilia encontró información en tu perfil" in r and "Docker" in r for r in with_kev.reasons))
 
     def test_confirmed_skill_takes_precedence_in_explanation(self):
         vacancy = make_vacancy(required_skills=["Git"], nice_skills=[])

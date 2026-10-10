@@ -164,6 +164,14 @@
 
                 </form>
 
+                <div class="mt-4 pt-4 border-t border-slate-200">
+                    <a href="{% url 'edit_profile' %}" class="min-h-[44px] w-full inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-[#13223a] hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#008736]">
+                        <i class="fa-solid fa-user-pen text-[#008736]" aria-hidden="true"></i>
+                        {% if saved_state.profile %}Editar mi información{% else %}Crear perfil sin hoja de vida{% endif %}
+                    </a>
+                    <p class="text-[11px] text-slate-600 mt-2 leading-relaxed">Puedes completar tu perfil a mano. Si cargas otra hoja de vida, conservarás las secciones que hayas editado.</p>
+                </div>
+
             </div>
 
         </div>
@@ -208,7 +216,7 @@
                                            bg-slate-100
                                            text-slate-500"
                                 >
-                                    Esperando tu hoja de vida
+                                    Esperando tu perfil
                                 </span>
 
                             </h3>
@@ -250,7 +258,7 @@
 
                             <p class="text-slate-600 leading-relaxed">
                                 En <strong>Profilia</strong> te ayudamos a explorar tus opciones profesionales.
-                                Sube tu hoja de vida en <strong>PDF</strong> y elige los cargos que te interesan.
+                                Sube tu hoja de vida en <strong>PDF</strong> o <a href="{% url 'edit_profile' %}" class="font-semibold underline underline-offset-2">completa tu perfil a mano</a>, y elige los cargos que te interesan.
                                 Conversaremos sobre lo que conoces y has utilizado para orientar tus próximos pasos.
                             </p>
 
@@ -312,7 +320,7 @@
                                gap-2
                                cursor-not-allowed"
                     >
-                        <span>Revisa tu hoja de vida para continuar</span>
+                        <span>Completa tu perfil para continuar</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
 

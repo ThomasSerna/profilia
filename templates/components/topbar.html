@@ -14,9 +14,14 @@
 
     </div>
 
-    <form method="POST" action="{% url 'accounts:logout' %}" class="lg:hidden shrink-0">
-        {% csrf_token %}
-        <button type="submit" class="min-h-[44px] px-3 text-xs font-semibold text-[#13223a] rounded-lg hover:bg-slate-100">Cerrar sesión</button>
-    </form>
+    <div class="lg:hidden shrink-0 relative" data-account-dropdown>
+        <button type="button" data-account-toggle aria-expanded="false" aria-controls="mobile-account-menu" aria-label="Abrir opciones de tu cuenta" class="min-h-[44px] flex items-center gap-2 px-2 rounded-lg hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#008736]">
+            <span class="w-8 h-8 rounded-full bg-[#008736] text-white flex items-center justify-center text-xs font-bold">{{ request.user.initials }}</span>
+            <i class="fa-solid fa-chevron-down text-xs text-slate-600 transition-transform" data-account-icon aria-hidden="true"></i>
+        </button>
+        <div id="mobile-account-menu" data-account-panel class="hidden absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-700 bg-[#13223a] p-2 space-y-1 text-xs shadow-xl z-40">
+            {% include 'components/account_menu.html' %}
+        </div>
+    </div>
 
 </header>

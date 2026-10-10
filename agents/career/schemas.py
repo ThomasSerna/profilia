@@ -3,7 +3,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, model_validator
 
 EVALUATOR_VERSION = "skill_matching_v1"
-KEV_EVALUATOR_VERSION = "kev_skills_v2"
+KEV_EVALUATOR_VERSION = "kev_profile_skills_v3"
 RUBRIC_VERSION = "career_rubric_v1"
 RECOMMENDATION_VERSION = "career_recommendation_v3"
 RECOMMENDATION_MODEL = "openai/gpt-oss-120b"

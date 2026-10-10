@@ -1,5 +1,37 @@
 const PROFILE_STEP_PERCENT = 25;
 
+export function initAccountMenus() {
+    document.querySelectorAll("[data-account-dropdown]").forEach(container => {
+        const toggle = container.querySelector("[data-account-toggle]");
+        const panel = container.querySelector("[data-account-panel]");
+        const icon = container.querySelector("[data-account-icon]");
+
+        function setOpen(open) {
+            panel.classList.toggle("hidden", !open);
+            toggle.setAttribute("aria-expanded", String(open));
+            icon?.classList.toggle("rotate-180", open);
+        }
+
+        toggle.addEventListener("click", () => setOpen(toggle.getAttribute("aria-expanded") !== "true"));
+        document.addEventListener("click", event => {
+            if (!container.contains(event.target)) {
+                setOpen(false);
+            }
+        });
+        container.addEventListener("keydown", event => {
+            if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
+                setOpen(false);
+                toggle.focus();
+            }
+        });
+        container.addEventListener("focusout", event => {
+            if (!container.contains(event.relatedTarget)) {
+                setOpen(false);
+            }
+        });
+    });
+}
+
 export function markProfileCompleted() {
     setProfileBadge();
     unlockVacancyNav();

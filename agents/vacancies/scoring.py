@@ -155,7 +155,7 @@ def score_vacancy(candidate: dict[str, str], vacancy: Vacancy, prefs: Preference
         reasons.append("Incluye habilidades que confirmaste en tu evaluación de carrera: "
                        + ", ".join(dict.fromkeys(confirmed_only)) + ".")
     if inferred_only:
-        reasons.append("Kev dedujo de tu CV estas habilidades: "
+        reasons.append("Profilia encontró información en tu perfil sobre estas habilidades: "
                        + ", ".join(dict.fromkeys(inferred_only)) + ".")
     if required_coverage < LOW_REQUIRED_COVERAGE:
         score = min(score, LOW_COVERAGE_CAP)

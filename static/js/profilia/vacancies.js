@@ -164,11 +164,11 @@ export function initVacancies() {
 
         const evidence = element("div", "space-y-2");
         if (match.matched_skills.length) {
-            evidence.append(chipGroup("Coincidencias CV:", match.matched_skills,
+            evidence.append(chipGroup("Coincidencias con tu perfil:", match.matched_skills,
                 "bg-emerald-50 text-[#02bc4d] border-emerald-200/60"));
         }
         if (match.missing_required.length) {
-            evidence.append(chipGroup("Te faltan:", match.missing_required,
+            evidence.append(chipGroup("Información por completar:", match.missing_required,
                 "bg-red-50 text-red-700 border-red-200"));
         }
 

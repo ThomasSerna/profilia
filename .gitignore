@@ -35,3 +35,8 @@ vendor/
 AGENTS.md
 /private-docs/
 /private-tests/
+
+# Impeccable local design context and review artifacts
+/PRODUCT.md
+/DESIGN.md
+/.impeccable/

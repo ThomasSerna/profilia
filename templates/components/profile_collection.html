@@ -1,0 +1,16 @@
+<div class="profile-entry" data-profile-entry>
+    <div hidden>{{ entry.DELETE }}</div>
+    {% for field in entry.hidden_fields %}{{ field }}{% endfor %}
+    <div class="profile-entry-heading">
+        <h3 data-entry-title>{{ section.entry_label|default:section.title }} <span data-entry-number>{{ forloop.counter }}</span></h3>
+        <button type="button" class="profile-remove-button" data-remove-entry aria-label="Eliminar {{ section.entry_label|default:section.title|lower }} {{ forloop.counter }}">
+            <i class="fa-solid fa-trash-can" aria-hidden="true"></i><span>Eliminar</span>
+        </button>
+    </div>
+    {% if entry.non_field_errors %}<div class="profile-field-errors">{{ entry.non_field_errors }}</div>{% endif %}
+    <div class="profile-fields{% if section.key == 'skills' or section.key == 'languages' %} profile-fields-single{% endif %}">
+        {% for field in entry.visible_fields %}
+            {% if field.name != 'DELETE' %}{% include 'components/profile_field.html' with field=field %}{% endif %}
+        {% endfor %}
+    </div>
+</div>

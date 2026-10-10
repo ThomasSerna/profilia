@@ -7,6 +7,8 @@ from django.conf import settings
 from django.utils import timezone
 from pydantic import ValidationError
 
+from agents.profile.schemas import PROFESSIONAL_FIELDS, has_professional_information
+
 from .assessment import SKILL_ALIASES, normalize_skill, role_skills
 from .kev_assessment import build_role_assessment
 from .llm import build_recommendation_key
@@ -29,15 +31,25 @@ def profile_hash(profile) -> str:
 
 
 def build_skill_key(profile) -> str:
-    return fingerprint({"profile": profile_hash(profile), "evaluator": KEV_EVALUATOR_VERSION,
+    data = profile.data if isinstance(profile.data, dict) else {}
+    return fingerprint({"profile": {field: data.get(field, []) for field in PROFESSIONAL_FIELDS},
+                        "provenance": get_profile_provenance(profile), "evaluator": KEV_EVALUATOR_VERSION,
                         "checkpoint": settings.KEV_CHECKPOINT, "aliases": SKILL_ALIASES})
+
+
+def get_profile_provenance(profile) -> dict:
+    return {
+        field: "user_reviewed" if field in profile.manual_fields or not profile.raw_text.strip() else "cv_extracted"
+        for field in PROFESSIONAL_FIELDS
+    }
 
 
 def get_career_data(profile):
     saved = copy.deepcopy(profile.career_data)
     if not isinstance(saved, dict) or saved.get("schema_version") != 2 or saved.get("profile_hash") != profile_hash(profile):
         saved = {"schema_version": 2, "profile_hash": profile_hash(profile),
-                 "clarifications": {}, "role_names": [], "inference_runs": []}
+                 "clarifications": {}, "role_names": [], "inference_runs": [],
+                 "needs_reassessment": has_professional_information(profile.data)}
     for field in ("clarifications", "skill_results", "assessments"):
         if not isinstance(saved.get(field), dict):
             saved[field] = {}
@@ -46,7 +58,9 @@ def get_career_data(profile):
     if not isinstance(saved.get("inference_runs"), list):
         saved["inference_runs"] = []
     if saved.get("skill_key") != build_skill_key(profile):
-        saved.update(skill_key=build_skill_key(profile), skill_results={}, assessments={})
+        saved.update(skill_key=build_skill_key(profile), skill_results={}, assessments={},
+                     needs_reassessment=has_professional_information(profile.data))
+    saved.setdefault("needs_reassessment", False)
     try:
         saved["skill_results"] = {
             skill: KevChoiceAnswer.model_validate(answer).model_dump()
@@ -60,7 +74,8 @@ def get_career_data(profile):
 
 def get_profile_revision(profile) -> str:
     saved = get_career_data(profile)
-    return fingerprint({"profile": profile_hash(profile), "clarifications": saved["clarifications"]})
+    return fingerprint({"profile": profile_hash(profile), "manual_fields": profile.manual_fields,
+                        "clarifications": saved["clarifications"]})
 
 
 def get_cached_assessments(saved):
@@ -93,11 +108,14 @@ def get_saved_career_data(profile):
         if role is None:
             continue
         names.append(role.name)
+        if saved["needs_reassessment"]:
+            continue
         if any(normalize_skill(skill) not in saved["skill_results"]
                and normalize_skill(skill) not in saved["clarifications"]
                for skill in role_skills(role)):
             continue
-        assessment = build_role_assessment(profile_data, role, saved["skill_results"], saved["clarifications"])
+        assessment = build_role_assessment(profile_data, role, saved["skill_results"], saved["clarifications"],
+                                           get_profile_provenance(profile))
         key = build_recommendation_key(profile_data, role, assessment, saved["clarifications"])
         previous = cached.get(role.name)
         if previous and previous.recommendation_key == key:
@@ -154,13 +172,17 @@ def answered_questions(role_names, clarifications):
 def get_profile_state(profile):
     if profile is None:
         return {"profile": None, "profile_revision": "", "role_names": [],
-                "assessments": [], "pending_questions": [], "answered_questions": []}
+                "assessments": [], "pending_questions": [], "answered_questions": [],
+                "profile_ready": False, "has_cv": False, "needs_reassessment": False, "manual_fields": []}
     saved = get_saved_career_data(profile)
     assessments = saved["assessments"] if saved else []
     names = saved["role_names"] if saved else []
     clarifications = saved["clarifications"] if saved else {}
     return {"profile": profile.data, "profile_revision": get_profile_revision(profile),
             "role_names": names, "assessments": assessments,
+            "profile_ready": has_professional_information(profile.data),
+            "has_cv": bool(profile.raw_text.strip()), "manual_fields": profile.manual_fields,
+            "needs_reassessment": bool(saved and saved["needs_reassessment"]),
             "pending_questions": pending_questions(assessments, clarifications),
             "answered_questions": answered_questions(names, clarifications)}
 
@@ -178,6 +200,7 @@ def persist_career_data(profile, expected_revision, *, skill_results=None, asses
         if skill_results is not None:
             saved["skill_results"].update(skill_results)
         if assessments is not None:
+            saved["needs_reassessment"] = False
             for assessment in assessments:
                 previous = saved["assessments"].get(assessment.role_name, {})
                 if (previous.get("recommendation_key") == assessment.recommendation_key
@@ -193,6 +216,7 @@ def persist_career_data(profile, expected_revision, *, skill_results=None, asses
             saved["clarifications"].update(clarifications)
         updated = Profile.objects.filter(pk=current.pk, user_id=current.user_id,
                                          data=current.data, raw_text=current.raw_text,
+                                         manual_fields=current.manual_fields,
                                          document_hash=current.document_hash,
                                          career_data=current.career_data).update(
             career_data=saved, updated_at=timezone.now())

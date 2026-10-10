@@ -6,7 +6,7 @@ from .state import CareerState
 def evaluate_roles_node(state: CareerState):
     skill_results, assessments, inference_runs = assess_roles_with_kev(
         state["profile"],
-        state["raw_text"],
+        state.get("provenance", {}),
         state["roles"],
         state["skill_results"],
         state["clarifications"],

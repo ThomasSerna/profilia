@@ -187,7 +187,7 @@ class VacancyKevInferenceViewTests(TestCase):
         response = self.client.post(self.url, {})
         self.assertEqual(response.status_code, 200)
         vacancy = next(m for m in response.json()["matches"] if m["vacancy_id"] == "vac-001")
-        self.assertTrue(any("Kev dedujo de tu CV" in r for r in vacancy["reasons"]))
+        self.assertTrue(any("Profilia encontró información en tu perfil" in r for r in vacancy["reasons"]))
 
 
 class VacancyPreferencesTests(TestCase):
@@ -228,8 +228,8 @@ class VacancyPreferencesTests(TestCase):
         self.assertEqual(self.profile.preferences, {})
 
 
-class ProfileReplacementResetsPreferencesTests(TestCase):
-    def test_uploading_a_new_cv_clears_saved_preferences(self):
+class ProfileReplacementPreservesPreferencesTests(TestCase):
+    def test_uploading_a_new_cv_preserves_saved_preferences(self):
         from unittest import mock
 
         from django.core.files.uploadedfile import SimpleUploadedFile
@@ -257,7 +257,7 @@ class ProfileReplacementResetsPreferencesTests(TestCase):
 
         self.assertEqual(response.status_code, 200, response.content)
         profile.refresh_from_db()
-        self.assertEqual(profile.preferences, {})
+        self.assertEqual(profile.preferences, {"modality": "remoto", "city": None, "salary_min": 5000000})
 
 
 class ChangingPreferencesAffectsMatchingTests(TestCase):

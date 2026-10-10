@@ -26,6 +26,7 @@ export function initRoleSelection(form, operations) {
     const roleCards = Array.from(document.querySelectorAll(".role-option"));
 
     let profileRevision = "";
+    let profileReady = false;
     let selectedRoles = new Set();
     let confirmedRoles = [];
     let currentRoleMode = null;
@@ -90,7 +91,7 @@ export function initRoleSelection(form, operations) {
     });
 
     recommendRolesButton.addEventListener("click", async () => {
-        if (operations.isBusy() || !profileRevision) {
+        if (operations.isBusy() || !profileReady) {
             return;
         }
 
@@ -148,6 +149,7 @@ export function initRoleSelection(form, operations) {
 
     function invalidateProfile() {
         profileRevision = "";
+        profileReady = false;
         confirmedRoles = [];
         selectedRoles = new Set();
         suggestions = [];
@@ -164,6 +166,7 @@ export function initRoleSelection(form, operations) {
 
     function setProfile(data, moveFocus = false) {
         profileRevision = data.profile_revision || "";
+        profileReady = Boolean(data.profile_ready);
         suggestions = [];
         confirmedRoles = data.role_names || [];
         selectedRoles = new Set(confirmedRoles);
@@ -176,12 +179,15 @@ export function initRoleSelection(form, operations) {
 
         syncSelectedRolesInputs();
         renderAssessments(data.assessments || [], data.pending_questions || [], data.answered_questions || [], moveFocus);
-        setOperationStatus("");
+        setOperationStatus(data.needs_reassessment
+            ? "Actualizaste tu perfil. Elige tus cargos para renovar tu orientación."
+            : profileReady ? "" : "Añade habilidades, experiencia, educación o idiomas para empezar tu orientación.");
         updateControls();
     }
 
     function applyAssessmentResult(data) {
         profileRevision = data.profile_revision;
+        profileReady = true;
         confirmedRoles = data.role_names || data.roles?.map(role => role.name) || confirmedRoles;
         selectedRoles = new Set(confirmedRoles);
         suggestions = [];
@@ -221,7 +227,7 @@ export function initRoleSelection(form, operations) {
     }
 
     async function postCareer(url, data, loadingMessage, onSuccess) {
-        if (operations.isBusy() || !profileRevision) {
+        if (operations.isBusy() || !profileReady) {
             return false;
         }
 
@@ -288,7 +294,7 @@ export function initRoleSelection(form, operations) {
     }
 
     function openRoleModal(resetMode) {
-        if (!profileRevision) {
+        if (!profileReady) {
             return;
         }
 
@@ -365,7 +371,7 @@ export function initRoleSelection(form, operations) {
         roleSelectionDescription.textContent = usefulSuggestions.length > 0
             ? "Confirma entre 1 y 3 opciones para recibir orientación."
             : "No encontramos información suficiente para sugerir cargos. Puedes elegir los que te interesan.";
-        recommendationHintText.textContent = "Profilia encontró estas opciones en tu hoja de vida.";
+        recommendationHintText.textContent = "Profilia encontró estas opciones en la información de tu perfil.";
 
         for (const card of roleCards) {
             card.classList.add("hidden");
@@ -400,16 +406,16 @@ export function initRoleSelection(form, operations) {
     function updateControls() {
         const busy = operations.isBusy();
         document.getElementById("profile-revision-input").value = profileRevision;
-        openRoleModalButton.disabled = busy || !profileRevision;
-        chooseRolesButton.disabled = busy || !profileRevision;
-        recommendRolesButton.disabled = busy || !profileRevision;
+        openRoleModalButton.disabled = busy || !profileReady;
+        chooseRolesButton.disabled = busy || !profileReady;
+        recommendRolesButton.disabled = busy || !profileReady;
         closeRoleModalButton.disabled = busy;
         cancelRoleModalButton.disabled = busy;
         roleDialog.setAttribute("aria-busy", String(busy));
         openRoleModalButton.className = "w-full min-h-[44px] py-2.5 px-4 rounded-xl bg-[#13223a] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed";
         const label = openRoleModalButton.querySelector("span");
-        label.textContent = !profileRevision
-            ? "Revisa tu hoja de vida para continuar"
+        label.textContent = !profileReady
+            ? "Completa tu perfil para continuar"
             : confirmedRoles.length > 0
                 ? `${confirmedRoles.length} ${confirmedRoles.length === 1 ? "cargo seleccionado" : "cargos seleccionados"} · Cambiar`
                 : "Seleccionar cargos y continuar";
@@ -428,7 +434,7 @@ export function initRoleSelection(form, operations) {
         for (const card of roleCards) {
             const checkbox = card.querySelector(".role-checkbox");
             checkbox.checked = selectedRoles.has(checkbox.value);
-            checkbox.disabled = busy || !profileRevision || (limitReached && !checkbox.checked);
+            checkbox.disabled = busy || !profileReady || (limitReached && !checkbox.checked);
             card.classList.toggle("border-slate-200", !checkbox.checked);
             card.classList.toggle("border-[#02bc4d]", checkbox.checked);
             card.classList.toggle("bg-emerald-50", checkbox.checked);
@@ -437,7 +443,7 @@ export function initRoleSelection(form, operations) {
         }
 
         roleCounter.textContent = `${selectedRoles.size} / 3`;
-        confirmRolesButton.disabled = busy || !profileRevision || selectedRoles.size === 0;
+        confirmRolesButton.disabled = busy || !profileReady || selectedRoles.size === 0;
         confirmRolesButton.className = "min-h-[44px] px-5 py-2.5 rounded-xl bg-[#02bc4d] text-white text-xs font-bold flex items-center gap-2 transition disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed";
     }
 

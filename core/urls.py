@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views.home import home
 from .views.profile import process_profile
+from .views.profile_editor import edit_profile
 from .views.career import assess_career, clarify_career, explore_career, retry_career_recommendation
 from .views.vacancies import match_vacancies, save_vacancy_preferences, vacancies_page
 
@@ -9,6 +10,7 @@ from .views.vacancies import match_vacancies, save_vacancy_preferences, vacancie
 urlpatterns = [
     # Aplicación
     path("", home, name="home"),
+    path("perfil/editar/", edit_profile, name="edit_profile"),
 
     # Agente de perfil
     path(

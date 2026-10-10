@@ -7,12 +7,12 @@ from pydantic import ValidationError
 
 from agents.career.cache import (
     StaleProfileError, get_cached_assessments, get_career_data,
-    get_profile_revision, get_profile_state, persist_career_data,
+    get_profile_provenance, get_profile_revision, get_profile_state, persist_career_data,
 )
 from agents.career.graph import career_graph
 from agents.career.kev import KevError
 from agents.career.roles import ROLE_CATALOG, get_role_by_name
-from agents.profile.schemas import ProfileData
+from agents.profile.schemas import ProfileData, has_professional_information
 from core.models import Profile
 
 logger = logging.getLogger(__name__)
@@ -42,13 +42,13 @@ def load_profile(request):
         raise CareerRequestError("Vuelve a iniciar sesión para continuar.", 401)
     profile = Profile.objects.filter(user=request.user).first()
     if profile is None:
-        raise CareerRequestError("Primero debes procesar tu hoja de vida.", 404)
+        raise CareerRequestError("Primero guarda tu información profesional o carga tu hoja de vida.", 404)
     try:
         ProfileData.model_validate(profile.data)
     except ValidationError as error:
-        raise CareerRequestError("No pudimos recuperar tu hoja de vida. Vuelve a cargarla para continuar.", 409) from error
-    if not profile.raw_text.strip():
-        raise CareerRequestError("Vuelve a cargar tu hoja de vida para que podamos revisarla.", 409)
+        raise CareerRequestError("No pudimos recuperar tu perfil. Revisa tu información o vuelve a cargar tu hoja de vida.", 409) from error
+    if not has_professional_information(profile.data):
+        raise CareerRequestError("Añade experiencia, educación, habilidades o idiomas a tu perfil para continuar.", 409)
     revision = request.POST.get("profile_revision")
     if not revision:
         raise CareerRequestError("Recarga la página para continuar con tu orientación.")
@@ -116,7 +116,7 @@ def run_operation(request, operation):
 
         result = career_graph.invoke({
             "profile": ProfileData.model_validate(profile.data),
-            "raw_text": profile.raw_text,
+            "provenance": get_profile_provenance(profile),
             "roles": roles,
             "skill_results": saved["skill_results"],
             "clarifications": saved["clarifications"],

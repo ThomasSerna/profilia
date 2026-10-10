@@ -13,6 +13,8 @@ class Profile(models.Model):
         default=dict
     )
 
+    manual_fields = models.JSONField(default=list, blank=True)
+
     career_data = models.JSONField(
         default=dict,
         blank=True,

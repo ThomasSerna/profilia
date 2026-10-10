@@ -53,7 +53,7 @@ def add_assessment_summary(assessment: RoleAssessment) -> RoleAssessment:
             f"Encontramos una base sólida en tu perfil para {assessment.role_name}. "
             f"Estas son tus fortalezas para este cargo: {', '.join(strengths)}. "
             "Profilia te recomienda destacar proyectos y resultados que muestren esas habilidades "
-            "en tu hoja de vida."
+            "en tu perfil."
         )
     elif group == "low":
         summary = f"Profilia te recomienda preparar algunas habilidades para acercarte a {assessment.role_name}. "
@@ -75,8 +75,8 @@ def add_assessment_summary(assessment: RoleAssessment) -> RoleAssessment:
         # The chat shows this text only after the user has answered every question, so it closes the conversation.
         summary = (
             f"Todavía no tenemos información suficiente para darte una orientación completa hacia {assessment.role_name}. "
-            f"No encontramos datos suficientes sobre {', '.join(unknowns)} en tu hoja de vida ni en tus respuestas, "
-            "Si has utilizado alguna de estas habilidades, Profilia te recomienda incluirla en tu hoja de vida "
+            f"No encontramos datos suficientes sobre {', '.join(unknowns)} en tu perfil ni en tus respuestas. "
+            "Si has utilizado alguna de estas habilidades, Profilia te recomienda incluirla en tu perfil "
             "con un ejemplo concreto; si todavía no la conoces, puede ser un buen punto de partida para aprender."
         )
 

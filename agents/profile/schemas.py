@@ -1,4 +1,7 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
+
+
+PROFESSIONAL_FIELDS = ("education", "experience", "skills", "languages")
 
 
 class Experience(BaseModel):
@@ -27,3 +30,19 @@ class ProfileData(BaseModel):
     experience: list[Experience] = Field(default_factory=list)
     skills: list[str] = Field(default_factory=list)
     languages: list[str] = Field(default_factory=list)
+
+
+def has_professional_information(data: ProfileData | dict) -> bool:
+    try:
+        profile = ProfileData.model_validate(data)
+    except ValidationError:
+        return False
+    if any(value.strip() for value in profile.skills + profile.languages):
+        return True
+    for item in profile.experience:
+        if any(value and value.strip() for value in (item.company, item.role, item.description)):
+            return True
+        if any(value.strip() for value in item.technologies):
+            return True
+    return any(any(value and value.strip() for value in (item.institution, item.degree, item.field))
+               for item in profile.education)

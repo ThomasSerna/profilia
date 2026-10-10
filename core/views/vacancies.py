@@ -7,7 +7,7 @@ from django.views.decorators.http import require_POST
 from pydantic import ValidationError
 
 from agents.career.cache import get_career_data
-from agents.profile.schemas import ProfileData
+from agents.profile.schemas import ProfileData, has_professional_information
 from agents.vacancies.graph import run_vacancy_agent
 from agents.vacancies.schemas import Preferences
 from core.models import Profile
@@ -36,7 +36,7 @@ def save_vacancy_preferences(request):
     profile = Profile.objects.filter(user=request.user).first()
     if profile is None:
         return JsonResponse(
-            {"success": False, "error": "Primero debes procesar tu hoja de vida."},
+            {"success": False, "error": "Primero guarda tu información profesional o carga tu hoja de vida."},
             status=404,
         )
 
@@ -59,7 +59,7 @@ def match_vacancies(request):
     profile = Profile.objects.filter(user=request.user).first()
     if profile is None:
         return JsonResponse(
-            {"success": False, "error": "Primero debes procesar tu hoja de vida."},
+            {"success": False, "error": "Primero guarda tu información profesional o carga tu hoja de vida."},
             status=404,
         )
 
@@ -67,7 +67,13 @@ def match_vacancies(request):
         candidate = ProfileData.model_validate(profile.data)
     except ValidationError:
         return JsonResponse(
-            {"success": False, "error": "No pudimos recuperar tu hoja de vida. Vuelve a cargarla para continuar."},
+            {"success": False, "error": "No pudimos recuperar tu perfil. Revisa tu información o vuelve a cargar tu hoja de vida."},
+            status=409,
+        )
+
+    if not has_professional_information(candidate):
+        return JsonResponse(
+            {"success": False, "error": "Añade experiencia, educación, habilidades o idiomas a tu perfil para buscar vacantes."},
             status=409,
         )
 
@@ -98,7 +104,7 @@ def match_vacancies(request):
 @login_required
 def vacancies_page(request):
     profile = Profile.objects.filter(user=request.user).first()
-    if profile is None or not profile.raw_text.strip():
+    if profile is None or not has_professional_information(profile.data):
         return redirect("home")
     return render(request, "pages/vacancies.html", {
         "saved_preferences": profile.preferences or {},

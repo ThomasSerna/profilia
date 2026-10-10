@@ -6,7 +6,6 @@ import hashlib
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.utils import timezone
 from pydantic import ValidationError
 
 from agents.profile.pdf_reader import EmptyPDFTextError
@@ -14,6 +13,7 @@ from agents.profile.graph import profile_graph
 from agents.profile.schemas import ProfileData
 from agents.career.cache import StaleProfileError, get_profile_revision, get_profile_state, persist_career_data
 from core.models import Profile
+from core.profile_updates import update_profile
 
 
 MAX_PDF_SIZE = 10 * 1024 * 1024
@@ -75,6 +75,9 @@ def process_profile(request):
 
         document_hash = document_hasher.hexdigest()
         if previous and previous.document_hash == document_hash and previous.raw_text.strip():
+            previous.refresh_from_db()
+            if get_profile_revision(previous) != previous_revision:
+                raise StaleProfileError("El perfil cambió mientras revisábamos el archivo. Recarga la página antes de continuar.")
             try:
                 ProfileData.model_validate(previous.data)
             except ValidationError:
@@ -100,28 +103,21 @@ def process_profile(request):
 
         profile_dict = profile_data.model_dump()
 
-        values = {
-            "data": profile_dict,
-            "raw_text": raw_text,
-            "document_hash": document_hash,
-            "career_data": {},
-            "preferences": {},
-        }
         if previous:
             current = Profile.objects.get(pk=previous.pk, user=request.user)
             if get_profile_revision(current) != previous_revision:
                 return JsonResponse({"success": False, "error": "El perfil cambió mientras se procesaba el CV. Recarga la página."}, status=409)
-            updated = Profile.objects.filter(pk=current.pk, user=request.user, data=current.data,
-                                             raw_text=current.raw_text, document_hash=current.document_hash,
-                                             career_data=current.career_data).update(**values, updated_at=timezone.now())
-            if not updated:
-                return JsonResponse({"success": False, "error": "El perfil cambió. Recarga la página."}, status=409)
-            current.refresh_from_db()
-            profile, created = current, False
+            # shortcut: preserve edited lists as a whole; use stable item IDs before adding item-level CV merging.
+            for field in current.manual_fields:
+                profile_dict[field] = current.data[field]
+            profile = update_profile(current, previous_revision, profile_dict,
+                                     manual_fields=current.manual_fields, raw_text=raw_text,
+                                     document_hash=document_hash)
+            created = False
         else:
-            profile, created = Profile.objects.get_or_create(user=request.user, defaults=values)
-            if not created:
-                return JsonResponse({"success": False, "error": "Ya se procesó otro CV. Recarga la página."}, status=409)
+            profile = update_profile(Profile(user=request.user), "", profile_dict, manual_fields=[],
+                                     raw_text=raw_text, document_hash=document_hash)
+            created = True
 
         profile = persist_career_data(profile, get_profile_revision(profile), inference_runs=[{
             "provider": "groq", "model": "openai/gpt-oss-20b", "stage": "profile_extraction",

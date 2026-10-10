@@ -6,7 +6,7 @@ from .schemas import RoleAssessment, RoleProfile
 
 class CareerState(TypedDict):
     profile: ProfileData
-    raw_text: str
+    provenance: dict
     roles: list[RoleProfile]
     assessments: list[RoleAssessment]
     skill_results: dict

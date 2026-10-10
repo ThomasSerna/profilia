@@ -116,7 +116,7 @@ export function initProfileUpload(form, onProcessed, operations) {
         }
     });
 
-    return { restoreProcessedState, setBusy };
+    return { restoreSavedState, setBusy };
 
     function setBusy(value) {
         pdfInput.disabled = value;
@@ -133,10 +133,16 @@ export function initProfileUpload(form, onProcessed, operations) {
         }
     }
 
-    function restoreProcessedState() {
-        setProcessedState();
+    function restoreSavedState(data) {
+        if (data.has_cv) {
+            setProcessedState();
+        }
         disableProcessButton();
-        statusBadge.textContent = "Perfil guardado";
+        statusBadge.textContent = !data.profile_ready
+            ? "Añade información profesional"
+            : data.has_cv ? "Perfil guardado" : "Perfil añadido por ti";
+        statusBadge.className = "text-[10px] px-2 py-0.5 rounded-full font-semibold " +
+            (data.profile_ready ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800");
     }
 
     function handleSelectedFile(file) {
