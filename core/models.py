@@ -18,6 +18,11 @@ class Profile(models.Model):
         blank=True,
     )
 
+    preferences = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
     raw_text = models.TextField(default="", blank=True)
 
     document_hash = models.CharField(

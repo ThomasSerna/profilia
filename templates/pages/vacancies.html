@@ -9,24 +9,28 @@
 
 {% block content %}
 
-<section class="space-y-6 max-w-5xl mx-auto">
+<section
+    id="vacancy-page"
+    class="space-y-6 max-w-5xl mx-auto"
+    data-match-url="{% url 'match_vacancies' %}"
+>
 
-    <!-- Preferencias y búsqueda -->
+    <!-- Preferencias (onboarding de vacantes) -->
     <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
 
         <h2 class="text-sm font-bold text-[#13223a] mb-1 flex items-center">
-            <i class="fa-solid fa-briefcase text-[#02bc4d] mr-2"></i>
-            Vacantes para ti
+            <i class="fa-solid fa-sliders text-[#02bc4d] mr-2"></i>
+            Tus preferencias
         </h2>
 
         <p class="text-xs text-slate-500 mb-4">
-            Calculamos qué tan bien encaja tu hoja de vida con cada vacante. Las coincidencias son orientativas
-            y usan vacantes de demostración.
+            Las guardamos en tu perfil y las usamos en cada búsqueda. Si cambias tu hoja de vida, se borran y
+            tendrás que configurarlas de nuevo.
         </p>
 
         <form
-            id="vacancy-filter-form"
-            action="{% url 'match_vacancies' %}"
+            id="vacancy-preferences-form"
+            action="{% url 'save_vacancy_preferences' %}"
             method="POST"
             class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs items-end"
         >
@@ -35,22 +39,24 @@
             <label class="flex flex-col gap-1">
                 <span class="font-semibold text-slate-700">Modalidad</span>
                 <select name="modality" class="rounded-lg border border-slate-300 px-2.5 py-2 bg-white">
-                    <option value="any">Todas</option>
-                    <option value="remoto">100% remoto</option>
-                    <option value="hibrido">Híbrido</option>
-                    <option value="presencial">Presencial</option>
+                    <option value="any" {% if saved_preferences.modality == "any" or not saved_preferences.modality %}selected{% endif %}>Todas</option>
+                    <option value="remoto" {% if saved_preferences.modality == "remoto" %}selected{% endif %}>100% remoto</option>
+                    <option value="hibrido" {% if saved_preferences.modality == "hibrido" %}selected{% endif %}>Híbrido</option>
+                    <option value="presencial" {% if saved_preferences.modality == "presencial" %}selected{% endif %}>Presencial</option>
                 </select>
             </label>
 
             <label class="flex flex-col gap-1">
                 <span class="font-semibold text-slate-700">Ciudad (si no es remoto)</span>
                 <input name="city" type="text" maxlength="80" placeholder="Ej. Medellín"
+                       value="{{ saved_preferences.city|default_if_none:'' }}"
                        class="rounded-lg border border-slate-300 px-2.5 py-2">
             </label>
 
             <label class="flex flex-col gap-1">
                 <span class="font-semibold text-slate-700">Aspiración salarial (COP)</span>
                 <input name="salary_min" type="number" min="0" step="100000" placeholder="Ej. 6000000"
+                       value="{{ saved_preferences.salary_min|default_if_none:'' }}"
                        class="rounded-lg border border-slate-300 px-2.5 py-2">
             </label>
 
@@ -58,17 +64,28 @@
                 type="submit"
                 class="min-h-[44px] rounded-xl bg-[#02bc4d] hover:bg-[#00d461] text-white font-bold px-4 py-2.5 transition"
             >
-                Buscar coincidencias
+                Guardar preferencias
             </button>
         </form>
 
-        <p id="vacancy-status" role="status" class="pt-3 text-xs text-slate-600"></p>
+        <p id="preferences-status" role="status" class="pt-3 text-xs text-slate-600"></p>
     </div>
 
     <!-- Resultados -->
     <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
 
-        <p id="vacancy-summary" class="text-xs font-semibold text-[#13223a]"></p>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <p id="vacancy-summary" class="text-xs font-semibold text-[#13223a]"></p>
+            <button
+                id="refresh-vacancies-button"
+                type="button"
+                class="min-h-[44px] rounded-xl border border-slate-300 bg-white text-[#13223a] font-semibold text-xs px-4 py-2 disabled:opacity-40"
+            >
+                Actualizar resultados
+            </button>
+        </div>
+
+        <p id="vacancy-status" role="status" class="text-xs text-slate-600"></p>
 
         <div id="vacancy-list" class="space-y-3"></div>
 
@@ -88,6 +105,8 @@
     </div>
 
 </section>
+
+{{ saved_preferences|json_script:"saved-preferences" }}
 
 {% endblock %}
 

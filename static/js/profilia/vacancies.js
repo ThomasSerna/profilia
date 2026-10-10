@@ -26,7 +26,10 @@ export function scoreClasses(score) {
 }
 
 export function initVacancies() {
-    const form = document.getElementById("vacancy-filter-form");
+    const page = document.getElementById("vacancy-page");
+    const preferencesForm = document.getElementById("vacancy-preferences-form");
+    const preferencesStatus = document.getElementById("preferences-status");
+    const refreshButton = document.getElementById("refresh-vacancies-button");
     const status = document.getElementById("vacancy-status");
     const summary = document.getElementById("vacancy-summary");
     const list = document.getElementById("vacancy-list");
@@ -34,17 +37,23 @@ export function initVacancies() {
     const confirmButton = document.getElementById("confirm-vacancies-button");
     const confirmMessage = document.getElementById("vacancy-confirm-message");
 
-    if (!form || !list || !confirmButton) {
+    if (!page || !preferencesForm || !list || !confirmButton) {
         return;
     }
 
+    const matchUrl = page.dataset.matchUrl;
     let selected = new Set();
     let titles = new Map();
 
-    form.addEventListener("submit", event => {
+    const savedElement = document.getElementById("saved-preferences");
+    const hasPreferences = savedElement && Object.keys(JSON.parse(savedElement.textContent || "{}")).length > 0;
+
+    preferencesForm.addEventListener("submit", event => {
         event.preventDefault();
-        search();
+        savePreferences();
     });
+
+    refreshButton.addEventListener("click", () => search());
 
     confirmButton.addEventListener("click", () => {
         const names = [...selected].map(id => titles.get(id)).filter(Boolean);
@@ -52,18 +61,41 @@ export function initVacancies() {
             `Seleccionaste ${names.length} vacante(s). El Agente de Postulación se conectará en el siguiente paso.`;
     });
 
-    async function search() {
-        setBusy(true);
-        setStatus("Calculando coincidencias...");
-        confirmMessage.textContent = "";
+    if (hasPreferences) {
+        search();
+    } else {
+        setStatus("Guarda tus preferencias para ver tus coincidencias.");
+    }
+
+    async function savePreferences() {
+        setPreferencesBusy(true);
+        preferencesStatus.textContent = "Guardando preferencias...";
+        preferencesStatus.className = "pt-3 text-xs text-slate-600";
 
         try {
-            const response = await fetch(form.action, {
-                method: "POST",
-                body: new FormData(form),
-                headers: { "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value },
-                credentials: "same-origin",
-            });
+            const response = await postForm(preferencesForm.action, new FormData(preferencesForm));
+            const data = await response.json().catch(() => ({ success: false, error: "Respuesta no válida." }));
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || "No pudimos guardar tus preferencias.");
+            }
+            preferencesStatus.textContent = "Preferencias guardadas.";
+            refreshButton.disabled = false;
+            search();
+        } catch (error) {
+            preferencesStatus.textContent = error.message;
+            preferencesStatus.className = "pt-3 text-xs text-red-700";
+        } finally {
+            setPreferencesBusy(false);
+        }
+    }
+
+    async function search() {
+        setStatus("Calculando coincidencias...");
+        confirmMessage.textContent = "";
+        refreshButton.disabled = true;
+
+        try {
+            const response = await postForm(matchUrl, new FormData(preferencesForm));
             const data = await response.json().catch(() => ({ success: false, error: "Respuesta no válida." }));
 
             if (!response.ok || !data.success) {
@@ -80,8 +112,17 @@ export function initVacancies() {
         } catch (error) {
             setStatus(error.message, true);
         } finally {
-            setBusy(false);
+            refreshButton.disabled = false;
         }
+    }
+
+    function postForm(url, formData) {
+        return fetch(url, {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": preferencesForm.querySelector("[name=csrfmiddlewaretoken]").value },
+            credentials: "same-origin",
+        });
     }
 
     function renderMatches(matches) {
@@ -178,11 +219,11 @@ export function initVacancies() {
 
     function setStatus(text, isError = false) {
         status.textContent = text;
-        status.className = `pt-3 text-xs ${isError ? "text-red-700" : "text-slate-600"}`;
+        status.className = `text-xs ${isError ? "text-red-700" : "text-slate-600"}`;
     }
 
-    function setBusy(value) {
-        form.querySelector("button[type=submit]").disabled = value;
+    function setPreferencesBusy(value) {
+        preferencesForm.querySelector("button[type=submit]").disabled = value;
     }
 }
 

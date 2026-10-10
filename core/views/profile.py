@@ -105,6 +105,7 @@ def process_profile(request):
             "raw_text": raw_text,
             "document_hash": document_hash,
             "career_data": {},
+            "preferences": {},
         }
         if previous:
             current = Profile.objects.get(pk=previous.pk, user=request.user)
