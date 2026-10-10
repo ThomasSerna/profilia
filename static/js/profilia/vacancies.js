@@ -58,7 +58,7 @@ export function initVacancies() {
     confirmButton.addEventListener("click", () => {
         const names = [...selected].map(id => titles.get(id)).filter(Boolean);
         confirmMessage.textContent =
-            `Seleccionaste ${names.length} vacante(s). El Agente de Postulación se conectará en el siguiente paso.`;
+            `Profilia confirma tu selección de ${names.length} vacante(s).`;
     });
 
     if (hasPreferences) {
