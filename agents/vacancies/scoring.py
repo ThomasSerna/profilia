@@ -14,7 +14,7 @@ from .schemas import Preferences, Vacancy, VacancyMatch
 REQUIRED_WEIGHT = 0.6
 NICE_WEIGHT = 0.2
 MODALITY_WEIGHT = 0.1
-SALARY_WEIGHT = 0.1
+SALARY_WEIGHT = 0.2
 LOCATION_WEIGHT = 0.1
 ROLE_WEIGHT = 0.15
 
