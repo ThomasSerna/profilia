@@ -42,6 +42,7 @@ export function initVacancies() {
     }
 
     const matchUrl = page.dataset.matchUrl;
+    const selectUrl = page.dataset.selectUrl;
     let selected = new Set();
     let titles = new Map();
 
@@ -55,10 +56,31 @@ export function initVacancies() {
 
     refreshButton.addEventListener("click", () => search());
 
-    confirmButton.addEventListener("click", () => {
+    confirmButton.addEventListener("click", async () => {
         const names = [...selected].map(id => titles.get(id)).filter(Boolean);
         confirmMessage.textContent =
             `Profilia confirma tu selección de ${names.length} vacante(s).`;
+
+        if (!selectUrl) {
+            return;
+        }
+
+        confirmButton.disabled = true;
+        const body = new FormData();
+        selected.forEach(id => body.append("vacancy_ids", id));
+
+        try {
+            const response = await postForm(selectUrl, body);
+            const data = await response.json().catch(() => ({ success: false, error: "Respuesta no válida." }));
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || "No pudimos guardar tu selección.");
+            }
+            confirmMessage.textContent += " Te llevamos al Agente de Postulación.";
+            window.location.assign(data.redirect_url);
+        } catch (error) {
+            confirmMessage.textContent = error.message;
+            confirmButton.disabled = selected.size === 0;
+        }
     });
 
     if (hasPreferences) {

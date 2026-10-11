@@ -5,6 +5,7 @@ from .views.profile import process_profile
 from .views.profile_editor import edit_profile
 from .views.career import assess_career, clarify_career, explore_career, retry_career_recommendation
 from .views.vacancies import match_vacancies, save_vacancy_preferences, vacancies_page
+from .views.applications import applications_page, run_applications, select_applications
 
 
 urlpatterns = [
@@ -31,4 +32,9 @@ urlpatterns = [
     path("vacantes/", vacancies_page, name="vacancies"),
     path("vacancies/match/", match_vacancies, name="match_vacancies"),
     path("vacancies/preferences/", save_vacancy_preferences, name="save_vacancy_preferences"),
+
+    # Agente de postulación
+    path("postulaciones/", applications_page, name="applications"),
+    path("applications/select/", select_applications, name="select_applications"),
+    path("applications/run/", run_applications, name="run_applications"),
 ]

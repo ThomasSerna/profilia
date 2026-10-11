@@ -254,6 +254,41 @@
 
 
             <!-- Agent 3 -->
+            {% if applications_unlocked %}
+            <a
+                href="{% url 'applications' %}"
+                class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl transition-all duration-200 group
+                       {% if current_url_name == 'applications' %}bg-[#02bc4d] text-white font-medium shadow-md shadow-[#02bc4d]/20{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+            >
+
+                <div class="flex items-center space-x-3">
+
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center transition
+                                {% if current_url_name == 'applications' %}bg-white/20 text-white{% else %}bg-slate-800 text-slate-400{% endif %}">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </div>
+
+                    <div class="text-left min-w-0">
+
+                        <p class="text-xs font-semibold">
+                            3. Postulaciones
+                        </p>
+
+                        <p class="text-[10px] font-medium whitespace-nowrap {% if current_url_name == 'applications' %}text-white/90{% else %}text-slate-300{% endif %}">
+                            Envía tu candidatura
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <span class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 font-semibold border
+                             {% if current_url_name == 'applications' %}bg-white/20 text-white border-white/30{% else %}bg-[#02bc4d]/20 text-[#02bc4d] border-[#02bc4d]/30{% endif %}">
+                    Disponible
+                </span>
+
+            </a>
+            {% else %}
             <button
                 disabled
                 class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl
@@ -290,6 +325,7 @@
                 </span>
 
             </button>
+            {% endif %}
 
 
             <!-- Agent 4 -->
