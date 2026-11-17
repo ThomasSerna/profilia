@@ -2,21 +2,6 @@ import { animate, stagger } from "../motion.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-const STATUS_STYLES = {
-    completed: {
-        dot: "bg-[#008736]",
-    },
-    in_progress: {
-        dot: "bg-amber-500",
-    },
-    preview: {
-        dot: "bg-sky-500",
-    },
-    pending: {
-        dot: "bg-slate-400",
-    },
-};
-
 const TONE_STYLES = {
     emerald: {
         pill: "bg-[#dcf6e6] text-[#006c2b]",
@@ -191,10 +176,9 @@ export function initTraceability() {
 
     function renderNodes(stage) {
         const cards = stage.nodes.map((node, index) => {
-            const styles = STATUS_STYLES[node.status] || STATUS_STYLES.pending;
             const button = createElement(
                 "button",
-                "traceability-node-2d group text-center p-2.5 rounded-2xl border transition-all duration-200 min-h-[44px] flex flex-col items-center justify-center gap-1.5 bg-white border-slate-300/90 hover:border-[#008736] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]",
+                "traceability-node-2d group text-center p-2.5 rounded-2xl border transition-all duration-200 min-h-[44px] flex flex-col items-center justify-center gap-1 bg-white border-slate-300/90 hover:border-[#008736] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]",
             );
             button.type = "button";
             button.dataset.nodeCard = node.id;
@@ -211,7 +195,7 @@ export function initTraceability() {
 
             const iconWrap = createElement(
                 "div",
-                "w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center shrink-0 transition relative z-10",
+                "w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center shrink-0 transition relative z-10 mb-0.5",
             );
             iconWrap.dataset.nodeIconWrap = node.id;
             iconWrap.append(createElement("i", `fa-solid ${node.icon} text-xs`));
@@ -223,21 +207,14 @@ export function initTraceability() {
             );
             titleEl.dataset.nodeTitle = node.id;
 
-            const pillRow = createElement(
-                "div",
-                "px-2 py-0.5 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center gap-1.5 max-w-full relative z-10",
-            );
-            pillRow.dataset.nodePill = node.id;
-            const statusDot = createElement("span", `w-1.5 h-1.5 rounded-full shrink-0 ${styles.dot}`);
             const badgeText = createElement(
-                "span",
-                "font-mono text-[10px] font-semibold text-slate-600 tabular-nums truncate",
+                "p",
+                "font-mono text-[10px] font-medium text-slate-500 tabular-nums truncate max-w-full relative z-10",
                 node.badge,
             );
             badgeText.dataset.nodeBadge = node.id;
-            pillRow.append(statusDot, badgeText);
 
-            button.append(pulseRing, iconWrap, titleEl, pillRow);
+            button.append(pulseRing, iconWrap, titleEl, badgeText);
             button.addEventListener("click", () => {
                 stopPlayback();
                 selectNode(index, { animateIncomingTo: node.id });
@@ -271,7 +248,7 @@ export function initTraceability() {
 
             const iconWrap = card.querySelector("[data-node-icon-wrap]");
             if (iconWrap) {
-                iconWrap.className = `w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition relative z-10 ${
+                iconWrap.className = `w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition relative z-10 mb-0.5 ${
                     isSelected
                         ? "bg-[#02bc4d] text-[#0b1526] shadow-md shadow-[#02bc4d]/35"
                         : isPast
@@ -280,19 +257,10 @@ export function initTraceability() {
                 }`;
             }
 
-            const pillRow = card.querySelector("[data-node-pill]");
-            if (pillRow) {
-                pillRow.className = `px-2 py-0.5 rounded-full flex items-center justify-center gap-1.5 max-w-full relative z-10 ${
-                    isSelected
-                        ? "bg-white border border-[#81cda0]"
-                        : "bg-slate-50 border border-slate-200/80"
-                }`;
-            }
-
             const badgeEl = card.querySelector("[data-node-badge]");
             if (badgeEl) {
-                badgeEl.className = `font-mono text-[10px] tabular-nums truncate ${
-                    isSelected ? "font-bold text-[#006c2b]" : "font-semibold text-slate-600"
+                badgeEl.className = `font-mono text-[10px] tabular-nums truncate max-w-full relative z-10 ${
+                    isSelected ? "font-bold text-[#006c2b]" : "font-medium text-slate-500"
                 }`;
             }
         });
