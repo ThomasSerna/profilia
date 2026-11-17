@@ -40,14 +40,9 @@ function unlockFollowupLink() {
     locked.replaceWith(link);
 }
 
-const EVENT_CLASSES = {
-    system: "text-slate-400",
-    agent: "text-emerald-400",
-    step: "text-slate-300",
-    success: "text-emerald-400",
-    final: "text-amber-300 font-bold",
-    warning: "text-amber-300",
-    error: "text-red-400 font-bold",
+const LETTER_ORIGINS = {
+    groq: "Carta redactada por Profilia",
+    usuario: "Carta editada por ti",
 };
 
 const SCREENING_LABELS = {
@@ -63,16 +58,18 @@ export function initApplications() {
     const statusLine = document.getElementById("application-status");
     const emptyState = document.getElementById("application-empty");
     const list = document.getElementById("application-list");
-    const consoleBox = document.getElementById("application-console");
     const savedElement = document.getElementById("saved-applications");
 
-    if (!page || !form || !startButton || !list || !consoleBox) {
+    if (!page || !form || !startButton || !list) {
         return;
     }
 
+    const csrfToken = form.querySelector("[name=csrfmiddlewaretoken]").value;
     let applications = JSON.parse(savedElement?.textContent || "[]");
     let running = false;
-    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    // Cartas desplegadas: se mantienen abiertas al volver a pintar la lista.
+    const openLetters = new Set();
+    const editor = initLetterEditor();
 
     form.addEventListener("submit", event => {
         event.preventDefault();
@@ -87,14 +84,13 @@ export function initApplications() {
         }
         running = true;
         setStatus("Preparando tus postulaciones...");
-        consoleBox.replaceChildren(logLine("agent", "[AGENTE] Iniciando automatización de postulación con LangGraph Agent..."));
         updateButton();
 
         try {
             const response = await fetch(page.dataset.runUrl, {
                 method: "POST",
                 body: new FormData(form),
-                headers: { "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value },
+                headers: { "X-CSRFToken": csrfToken },
                 credentials: "same-origin",
             });
             const data = await response.json().catch(() => ({ success: false, error: "Respuesta no válida." }));
@@ -103,7 +99,6 @@ export function initApplications() {
                 throw new Error(data.error || "No pudimos preparar tus postulaciones.");
             }
 
-            await replay(data.events.slice(1));
             const done = new Map(data.applications.map(item => [item.vacancy_id, item]));
             applications = applications
                 .filter(item => done.has(item.vacancy_id) || SUBMITTED.has(item.status))
@@ -114,7 +109,6 @@ export function initApplications() {
                 unlockFollowupLink();
             }
         } catch (error) {
-            consoleBox.append(logLine("error", `[ERROR] ${error.message}`));
             setStatus(error instanceof TypeError
                 ? "No pudimos conectar con Profilia. Intenta de nuevo."
                 : error.message, true);
@@ -124,14 +118,135 @@ export function initApplications() {
         }
     }
 
-    async function replay(events) {
-        for (const item of events) {
-            consoleBox.append(logLine(item.level, item.message));
-            consoleBox.scrollTop = consoleBox.scrollHeight;
-            if (!reducedMotion) {
-                await new Promise(resolve => setTimeout(resolve, 350));
+    async function saveLetter(item, text) {
+        const body = new FormData();
+        body.append("cover_letter", text);
+        const response = await fetch(page.dataset.letterUrl.replace("__vacancy__", encodeURIComponent(item.vacancy_id)), {
+            method: "POST",
+            body,
+            headers: { "X-CSRFToken": csrfToken },
+            credentials: "same-origin",
+        });
+        const data = await response.json().catch(() => ({ success: false, error: "Respuesta no válida." }));
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || "No pudimos guardar tu carta.");
+        }
+        applications = applications.map(app => app.vacancy_id === item.vacancy_id ? data.application : app);
+        openLetters.add(item.vacancy_id);
+        render();
+        setStatus(`Guardamos los cambios de tu carta para ${item.title}.`);
+    }
+
+    function initLetterEditor() {
+        const modal = document.getElementById("letter-modal");
+        const dialog = document.getElementById("letter-dialog");
+        const textarea = document.getElementById("letter-textarea");
+        const subtitle = document.getElementById("letter-modal-subtitle");
+        const counter = document.getElementById("letter-counter");
+        const errorLine = document.getElementById("letter-error");
+        const saveButton = document.getElementById("save-letter-button");
+        const closeButtons = [
+            document.getElementById("close-letter-modal-button"),
+            document.getElementById("cancel-letter-modal-button"),
+        ];
+        if (!modal || !dialog || !textarea || !saveButton) {
+            return null;
+        }
+
+        const maxLength = Number(textarea.maxLength) || 4000;
+        let current = null;
+        let saving = false;
+        let previousFocus = null;
+
+        closeButtons.forEach(button => button?.addEventListener("click", () => close()));
+        modal.addEventListener("click", event => {
+            if (event.target === modal || event.target === modal.firstElementChild) {
+                close();
+            }
+        });
+        modal.addEventListener("keydown", event => {
+            if (event.key === "Escape") {
+                close();
+            } else if (event.key === "Tab") {
+                trapFocus(event);
+            }
+        });
+        textarea.addEventListener("input", update);
+        dialog.addEventListener("submit", async event => {
+            event.preventDefault();
+            const text = textarea.value.trim();
+            if (!text) {
+                errorLine.textContent = "La carta no puede quedar vacía.";
+                textarea.focus();
+                return;
+            }
+            saving = true;
+            errorLine.textContent = "";
+            update();
+            try {
+                await saveLetter(current, text);
+                saving = false;
+                close();
+            } catch (error) {
+                errorLine.textContent = error instanceof TypeError
+                    ? "No pudimos conectar con Profilia. Intenta de nuevo."
+                    : error.message;
+            } finally {
+                saving = false;
+                update();
+            }
+        });
+
+        function open(item) {
+            current = item;
+            previousFocus = document.activeElement;
+            subtitle.textContent = `${item.title} · ${item.company}`;
+            textarea.value = item.cover_letter || "";
+            errorLine.textContent = "";
+            update();
+            modal.classList.remove("hidden");
+            modal.setAttribute("aria-hidden", "false");
+            textarea.focus();
+            textarea.setSelectionRange(0, 0);
+            textarea.scrollTop = 0;
+        }
+
+        function close() {
+            if (saving || modal.classList.contains("hidden")) {
+                return;
+            }
+            modal.classList.add("hidden");
+            modal.setAttribute("aria-hidden", "true");
+            current = null;
+            // Tras guardar se vuelve a pintar la lista: el foco vuelve al botón de la misma carta.
+            const target = previousFocus?.isConnected ? previousFocus
+                : list.querySelector(`[data-edit-letter="${CSS.escape(previousFocus?.dataset?.editLetter || "")}"]`);
+            target?.focus();
+        }
+
+        function update() {
+            const length = textarea.value.length;
+            counter.textContent = `${length} / ${maxLength} caracteres`;
+            const unchanged = current && textarea.value.trim() === (current.cover_letter || "").trim();
+            saveButton.disabled = saving || !textarea.value.trim() || unchanged;
+            saveButton.querySelector("span").textContent = saving ? "Guardando..." : "Guardar carta";
+            textarea.readOnly = saving;
+        }
+
+        function trapFocus(event) {
+            const focusable = [...dialog.querySelectorAll("button, textarea")].filter(node => !node.disabled);
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
             }
         }
+
+        return { open };
     }
 
     function pendingCount() {
@@ -182,9 +297,30 @@ export function initApplications() {
 
     function letterDetails(item) {
         const details = element("details", "rounded-lg border border-slate-200 bg-white");
+        details.open = openLetters.has(item.vacancy_id);
+        details.addEventListener("toggle", () => {
+            if (details.open) {
+                openLetters.add(item.vacancy_id);
+            } else {
+                openLetters.delete(item.vacancy_id);
+            }
+        });
         details.append(element("summary", "px-3 py-2 min-h-[44px] flex items-center cursor-pointer font-semibold text-[#13223a]",
             "Ver carta de presentación"));
-        details.append(element("p", "px-3 pb-3 whitespace-pre-line leading-relaxed text-slate-700", item.cover_letter));
+        details.append(element("p", "px-3 whitespace-pre-line leading-relaxed text-slate-700", item.cover_letter));
+        if (editor) {
+            const actions = element("div", "px-3 py-3 flex justify-end");
+            const button = element("button", "min-h-[44px] px-4 rounded-xl bg-[#13223a] hover:bg-slate-800 text-white text-xs font-bold transition flex items-center gap-2");
+            button.type = "button";
+            button.dataset.editLetter = item.vacancy_id;
+            button.setAttribute("aria-label", `Editar carta para ${item.title}`);
+            const icon = element("i", "fa-solid fa-pen-to-square");
+            icon.setAttribute("aria-hidden", "true");
+            button.append(icon, element("span", "", "Editar carta"));
+            button.addEventListener("click", () => editor.open(item));
+            actions.append(button);
+            details.append(actions);
+        }
         return details;
     }
 
@@ -208,12 +344,8 @@ export function initApplications() {
 
     function footer(item) {
         const date = item.submitted_at ? new Date(item.submitted_at).toLocaleString("es-CO") : "";
-        const origin = item.letter_source === "groq" ? "Carta redactada por Profilia" : "Carta basada en tu perfil";
+        const origin = LETTER_ORIGINS[item.letter_source] || "Carta basada en tu perfil";
         return `${item.channel} · ${origin}${date ? ` · ${date}` : ""}`;
-    }
-
-    function logLine(level, text) {
-        return element("p", EVENT_CLASSES[level] || EVENT_CLASSES.step, text);
     }
 
     function setStatus(text, isError = false) {

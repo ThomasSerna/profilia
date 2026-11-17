@@ -14,6 +14,7 @@
     class="space-y-6 max-w-5xl mx-auto"
     data-run-url="{% url 'run_applications' %}"
     data-vacancies-url="{% url 'vacancies' %}"
+    data-letter-url="{% url 'update_cover_letter' '__vacancy__' %}"
 >
 
     <div class="p-4 sm:p-6 rounded-2xl bg-white border border-slate-200 space-y-6 shadow-sm">
@@ -49,15 +50,6 @@
         </div>
 
         <div id="application-list" class="space-y-3"></div>
-
-        <div
-            id="application-console"
-            role="log"
-            aria-live="polite"
-            class="p-4 rounded-xl bg-[#13223a] text-slate-200 font-mono text-xs space-y-2 h-44 overflow-y-auto shadow-inner border border-slate-800"
-        >
-            <p class="text-slate-400">[SISTEMA] Agente de Postulación listo. Haz clic en "Iniciar proceso automático".</p>
-        </div>
     </div>
 
     <div class="pt-2 flex justify-end">
@@ -85,6 +77,79 @@
     </div>
 
 </section>
+
+<div
+    id="letter-modal"
+    aria-hidden="true"
+    class="hidden fixed inset-0 z-[100] bg-slate-950/50 backdrop-blur-sm px-4 py-8 overflow-y-auto"
+>
+    <div class="min-h-full flex items-center justify-center">
+        <form
+            id="letter-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="letter-modal-title"
+            aria-describedby="letter-modal-subtitle"
+            tabindex="-1"
+            novalidate
+            class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden"
+        >
+            <div class="px-6 py-5 border-b border-slate-200 flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-[#13223a] text-[#00d461] flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h2 id="letter-modal-title" class="text-base font-bold text-[#13223a]">Editar carta de presentación</h2>
+                        <p id="letter-modal-subtitle" class="text-xs text-slate-500 mt-1 break-words"></p>
+                    </div>
+                </div>
+                <button
+                    id="close-letter-modal-button"
+                    type="button"
+                    aria-label="Cerrar editor de la carta"
+                    class="w-11 h-11 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition flex items-center justify-center shrink-0"
+                >
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div class="px-6 py-5 space-y-2">
+                <label for="letter-textarea" class="text-xs font-semibold text-[#13223a]">Texto de la carta</label>
+                <textarea
+                    id="letter-textarea"
+                    name="cover_letter"
+                    rows="14"
+                    maxlength="4000"
+                    aria-describedby="letter-counter letter-error"
+                    class="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs leading-relaxed text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#02bc4d] focus:border-[#02bc4d]"
+                ></textarea>
+                <div class="flex items-start justify-between gap-3">
+                    <p id="letter-error" role="alert" class="text-xs text-red-700"></p>
+                    <p id="letter-counter" class="text-[11px] text-slate-400 whitespace-nowrap shrink-0"></p>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-3">
+                <button
+                    id="cancel-letter-modal-button"
+                    type="button"
+                    class="px-4 py-2.5 min-h-[44px] rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition"
+                >
+                    Cancelar
+                </button>
+                <button
+                    id="save-letter-button"
+                    type="submit"
+                    class="min-h-[44px] py-2.5 px-4 rounded-xl bg-[#02bc4d] hover:bg-[#00d461] text-white font-bold text-xs transition flex items-center gap-2 shadow-md shadow-[#02bc4d]/20 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed"
+                >
+                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                    <span>Guardar carta</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 {{ applications|json_script:"saved-applications" }}
 

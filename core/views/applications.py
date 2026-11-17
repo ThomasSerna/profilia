@@ -3,8 +3,9 @@ import logging
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST
 from pydantic import ValidationError
@@ -18,6 +19,8 @@ from core.models import Application, Profile
 from core.views.vacancies import stored_preferences
 
 logger = logging.getLogger(__name__)
+
+LETTER_SOURCE_USER = "usuario"
 
 
 def serialize_application(application) -> dict:
@@ -153,6 +156,34 @@ def run_applications(request):
         "events": result["events"],
         "skipped": result["skipped"],
     })
+
+
+MAX_LETTER_LENGTH = 4000
+
+
+@login_required
+@require_POST
+def update_cover_letter(request, vacancy_id):
+    """El usuario edita la carta de una postulación enviada. La constancia original se conserva en audit."""
+    application = get_object_or_404(
+        Application, user=request.user, vacancy_id=vacancy_id, status__in=Application.SUBMITTED_STATUSES)
+    text = (request.POST.get("cover_letter") or "").replace("\r\n", "\n").strip()
+    if not text:
+        return JsonResponse({"success": False, "error": "La carta no puede quedar vacía."}, status=400)
+    if len(text) > MAX_LETTER_LENGTH:
+        return JsonResponse(
+            {"success": False, "error": f"La carta no puede superar {MAX_LETTER_LENGTH} caracteres."}, status=400)
+
+    if text != application.cover_letter:
+        audit = dict(application.audit or {})
+        audit.setdefault("original_letter_source", application.letter_source)
+        audit["letter_edited_at"] = timezone.now().isoformat(timespec="seconds")
+        application.cover_letter = text
+        application.letter_source = LETTER_SOURCE_USER
+        application.audit = audit
+        application.save(update_fields=["cover_letter", "letter_source", "audit", "updated_at"])
+
+    return JsonResponse({"success": True, "application": serialize_application(application)})
 
 
 @login_required

@@ -5,7 +5,7 @@ from .views.profile import process_profile
 from .views.profile_editor import edit_profile
 from .views.career import assess_career, clarify_career, explore_career, retry_career_recommendation
 from .views.vacancies import match_vacancies, save_vacancy_preferences, vacancies_page
-from .views.applications import applications_page, run_applications, select_applications
+from .views.applications import applications_page, run_applications, select_applications, update_cover_letter
 from .views.traceability import traceability_page
 from .views.followup import (
     complete_reminder,
@@ -47,6 +47,7 @@ urlpatterns = [
     path("postulaciones/", applications_page, name="applications"),
     path("applications/select/", select_applications, name="select_applications"),
     path("applications/run/", run_applications, name="run_applications"),
+    path("applications/<str:vacancy_id>/letter/", update_cover_letter, name="update_cover_letter"),
 
     # Agente de seguimiento
     path("seguimiento/", followup_page, name="followup"),
