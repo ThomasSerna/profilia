@@ -3,6 +3,14 @@ from core.models import Application, Profile
 
 PROFILE_STEP_PERCENT = 25
 
+PAGE_ICONS = {
+    "home": "fa-id-card",
+    "edit_profile": "fa-id-card",
+    "vacancies": "fa-briefcase",
+    "applications": "fa-paper-plane",
+    "traceability": "fa-list-check",
+}
+
 
 def sidebar_state(request):
     """Estado que necesita la barra lateral en todas las páginas."""
@@ -16,9 +24,11 @@ def sidebar_state(request):
     )
 
     resolver = getattr(request, "resolver_match", None)
+    current_url_name = getattr(resolver, "url_name", "") if resolver else ""
     return {
         "profile_completed": completed,
-        "current_url_name": getattr(resolver, "url_name", "") if resolver else "",
+        "current_url_name": current_url_name,
+        "current_page_icon": PAGE_ICONS.get(current_url_name, "fa-id-card"),
         "flow_progress": PROFILE_STEP_PERCENT if completed else 0,
         "applications_unlocked": applications_unlocked,
     }

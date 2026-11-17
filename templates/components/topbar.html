@@ -23,7 +23,7 @@
 
         <h1 class="text-base sm:text-lg font-bold text-[#13223a] flex items-center gap-2 min-w-0">
 
-            <i class="fa-solid fa-id-card text-[#02bc4d]"></i>
+            <i class="fa-solid {{ current_page_icon|default:'fa-id-card' }} text-[#02bc4d]" aria-hidden="true"></i>
 
             <span class="truncate">{{ page_title|default:"Tu orientación profesional" }}</span>
 

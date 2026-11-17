@@ -36,8 +36,8 @@
                 class="traceability-stage-tab text-left p-3 rounded-xl border-2 transition-all min-h-[44px] flex flex-col justify-between gap-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#008736]
                        {% if stage.id == traceability_data.active_stage_id %}border-[#02bc4d] bg-emerald-50/50 shadow-sm{% else %}border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-white{% endif %}"
             >
-                <div class="flex items-center justify-between gap-2 w-full">
-                    <div class="flex items-center gap-2 min-w-0">
+                <div class="space-y-1.5 w-full">
+                    <div class="flex items-center justify-between gap-2 w-full">
                         <span
                             data-stage-icon-box
                             class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition
@@ -45,20 +45,21 @@
                         >
                             <i class="fa-solid {{ stage.icon }}" aria-hidden="true"></i>
                         </span>
-                        <span class="text-xs font-extrabold text-[#13223a]">
-                            {{ stage.step }}. {{ stage.title }}
+
+                        <span
+                            class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 border
+                                   {% if stage.status == 'completed' %}bg-emerald-100 text-[#008736] border-emerald-200
+                                   {% elif stage.status == 'in_progress' %}bg-amber-100 text-amber-800 border-amber-200
+                                   {% elif stage.status == 'preview' %}bg-sky-100 text-sky-800 border-sky-200
+                                   {% else %}bg-slate-200 text-slate-600 border-slate-300{% endif %}"
+                        >
+                            {{ stage.status_label }}
                         </span>
                     </div>
 
-                    <span
-                        class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 border
-                               {% if stage.status == 'completed' %}bg-emerald-100 text-[#008736] border-emerald-200
-                               {% elif stage.status == 'in_progress' %}bg-amber-100 text-amber-800 border-amber-200
-                               {% elif stage.status == 'preview' %}bg-sky-100 text-sky-800 border-sky-200
-                               {% else %}bg-slate-200 text-slate-600 border-slate-300{% endif %}"
-                    >
-                        {{ stage.status_label }}
-                    </span>
+                    <p class="text-xs font-extrabold text-[#13223a] truncate w-full">
+                        {{ stage.step }}. {{ stage.title }}
+                    </p>
                 </div>
 
                 <div class="flex items-center justify-between gap-1.5 pt-2 border-t border-slate-200/80 w-full">

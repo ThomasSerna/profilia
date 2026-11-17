@@ -201,13 +201,13 @@
         left: var(--node-x, 50%);
         top: var(--node-y, 50%);
         transform: translate(-50%, -50%);
-        width: 126px;
+        width: 136px;
     }
 }
 
 @media (min-width: 1280px) {
     .traceability-node-2d {
-        width: 136px;
+        width: 148px;
     }
 }
 

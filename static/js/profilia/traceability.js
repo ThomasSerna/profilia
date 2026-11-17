@@ -216,10 +216,16 @@ export function initTraceability() {
 
             const iconWrap = createElement(
                 "div",
-                "w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 text-[#00d461] flex items-center justify-center shrink-0 transition relative z-10",
+                "w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 text-[#00d461] flex items-center justify-center shrink-0 transition relative z-10",
             );
             iconWrap.dataset.nodeIconWrap = node.id;
-            iconWrap.append(createElement("i", `fa-solid ${node.icon} text-sm`));
+            iconWrap.append(createElement("i", `fa-solid ${node.icon} text-xs`));
+
+            const titleEl = createElement(
+                "p",
+                "text-[11px] font-bold text-white leading-tight truncate max-w-full relative z-10",
+                node.title,
+            );
 
             const pillRow = createElement(
                 "div",
@@ -229,7 +235,7 @@ export function initTraceability() {
             const badgeText = createElement("span", "text-[10px] font-bold text-[#00d461] truncate", node.badge);
             pillRow.append(statusDot, badgeText);
 
-            button.append(pulseRing, iconWrap, pillRow);
+            button.append(pulseRing, iconWrap, titleEl, pillRow);
             button.addEventListener("click", () => {
                 stopPlayback();
                 selectNode(index, { animateIncomingTo: node.id });
@@ -260,7 +266,7 @@ export function initTraceability() {
 
             const iconWrap = card.querySelector("[data-node-icon-wrap]");
             if (iconWrap) {
-                iconWrap.className = `w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition relative z-10 ${
+                iconWrap.className = `w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition relative z-10 ${
                     isSelected
                         ? "bg-[#02bc4d] text-[#0b1526] shadow-md shadow-[#02bc4d]/30"
                         : "bg-slate-800 border border-slate-700 text-[#00d461]"

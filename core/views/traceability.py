@@ -198,9 +198,9 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
         "action_label": "Ir a Mi perfil",
         "summary": "Estructura tu perfil, separa evidencia real de vacíos y orienta tus cargos.",
         "metrics": [
-            {"label": "Habilidades", "value": str(len(skills))},
+            {"label": "Hab.", "value": str(len(skills))},
             {"label": "Cargos", "value": str(len(role_names))},
-            {"label": "Aclaradas", "value": str(len(answered))},
+            {"label": "Aclar.", "value": str(len(answered))},
         ],
         "nodes": [
             {
@@ -423,9 +423,9 @@ def _build_vacancies_stage(profile, candidate: ProfileData | None, saved_career:
         "action_label": "Explorar vacantes" if candidate else "Completar perfil",
         "summary": "Estandariza las ofertas disponibles y cruza en paralelo tus habilidades y tus filtros.",
         "metrics": [
-            {"label": "Catálogo", "value": str(total_catalog)},
+            {"label": "Ofertas", "value": str(total_catalog)},
             {"label": "Acordes", "value": str(matching_prefs_count if matches else 0)},
-            {"label": "Máx. afinidad", "value": f"{top_matches[0].score}%" if top_matches else "—"},
+            {"label": "Afinidad", "value": f"{top_matches[0].score}%" if top_matches else "—"},
         ],
         "nodes": [
             {
@@ -673,7 +673,7 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
         "metrics": [
             {"label": "Elegidas", "value": str(total_selected)},
             {"label": "Enviadas", "value": str(len(applied))},
-            {"label": "Respuestas", "value": str(total_screening)},
+            {"label": "Filtro", "value": str(total_screening)},
         ],
         "nodes": [
             {
@@ -824,7 +824,7 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
                 "step_label": "3.4",
                 "title": "Envío y constancia",
                 "caption": "Simulación Magneto 365",
-                "icon": "fa-shield-check",
+                "icon": "fa-circle-check",
                 "status": "completed" if applied else "pending",
                 "status_label": "Completado" if applied else "Pendiente",
                 "badge": f"{len(applied)} enviada(s)",
@@ -916,7 +916,7 @@ def _build_followup_stage(applications: list[Application], state: dict) -> dict:
         "metrics": [
             {"label": "Activas", "value": str(len(applied))},
             {"label": "Alertas", "value": str(max(len(applied), 2))},
-            {"label": "Acciones", "value": "3"},
+            {"label": "Pasos", "value": "3"},
         ],
         "nodes": [
             {
