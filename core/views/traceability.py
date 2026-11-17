@@ -39,6 +39,12 @@ SCREENING_STATUS_LABELS = {
 }
 
 
+def _plural(count: int, singular: str, plural: str | None = None) -> str:
+    """Formatea un conteo con concordancia singular o plural en español."""
+    word = singular if count == 1 else (plural or f"{singular}s")
+    return f"{count} {word}"
+
+
 def _candidate_from_profile(profile) -> ProfileData | None:
     if profile is None or not isinstance(profile.data, dict):
         return None
@@ -75,14 +81,17 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
     elif has_cv and manual_fields:
         source_status = "completed"
         source_badge = "PDF + Manual"
-        source_what = f"Profilia combinó tu hoja de vida en PDF con {len(manual_fields)} sección(es) editada(s) por ti."
+        source_what = (
+            f"Profilia combinó tu hoja de vida en PDF con "
+            f"{_plural(len(manual_fields), 'sección editada', 'secciones editadas')} por ti."
+        )
         source_items = [
             "Hoja de vida en PDF procesada.",
             f"Secciones ajustadas por ti: {len(manual_fields)}.",
         ]
         source_visuals = [
             {"label": "Origen principal", "value": "Hoja de vida PDF", "tone": "emerald", "icon": "fa-file-pdf"},
-            {"label": "Edición protegida", "value": f"{len(manual_fields)} sección(es)", "tone": "emerald", "icon": "fa-user-pen"},
+            {"label": "Edición protegida", "value": _plural(len(manual_fields), "sección", "secciones"), "tone": "emerald", "icon": "fa-user-pen"},
         ]
     elif has_cv:
         source_status = "completed"
@@ -181,7 +190,7 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
         "in_progress" if has_profile else "pending"
     )
     headline_metric = (
-        f"{len(skills)} hab. · {len(role_names)} cargo(s)"
+        f"{len(skills)} hab. · {_plural(len(role_names), 'cargo')}"
         if has_profile else "Sin perfil registrado"
     )
 
@@ -217,7 +226,7 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
                 "status": source_status,
                 "status_label": "Completado" if source_status == "completed" else "Pendiente",
                 "badge": source_badge,
-                "x": 9,
+                "x": 8,
                 "y": 50,
                 "live_action": "Leyendo tu información profesional y respetando tus ediciones manuales...",
                 "what_did": source_what,
@@ -241,11 +250,12 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
                 "status": structure_status,
                 "status_label": "Completado" if structure_status == "completed" else "Pendiente",
                 "badge": f"{len(skills)} hab · {experiences} exp",
-                "x": 36,
+                "x": 29,
                 "y": 50,
                 "live_action": "Separando habilidades, experiencia, estudios e idiomas...",
                 "what_did": (
-                    f"Tu perfil quedó organizado en {len(skills)} habilidad(es), {experiences} experiencia(s) y {educations} estudio(s)."
+                    f"Tu perfil quedó organizado en {_plural(len(skills), 'habilidad', 'habilidades')}, "
+                    f"{_plural(experiences, 'experiencia')} y {_plural(educations, 'estudio')}."
                     if has_profile else "Cuando registres tu información, la organizaremos en bloques claros."
                 ),
                 "why_did": "Separar tus habilidades, trayectoria, formación e idiomas permite compararte con justicia frente a los requisitos de cada cargo.",
@@ -264,18 +274,18 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
             },
             {
                 "id": "profile-evidence",
-                "step_label": "1.3A",
+                "step_label": "1.3",
                 "title": "Evidencia en CV",
                 "caption": "Respaldo directo",
                 "icon": "fa-shield-halved",
                 "status": evidence_status,
                 "status_label": "Completado" if evidence_status == "completed" else "Pendiente",
                 "badge": f"{len(skills)} en CV",
-                "x": 63,
-                "y": 23,
+                "x": 50,
+                "y": 50,
                 "live_action": "Verificando qué requisitos ya tienen respaldo directo en tu hoja de vida...",
                 "what_did": (
-                    f"Encontramos respaldo directo para {len(skills)} habilidad(es) en tu perfil actual."
+                    f"Encontramos respaldo directo para {_plural(len(skills), 'habilidad', 'habilidades')} en tu perfil actual."
                     if has_profile else "Identificaremos tus fortalezas en cuanto cargues o edites tu perfil."
                 ),
                 "why_did": "Distinguimos lo que ya está respaldado en tu hoja de vida de aquello sobre lo que aún nos falta información.",
@@ -289,7 +299,7 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
             },
             {
                 "id": "profile-gaps",
-                "step_label": "1.3B",
+                "step_label": "1.4",
                 "title": "Detección de vacíos",
                 "caption": "Preguntas puntuales",
                 "icon": "fa-magnifying-glass-chart",
@@ -301,13 +311,14 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
                 ),
                 "badge": (
                     f"{len(answered)} aclar. · {len(pending)} pend."
-                    if pending else f"{len(answered)} aclarada(s)"
+                    if pending else _plural(len(answered), "aclarada")
                 ),
-                "x": 63,
-                "y": 77,
+                "x": 71,
+                "y": 50,
                 "live_action": "Detectando requisitos ausentes en el CV para preguntarte directamente...",
                 "what_did": (
-                    f"Identificamos {len(answered) + len(pending)} requisito(s) que no figuraban en tu CV ({len(answered)} aclarado(s) contigo)."
+                    f"Identificamos {_plural(len(answered) + len(pending), 'requisito')} que no figuraban en tu CV "
+                    f"({_plural(len(answered), 'aclarado')} contigo)."
                     if (answered or pending) else "Revisamos tus cargos objetivo para detectar requisitos que no aparecen escritos en tu hoja de vida."
                 ),
                 "why_did": "No encontrar una habilidad en tu hoja de vida no significa que no la conozcas; por eso te consultamos antes de descartarla.",
@@ -322,7 +333,7 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
             },
             {
                 "id": "profile-guidance",
-                "step_label": "1.4",
+                "step_label": "1.5",
                 "title": "Orientación",
                 "caption": "Ruta por cargo",
                 "icon": "fa-compass",
@@ -332,12 +343,12 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
                     else "En curso" if roles_status == "in_progress"
                     else "Pendiente"
                 ),
-                "badge": f"{len(assessments)} cargo(s)",
-                "x": 90,
+                "badge": _plural(len(assessments), "cargo"),
+                "x": 92,
                 "y": 50,
                 "live_action": "Consolidando tu nivel de coincidencia y plan de mejora por cargo...",
                 "what_did": (
-                    f"Profilia preparó tu orientación para {len(assessments)} cargo(s) combinando tu CV y tus aclaraciones."
+                    f"Profilia preparó tu orientación para {_plural(len(assessments), 'cargo')} combinando tu CV y tus aclaraciones."
                     if assessments else "Elige entre 1 y 3 cargos de tu interés en Mi perfil para recibir tu orientación."
                 ),
                 "why_did": "Así sabes en qué roles tienes mayor coincidencia hoy y qué habilidades te conviene fortalecer primero.",
@@ -357,11 +368,10 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
             },
         ],
         "edges": [
-            {"from": "profile-source", "to": "profile-structure", "label": "Lee y ordena", "active": has_profile},
-            {"from": "profile-structure", "to": "profile-evidence", "label": "Figura en CV", "active": has_profile},
-            {"from": "profile-structure", "to": "profile-gaps", "label": "No figura en CV", "active": bool(has_profile or answered or pending)},
-            {"from": "profile-evidence", "to": "profile-guidance", "label": "Fortalezas", "active": bool(assessments)},
-            {"from": "profile-gaps", "to": "profile-guidance", "label": "Aclaraciones", "active": bool(assessments or answered)},
+            {"from": "profile-source", "to": "profile-structure", "label": "Lee datos", "active": has_profile},
+            {"from": "profile-structure", "to": "profile-evidence", "label": "En tu CV", "active": has_profile},
+            {"from": "profile-evidence", "to": "profile-gaps", "label": "Lo faltante", "active": bool(has_profile or answered or pending)},
+            {"from": "profile-gaps", "to": "profile-guidance", "label": "Aclarado", "active": bool(assessments or answered)},
         ],
     }
 
@@ -414,6 +424,7 @@ def _build_vacancies_stage(profile, candidate: ProfileData | None, saved_career:
         for item in matches[:4]
     ] or [{"label": "Ranking de ofertas", "value": "Pendiente de perfil", "tone": "slate", "icon": "fa-hourglass-start"}]
 
+    skill_count = len(candidate.skills) if candidate else 0
     return {
         "id": "vacancies",
         "step": 2,
@@ -431,8 +442,8 @@ def _build_vacancies_stage(profile, candidate: ProfileData | None, saved_career:
         "action_label": "Explorar vacantes" if candidate else "Completar perfil",
         "summary": "Estandariza las ofertas disponibles y cruza en paralelo tus habilidades y tus filtros.",
         "headline_metric": (
-            f"{total_catalog} ofertas · {matching_prefs_count} acordes"
-            if matches else f"{total_catalog} ofertas en catálogo"
+            f"{_plural(total_catalog, 'oferta')} · {_plural(matching_prefs_count, 'acorde')}"
+            if matches else f"{_plural(total_catalog, 'oferta')} en catálogo"
         ),
         "metrics": [
             {"label": "Ofertas", "value": str(total_catalog)},
@@ -448,11 +459,11 @@ def _build_vacancies_stage(profile, candidate: ProfileData | None, saved_career:
                 "icon": "fa-database",
                 "status": "completed" if candidate else "pending",
                 "status_label": "Completado" if candidate else "Pendiente",
-                "badge": f"{total_catalog} ofertas",
+                "badge": _plural(total_catalog, "oferta"),
                 "x": 9,
                 "y": 50,
                 "live_action": "Cargando las ofertas disponibles en el catálogo laboral...",
-                "what_did": f"Reunimos {total_catalog} ofertas activas con sus requisitos técnicos y condiciones laborales.",
+                "what_did": f"Reunimos {_plural(total_catalog, 'oferta activa', 'ofertas activas')} con sus requisitos técnicos y condiciones laborales.",
                 "why_did": "Revisar todo el catálogo en un solo paso te ahorra buscar y leer oferta por oferta.",
                 "items": [f"Total de vacantes en catálogo: {total_catalog}."],
                 "visual_items": [
@@ -506,7 +517,7 @@ def _build_vacancies_stage(profile, candidate: ProfileData | None, saved_career:
                 "y": 23,
                 "live_action": "Comparando tus habilidades confirmadas con los requisitos de cada vacante...",
                 "what_did": (
-                    f"Comparamos tus {len(candidate.skills) if candidate else 0} habilidades registradas y tus aclaraciones frente a cada vacante."
+                    f"Comparamos {_plural(skill_count, 'habilidad registrada', 'habilidades registradas')} y tus aclaraciones frente a cada vacante."
                     if matches else "Cruzaremos tus habilidades y aclaraciones con cada oferta apenas completes tu perfil."
                 ),
                 "why_did": "Damos prioridad a los requisitos indispensables del cargo y sumamos tus fortalezas deseables con transparencia.",
@@ -583,7 +594,8 @@ def _build_vacancies_stage(profile, candidate: ProfileData | None, saved_career:
                 "y": 50,
                 "live_action": "Ordenando las ofertas por coincidencia con los requisitos del cargo...",
                 "what_did": (
-                    f"Ordenamos las {len(matches)} ofertas según tu coincidencia con los requisitos del cargo ({matching_prefs_count} cumplen tus filtros)."
+                    f"Ordenamos {_plural(len(matches), 'oferta')} según tu coincidencia con los requisitos del cargo "
+                    f"({matching_prefs_count} {'cumple' if matching_prefs_count == 1 else 'cumplen'} tus filtros)."
                     if matches else "Ordenaremos las ofertas por coincidencia en cuanto registres tu perfil profesional."
                 ),
                 "why_did": "Te ayuda a enfocar tus postulaciones donde tienes mayor respaldo real y ver qué requisito te faltaría cubrir.",
@@ -608,7 +620,7 @@ def _build_vacancies_stage(profile, candidate: ProfileData | None, saved_career:
             {"from": "vacancies-normalize", "to": "vacancies-skills", "label": "Requisitos", "active": candidate is not None},
             {"from": "vacancies-normalize", "to": "vacancies-preferences", "label": "Condiciones", "active": candidate is not None},
             {"from": "vacancies-skills", "to": "vacancies-matching", "label": "Coincidencia", "active": bool(matches)},
-            {"from": "vacancies-preferences", "to": "vacancies-matching", "label": f"{matching_prefs_count} acordes" if matches else "Tus filtros", "active": bool(matches)},
+            {"from": "vacancies-preferences", "to": "vacancies-matching", "label": _plural(matching_prefs_count, "acorde") if matches else "Tus filtros", "active": bool(matches)},
         ],
     }
 
@@ -686,9 +698,9 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
         ),
         "summary": "En paralelo redacta tu carta honesta y responde preguntas de filtro antes de registrar el envío.",
         "headline_metric": (
-            f"{len(applied)} enviada(s) · {total_screening} resp."
+            f"{_plural(len(applied), 'enviada')} · {total_screening} resp."
             if applied else (
-                f"{total_selected} elegida(s) por enviar"
+                f"{_plural(total_selected, 'elegida')} por enviar"
                 if total_selected else "Sin postulaciones activas"
             )
         ),
@@ -706,12 +718,13 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
                 "icon": "fa-check-double",
                 "status": selection_status,
                 "status_label": "Completado" if selection_status == "completed" else "Pendiente",
-                "badge": f"{total_selected} elegida(s)",
+                "badge": _plural(total_selected, "elegida"),
                 "x": 10,
                 "y": 50,
                 "live_action": "Verificando las vacantes que seleccionaste para postular...",
                 "what_did": (
-                    f"Confirmaste {total_selected} vacante(s) para postular ({len(applied)} enviada(s) y {len(pending)} en preparación)."
+                    f"Confirmaste {_plural(total_selected, 'vacante')} para postular "
+                    f"({_plural(len(applied), 'enviada')} y {len(pending)} en preparación)."
                     if applications else "Aún no has seleccionado vacantes para preparar tu postulación."
                 ),
                 "why_did": "Tú tienes siempre la última palabra sobre a qué ofertas postular; Profilia nunca envía nada sin tu confirmación.",
@@ -750,12 +763,13 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
                     else "En curso" if execution_status == "in_progress"
                     else "Pendiente"
                 ),
-                "badge": f"{len(applied)} carta(s)",
+                "badge": _plural(len(applied), "carta"),
                 "x": 39,
                 "y": 23,
                 "live_action": "Redactando cartas personalizadas con las fortalezas reales de tu perfil...",
                 "what_did": (
-                    f"Profilia redactó {len(applied)} carta(s) de presentación adaptada(s) a cada cargo y empresa."
+                    f"Profilia redactó {_plural(len(applied), 'carta de presentación adaptada', 'cartas de presentación adaptadas')} "
+                    "a cada cargo y empresa."
                     if applied else "Redactaremos una carta personalizada por cada vacante cuando inicies el envío."
                 ),
                 "why_did": "Cada carta destaca únicamente las fortalezas y experiencias reales de tu cuenta, sin exagerar ni inventar datos.",
@@ -794,7 +808,7 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
                 "y": 77,
                 "live_action": "Respondiendo preguntas de requisitos, modalidad y salario...",
                 "what_did": (
-                    f"Respondimos {total_screening} pregunta(s) de filtro con base en tu perfil y tus preferencias."
+                    f"Respondimos {_plural(total_screening, 'pregunta')} de filtro con base en tu perfil y tus preferencias."
                     if applied else "Prepararemos las respuestas a las preguntas de cada oferta usando solo tu información real."
                 ),
                 "why_did": "Distinguir con honestidad lo respaldado en tu perfil de lo pendiente cuida tu credibilidad ante cada empresa.",
@@ -817,12 +831,13 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
                     else "En curso" if execution_status == "in_progress"
                     else "Pendiente"
                 ),
-                "badge": f"{total_warnings} aviso(s)" if applied else "Revisión",
+                "badge": _plural(total_warnings, "aviso") if applied else "Revisión",
                 "x": 64,
                 "y": 50,
                 "live_action": "Verificando consistencia del paquete y avisos de requisitos...",
                 "what_did": (
-                    f"Revisamos {len(applied)} paquete(s) de postulación y registramos {total_warnings} aviso(s) para tu conocimiento."
+                    f"Revisamos {_plural(len(applied), 'paquete')} de postulación y registramos "
+                    f"{_plural(total_warnings, 'aviso')} para tu conocimiento."
                     if applied else "Antes de registrar el envío, verificamos que la carta y las respuestas sean consistentes con tu perfil."
                 ),
                 "why_did": "Te advierte si una oferta pide algún requisito aún sin respaldo en tu perfil o si difiere de tus preferencias.",
@@ -849,12 +864,13 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
                 "icon": "fa-circle-check",
                 "status": "completed" if applied else "pending",
                 "status_label": "Completado" if applied else "Pendiente",
-                "badge": f"{len(applied)} enviada(s)",
+                "badge": _plural(len(applied), "enviada"),
                 "x": 90,
                 "y": 50,
                 "live_action": "Simulando el envío a Magneto 365 y guardando la evidencia...",
                 "what_did": (
-                    f"Guardamos la constancia completa de {len(applied)} postulación(es) simulada(s) para Magneto 365."
+                    f"Guardamos la constancia completa de {_plural(len(applied), 'postulación simulada', 'postulaciones simuladas')} "
+                    "para Magneto 365."
                     if applied else "Al completar el envío, guardaremos la constancia con fecha, carta y respuestas en tu cuenta."
                 ),
                 "why_did": "Puedes consultar en cualquier momento qué se envió a cada empresa y prepararte mejor si te contactan.",
@@ -936,7 +952,7 @@ def _build_followup_stage(applications: list[Application], state: dict) -> dict:
         "action_label": "Ver postulaciones" if applications else "Ir a Mi perfil",
         "summary": "A partir de tus envíos y brechas detectadas, organiza alertas y estudio recomendado.",
         "headline_metric": (
-            f"{len(applied)} activa(s) · {max(len(applied), 2)} alertas"
+            f"{_plural(len(applied), 'activa')} · {_plural(max(len(applied), 2), 'alerta')}"
             if applied else "Alertas y plan de estudio"
         ),
         "metrics": [
@@ -953,11 +969,11 @@ def _build_followup_stage(applications: list[Application], state: dict) -> dict:
                 "icon": "fa-inbox",
                 "status": "preview",
                 "status_label": "Vista previa",
-                "badge": f"{len(applied)} activa(s)",
+                "badge": _plural(len(applied), "activa"),
                 "x": 12,
                 "y": 50,
                 "live_action": "Consolidando el estado y fecha de tus postulaciones enviadas...",
-                "what_did": f"Reúne tus {len(applied)} postulación(es) enviada(s) para activar tu agenda.",
+                "what_did": f"Reúne {_plural(len(applied), 'postulación enviada', 'postulaciones enviadas')} para activar tu agenda.",
                 "why_did": "Centralizar tus envíos evita perder fechas clave de contacto o pruebas.",
                 "items": active_items,
                 "visual_items": [
@@ -978,7 +994,7 @@ def _build_followup_stage(applications: list[Application], state: dict) -> dict:
                 "icon": "fa-bell",
                 "status": "preview",
                 "status_label": "Vista previa",
-                "badge": f"{len(reminder_items)} alerta(s)",
+                "badge": _plural(len(reminder_items), "alerta"),
                 "x": 52,
                 "y": 23,
                 "live_action": "Programando alertas periódicas por cada candidatura enviada...",
@@ -1002,7 +1018,7 @@ def _build_followup_stage(applications: list[Application], state: dict) -> dict:
                 "icon": "fa-graduation-cap",
                 "status": "preview",
                 "status_label": "Vista previa",
-                "badge": f"{len(missing_skills)} foco(s)" if missing_skills else "Repaso",
+                "badge": _plural(len(missing_skills), "foco") if missing_skills else "Repaso",
                 "x": 52,
                 "y": 77,
                 "live_action": "Conectando las brechas de tus vacantes con temas de estudio...",

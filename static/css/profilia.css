@@ -159,6 +159,12 @@
         width: 144px;
     }
 
+    .traceability-node-2d.is-linear {
+        width: clamp(112px, 12.6%, 132px);
+        padding-left: 0.45rem;
+        padding-right: 0.45rem;
+    }
+
     .traceability-node-2d.is-selected {
         transform: translate(-50%, -50%) scale(1.05);
     }
@@ -167,6 +173,10 @@
 @media (min-width: 1280px) {
     .traceability-node-2d {
         width: 158px;
+    }
+
+    .traceability-node-2d.is-linear {
+        width: clamp(118px, 12.6%, 132px);
     }
 }
 
