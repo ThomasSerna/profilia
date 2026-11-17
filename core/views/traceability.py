@@ -217,7 +217,7 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
                 "status": source_status,
                 "status_label": "Completado" if source_status == "completed" else "Pendiente",
                 "badge": source_badge,
-                "x": 10,
+                "x": 9,
                 "y": 50,
                 "live_action": "Leyendo tu información profesional y respetando tus ediciones manuales...",
                 "what_did": source_what,
@@ -241,7 +241,7 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
                 "status": structure_status,
                 "status_label": "Completado" if structure_status == "completed" else "Pendiente",
                 "badge": f"{len(skills)} hab · {experiences} exp",
-                "x": 35,
+                "x": 36,
                 "y": 50,
                 "live_action": "Separando habilidades, experiencia, estudios e idiomas...",
                 "what_did": (
@@ -333,7 +333,7 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
                     else "Pendiente"
                 ),
                 "badge": f"{len(assessments)} cargo(s)",
-                "x": 89,
+                "x": 90,
                 "y": 50,
                 "live_action": "Consolidando tu nivel de coincidencia y plan de mejora por cargo...",
                 "what_did": (
@@ -357,7 +357,7 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
             },
         ],
         "edges": [
-            {"from": "profile-source", "to": "profile-structure", "label": "Texto + ediciones", "active": has_profile},
+            {"from": "profile-source", "to": "profile-structure", "label": "Lee y ordena", "active": has_profile},
             {"from": "profile-structure", "to": "profile-evidence", "label": "Figura en CV", "active": has_profile},
             {"from": "profile-structure", "to": "profile-gaps", "label": "No figura en CV", "active": bool(has_profile or answered or pending)},
             {"from": "profile-evidence", "to": "profile-guidance", "label": "Fortalezas", "active": bool(assessments)},
@@ -449,7 +449,7 @@ def _build_vacancies_stage(profile, candidate: ProfileData | None, saved_career:
                 "status": "completed" if candidate else "pending",
                 "status_label": "Completado" if candidate else "Pendiente",
                 "badge": f"{total_catalog} ofertas",
-                "x": 10,
+                "x": 9,
                 "y": 50,
                 "live_action": "Cargando las ofertas disponibles en el catálogo laboral...",
                 "what_did": f"Reunimos {total_catalog} ofertas activas con sus requisitos técnicos y condiciones laborales.",
@@ -474,7 +474,7 @@ def _build_vacancies_stage(profile, candidate: ProfileData | None, saved_career:
                 "status": "completed" if candidate else "pending",
                 "status_label": "Completado" if candidate else "Pendiente",
                 "badge": "Estándar limpio",
-                "x": 35,
+                "x": 36,
                 "y": 50,
                 "live_action": "Unificando nombres de habilidades, modalidades y salarios...",
                 "what_did": "Unificamos el formato de habilidades obligatorias, deseables, ciudades, modalidades y salarios.",
@@ -579,7 +579,7 @@ def _build_vacancies_stage(profile, candidate: ProfileData | None, saved_career:
                 "status": match_status,
                 "status_label": "Completado" if match_status == "completed" else "Pendiente",
                 "badge": f"Máx {top_matches[0].score}%" if top_matches else "Pendiente",
-                "x": 89,
+                "x": 90,
                 "y": 50,
                 "live_action": "Ordenando las ofertas por coincidencia con los requisitos del cargo...",
                 "what_did": (
@@ -604,11 +604,11 @@ def _build_vacancies_stage(profile, candidate: ProfileData | None, saved_career:
             },
         ],
         "edges": [
-            {"from": "vacancies-ingest", "to": "vacancies-normalize", "label": f"{total_catalog} ofertas", "active": candidate is not None},
+            {"from": "vacancies-ingest", "to": "vacancies-normalize", "label": "Unifica datos", "active": candidate is not None},
             {"from": "vacancies-normalize", "to": "vacancies-skills", "label": "Requisitos", "active": candidate is not None},
             {"from": "vacancies-normalize", "to": "vacancies-preferences", "label": "Condiciones", "active": candidate is not None},
             {"from": "vacancies-skills", "to": "vacancies-matching", "label": "Coincidencia", "active": bool(matches)},
-            {"from": "vacancies-preferences", "to": "vacancies-matching", "label": f"{matching_prefs_count} acordes", "active": bool(matches)},
+            {"from": "vacancies-preferences", "to": "vacancies-matching", "label": f"{matching_prefs_count} acordes" if matches else "Tus filtros", "active": bool(matches)},
         ],
     }
 
@@ -751,7 +751,7 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
                     else "Pendiente"
                 ),
                 "badge": f"{len(applied)} carta(s)",
-                "x": 42,
+                "x": 39,
                 "y": 23,
                 "live_action": "Redactando cartas personalizadas con las fortalezas reales de tu perfil...",
                 "what_did": (
@@ -790,7 +790,7 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
                     else "Pendiente"
                 ),
                 "badge": f"{total_screening} resp.",
-                "x": 42,
+                "x": 39,
                 "y": 77,
                 "live_action": "Respondiendo preguntas de requisitos, modalidad y salario...",
                 "what_did": (
@@ -818,7 +818,7 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
                     else "Pendiente"
                 ),
                 "badge": f"{total_warnings} aviso(s)" if applied else "Revisión",
-                "x": 68,
+                "x": 64,
                 "y": 50,
                 "live_action": "Verificando consistencia del paquete y avisos de requisitos...",
                 "what_did": (
@@ -883,7 +883,7 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
             {"from": "applications-select", "to": "applications-screening", "label": "Preguntas", "active": bool(applications)},
             {"from": "applications-letter", "to": "applications-validate", "label": "Carta lista", "active": bool(applied)},
             {"from": "applications-screening", "to": "applications-validate", "label": "Respuestas", "active": bool(applied)},
-            {"from": "applications-validate", "to": "applications-submit", "label": "Magneto 365", "active": bool(applied)},
+            {"from": "applications-validate", "to": "applications-submit", "label": "Paquete listo", "active": bool(applied)},
         ],
     }
 
@@ -1045,10 +1045,10 @@ def _build_followup_stage(applications: list[Application], state: dict) -> dict:
             },
         ],
         "edges": [
-            {"from": "followup-monitor", "to": "followup-reminders", "label": "Fechas de envío", "active": True},
-            {"from": "followup-monitor", "to": "followup-practice", "label": "Avisos y brechas", "active": True},
+            {"from": "followup-monitor", "to": "followup-reminders", "label": "Fechas clave", "active": True},
+            {"from": "followup-monitor", "to": "followup-practice", "label": "Por reforzar", "active": True},
             {"from": "followup-reminders", "to": "followup-next", "label": "Agenda activa", "active": True},
-            {"from": "followup-practice", "to": "followup-next", "label": "Plan de estudio", "active": True},
+            {"from": "followup-practice", "to": "followup-next", "label": "Plan de mejora", "active": True},
         ],
     }
 

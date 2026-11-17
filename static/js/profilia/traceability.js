@@ -42,6 +42,7 @@ export function initTraceability() {
     const graphPanel = document.getElementById("traceability-graph-panel");
     const graphBoard = document.getElementById("traceability-graph-board");
     const svgLayer = document.getElementById("traceability-svg-layer");
+    const edgeLabelsLayer = document.getElementById("traceability-edge-labels");
     const nodesContainer = document.getElementById("traceability-nodes-container");
     const sceneCanvas = document.getElementById("traceability-scene-canvas");
     const sceneBadge = document.getElementById("scene-panel-badge");
@@ -486,6 +487,7 @@ export function initTraceability() {
 
         svgLayer.setAttribute("viewBox", `0 0 ${boardRect.width} ${boardRect.height}`);
         svgLayer.replaceChildren();
+        edgeLabelsLayer?.replaceChildren();
 
         const linesGroup = document.createElementNS(SVG_NS, "g");
         const particlesGroup = document.createElementNS(SVG_NS, "g");
@@ -573,6 +575,36 @@ export function initTraceability() {
                 port.setAttribute("stroke-width", "1.5");
                 linesGroup.appendChild(port);
             });
+
+            if (isDesktop2D && edge.label && edgeLabelsLayer) {
+                let mid = { x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
+                if (typeof activePath.getTotalLength === "function" && typeof activePath.getPointAtLength === "function") {
+                    const totalLen = activePath.getTotalLength();
+                    if (totalLen > 0) {
+                        const pt = activePath.getPointAtLength(totalLen * 0.5);
+                        mid = { x: pt.x, y: pt.y };
+                    }
+                }
+                const toneClasses = isEdgeVisited && isEdgeEnabled
+                    ? "bg-white border-[#81cda0] text-[#006c2b] font-semibold"
+                    : isEdgeEnabled
+                        ? "bg-white/95 border-slate-300/90 text-slate-600 font-medium"
+                        : "bg-slate-50/95 border-slate-200 text-slate-400 font-medium";
+                const labelPill = createElement(
+                    "span",
+                    `absolute -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 rounded-full text-[10px] leading-tight whitespace-nowrap border shadow-[0_1px_2px_rgba(19,34,58,0.06)] transition-colors ${toneClasses}`,
+                    edge.label,
+                );
+                labelPill.dataset.edgeLabel = `${edge.from}->${edge.to}`;
+                labelPill.style.left = `${mid.x}px`;
+                labelPill.style.top = `${mid.y}px`;
+                edgeLabelsLayer.appendChild(labelPill);
+
+                const sameRow = Math.abs(y2 - y1) < 24;
+                if (sameRow && labelPill.getBoundingClientRect().width + 8 > (x2 - x1)) {
+                    labelPill.remove();
+                }
+            }
 
             if (animateTargetNodeId && edge.to === animateTargetNodeId && !reducedMotion) {
                 animateSvgEdge(activePath, particlesGroup);
