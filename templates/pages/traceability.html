@@ -11,19 +11,19 @@
 
 <section
     id="traceability-page"
-    class="space-y-4 max-w-7xl mx-auto pb-6"
+    class="space-y-4 max-w-6xl mx-auto pb-8"
 >
 
     <!-- ================================================== -->
-    <!-- SELECTOR DE LAS 4 ETAPAS                           -->
+    <!-- SELECTOR DE LAS 4 ETAPAS (BARRA LIMPIA)            -->
     <!-- ================================================== -->
 
-    <div class="p-3 sm:p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+    <div class="p-2 sm:p-2.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
         <div
             id="traceability-stage-tabs"
             role="tablist"
             aria-label="Etapas del recorrido en Profilia"
-            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2"
         >
             {% for stage in traceability_data.stages %}
             <button
@@ -33,43 +33,38 @@
                 aria-controls="traceability-graph-panel"
                 aria-selected="{% if stage.id == traceability_data.active_stage_id %}true{% else %}false{% endif %}"
                 data-stage-tab="{{ stage.id }}"
-                class="traceability-stage-tab text-left p-3 rounded-xl border-2 transition-all min-h-[44px] flex flex-col justify-between gap-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#008736]
-                       {% if stage.id == traceability_data.active_stage_id %}border-[#02bc4d] bg-emerald-50/50 shadow-sm{% else %}border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-white{% endif %}"
+                class="traceability-stage-tab text-left px-3.5 py-3 rounded-xl border transition-all min-h-[44px] flex flex-col justify-between gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]
+                       {% if stage.id == traceability_data.active_stage_id %}border-[#008736] bg-[#dcf6e6]/35{% else %}border-slate-200/90 bg-white hover:border-slate-300 hover:bg-slate-50/70{% endif %}"
             >
-                <div class="space-y-1.5 w-full">
-                    <div class="flex items-center justify-between gap-2 w-full">
+                <div class="flex items-center justify-between gap-1.5 w-full">
+                    <div class="flex items-center gap-2 min-w-0">
                         <span
                             data-stage-icon-box
-                            class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition
-                                   {% if stage.id == traceability_data.active_stage_id %}bg-[#13223a] text-[#00d461]{% else %}bg-slate-200 text-slate-700{% endif %}"
+                            class="w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-[11px] font-semibold transition
+                                   {% if stage.id == traceability_data.active_stage_id %}bg-[#13223a] text-[#00d461]{% else %}bg-slate-100 text-slate-600{% endif %}"
                         >
                             <i class="fa-solid {{ stage.icon }}" aria-hidden="true"></i>
                         </span>
 
-                        <span
-                            class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 border
-                                   {% if stage.status == 'completed' %}bg-emerald-100 text-[#008736] border-emerald-200
-                                   {% elif stage.status == 'in_progress' %}bg-amber-100 text-amber-800 border-amber-200
-                                   {% elif stage.status == 'preview' %}bg-sky-100 text-sky-800 border-sky-200
-                                   {% else %}bg-slate-200 text-slate-600 border-slate-300{% endif %}"
-                        >
-                            {{ stage.status_label }}
+                        <span class="text-[13px] font-bold text-[#13223a] tracking-tight truncate">
+                            {{ stage.step }}. {{ stage.title }}
                         </span>
                     </div>
 
-                    <p class="text-xs font-extrabold text-[#13223a] truncate w-full">
-                        {{ stage.step }}. {{ stage.title }}
-                    </p>
+                    <span
+                        class="text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 border
+                               {% if stage.status == 'completed' %}bg-emerald-50 text-[#006c2b] border-emerald-200
+                               {% elif stage.status == 'in_progress' %}bg-amber-50 text-amber-800 border-amber-200
+                               {% elif stage.status == 'preview' %}bg-sky-50 text-sky-800 border-sky-200
+                               {% else %}bg-slate-100 text-slate-600 border-slate-200{% endif %}"
+                    >
+                        {{ stage.status_label }}
+                    </span>
                 </div>
 
-                <div class="flex items-center justify-between gap-1.5 pt-2 border-t border-slate-200/80 w-full">
-                    {% for metric in stage.metrics %}
-                    <div class="flex-1 min-w-0 bg-white/90 rounded-lg px-1.5 py-1 border border-slate-200/70 text-center">
-                        <p class="text-xs font-extrabold text-[#13223a] leading-tight">{{ metric.value }}</p>
-                        <p class="text-[9px] font-medium text-slate-500 leading-tight mt-0.5 truncate">{{ metric.label }}</p>
-                    </div>
-                    {% endfor %}
-                </div>
+                <p class="font-mono text-xs text-slate-600 tabular-nums truncate">
+                    {{ stage.headline_metric }}
+                </p>
             </button>
             {% endfor %}
         </div>
@@ -77,62 +72,58 @@
 
 
     <!-- ================================================== -->
-    <!-- CONSOLA INTERACTIVA 2D: GRAFO + ESCENA + INSPECTOR -->
+    <!-- SUPERFICIE PRINCIPAL: ESQUEMA 2D + LECTURA         -->
     <!-- ================================================== -->
 
     <div
         id="traceability-graph-panel"
         role="tabpanel"
         aria-labelledby="stage-tab-{{ traceability_data.active_stage_id }}"
-        class="rounded-2xl bg-[#0b1526] text-white border border-slate-800 shadow-xl overflow-hidden"
+        class="rounded-2xl bg-white text-[#13223a] border border-slate-200 shadow-sm overflow-hidden"
     >
 
-        <!-- Barra superior compacta -->
-        <div class="px-4 sm:px-5 py-2.5 border-b border-slate-800/90 flex items-center justify-between gap-3 bg-slate-950/60">
+        <!-- Cabecera sobria de la etapa -->
+        <div class="px-4 sm:px-6 py-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-white">
 
-            <h3 id="graph-stage-title" class="text-xs sm:text-sm font-extrabold text-white truncate">
-                Perfil y orientación
-            </h3>
+            <div class="min-w-0">
+                <h3 id="graph-stage-title" class="text-sm sm:text-base font-bold text-[#13223a] tracking-tight truncate">
+                    Perfil y orientación
+                </h3>
+                <p id="graph-stage-subtitle" class="text-xs text-slate-500 truncate mt-0.5">
+                    Estructura tu CV, detecta vacíos y evalúa cargos
+                </p>
+            </div>
 
             <div class="flex items-center gap-2 shrink-0">
                 <button
                     id="traceability-play-btn"
                     type="button"
-                    class="min-h-[34px] px-3 py-1 rounded-xl bg-[#02bc4d] hover:bg-[#00d461] text-[#0b1526] font-extrabold text-xs transition flex items-center gap-1.5 shadow-md shadow-[#02bc4d]/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                    class="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#008736] hover:bg-[#006c2b] active:bg-[#005723] text-white font-semibold text-xs transition inline-flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]"
                 >
                     <i id="traceability-play-icon" class="fa-solid fa-play text-[10px]" aria-hidden="true"></i>
-                    <span id="traceability-play-label">Simular grafo</span>
+                    <span id="traceability-play-label">Recorrer etapa</span>
                 </button>
 
                 <button
                     id="traceability-next-step-btn"
                     type="button"
-                    class="min-h-[34px] px-2.5 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-100 font-bold text-xs border border-slate-700 transition flex items-center gap-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d461]"
+                    class="min-h-[38px] px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-[#13223a] font-semibold text-xs border border-slate-300 transition inline-flex items-center gap-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]"
                 >
-                    <i class="fa-solid fa-forward-step text-[#00d461] text-[10px]" aria-hidden="true"></i>
-                    <span>Nodo siguiente</span>
-                </button>
-
-                <button
-                    id="traceability-speed-btn"
-                    type="button"
-                    aria-label="Cambiar velocidad de animación"
-                    class="min-h-[34px] px-2.5 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold text-xs border border-slate-700 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d461]"
-                >
-                    <span id="traceability-speed-label" class="text-[#00d461]">1x</span>
+                    <span>Siguiente paso</span>
+                    <i class="fa-solid fa-arrow-right text-[10px] text-slate-500" aria-hidden="true"></i>
                 </button>
             </div>
 
         </div>
 
-        <!-- Lienzo 2D principal del grafo con bifurcaciones -->
+        <!-- Lienzo 2D principal del flujo con bifurcaciones -->
         <div
             id="traceability-graph-board"
-            class="traceability-graph-grid relative p-4 sm:p-6 min-h-[320px] md:h-[340px] flex items-center border-b border-slate-800/90 overflow-hidden"
+            class="traceability-graph-grid relative p-4 sm:p-6 min-h-[260px] md:h-[285px] flex items-center border-b border-slate-200 overflow-hidden"
         >
             <svg
                 id="traceability-svg-layer"
-                class="pointer-events-none absolute inset-0 w-full h-full z-0"
+                class="hidden md:block pointer-events-none absolute inset-0 w-full h-full z-0"
                 aria-hidden="true"
             ></svg>
 
@@ -142,57 +133,85 @@
             ></div>
         </div>
 
-        <!-- Dock inferior integrado: Simulación 2D + Datos reales -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 bg-slate-950/85">
+        <!-- Panel inferior de lectura y evidencia unificada -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 bg-white">
 
-            <!-- Micro-escena 2D animada -->
-            <div
-                id="traceability-scene-panel"
-                class="traceability-scene-surface lg:col-span-5 p-4 sm:p-5 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-slate-800/90 min-h-[190px]"
-            >
-                <div
-                    id="traceability-scene-canvas"
-                    class="flex-1 flex flex-col justify-center"
-                ></div>
-            </div>
-
-            <!-- Inspector visual sin cabeceras redundantes -->
+            <!-- Columna izquierda: Narrativa protagonista -->
             <div
                 id="traceability-inspector-card"
-                class="lg:col-span-7 p-4 sm:p-5 flex flex-col justify-between gap-3"
+                class="lg:col-span-7 p-5 sm:p-6 md:p-7 flex flex-col justify-between gap-5 border-b lg:border-b-0 lg:border-r border-slate-200"
             >
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-                    <div class="flex items-start gap-2 bg-slate-900/90 px-3 py-2 rounded-xl border border-slate-800">
-                        <i class="fa-solid fa-bolt text-[#00d461] mt-0.5 shrink-0 text-[10px]" aria-hidden="true"></i>
-                        <div>
-                            <span class="text-[9px] font-extrabold uppercase tracking-wider text-[#00d461] block">Acción</span>
-                            <p id="inspector-what" class="text-slate-200 leading-snug"></p>
+                <div class="space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span
+                                id="inspector-step-code"
+                                class="font-mono text-xs font-semibold tabular-nums px-2 py-0.5 rounded-md bg-[#dcf6e6] text-[#006c2b]"
+                            >
+                                Paso 1.1
+                            </span>
+                            <span id="inspector-step-name" class="text-xs font-semibold text-slate-600">
+                                Fuente de datos
+                            </span>
                         </div>
+
+                        <span
+                            id="inspector-step-status"
+                            class="text-xs font-medium text-slate-500"
+                        ></span>
                     </div>
-                    <div class="flex items-start gap-2 bg-slate-900/60 px-3 py-2 rounded-xl border border-slate-800/70">
-                        <i class="fa-solid fa-lightbulb text-amber-400 mt-0.5 shrink-0 text-[10px]" aria-hidden="true"></i>
-                        <div>
-                            <span class="text-[9px] font-extrabold uppercase tracking-wider text-amber-300 block">Motivo</span>
-                            <p id="inspector-why" class="text-slate-300 leading-snug"></p>
-                        </div>
+
+                    <div class="space-y-2">
+                        <h4
+                            id="inspector-what"
+                            class="text-base sm:text-[19px] font-bold text-[#13223a] leading-snug tracking-[-0.015em]"
+                        ></h4>
+
+                        <p
+                            id="inspector-why"
+                            class="text-sm sm:text-[15px] text-slate-600 leading-relaxed max-w-[62ch]"
+                        ></p>
                     </div>
                 </div>
 
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                    <ul
-                        id="inspector-items"
-                        class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2"
-                    ></ul>
+                <div class="pt-4 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                    <span
+                        id="inspector-step-position"
+                        class="font-mono text-xs text-slate-500 tabular-nums"
+                    >
+                        Paso 1 de 5
+                    </span>
 
                     <a
                         id="inspector-action-link"
                         href="{% url 'home' %}"
-                        class="min-h-[36px] px-3.5 py-2 rounded-xl bg-[#02bc4d]/15 hover:bg-[#02bc4d]/25 text-[#00d461] border border-[#00d461]/30 font-bold text-xs transition inline-flex items-center justify-center gap-2 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d461]"
+                        class="min-h-[40px] px-4 py-2 rounded-xl bg-[#e8f7ed] hover:bg-[#d8f2e2] text-[#006c2b] border border-[#b9eacb] font-semibold text-xs transition inline-flex items-center justify-center gap-2 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]"
                     >
                         <span id="inspector-action-label">Ir a Mi perfil</span>
-                        <i class="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i>
+                        <i class="fa-solid fa-arrow-right text-[11px]" aria-hidden="true"></i>
                     </a>
                 </div>
+            </div>
+
+            <!-- Columna derecha: Única vista de evidencia real -->
+            <div
+                id="traceability-scene-panel"
+                class="traceability-scene-surface lg:col-span-5 p-5 sm:p-6 md:p-7 flex flex-col justify-between gap-3 min-h-[210px]"
+            >
+                <div class="flex items-center justify-between gap-2">
+                    <span id="scene-panel-heading" class="text-xs font-semibold text-slate-500">
+                        Datos registrados en este paso
+                    </span>
+                    <span
+                        id="scene-panel-badge"
+                        class="font-mono text-xs font-semibold text-[#13223a] tabular-nums"
+                    ></span>
+                </div>
+
+                <div
+                    id="traceability-scene-canvas"
+                    class="flex-1 flex flex-col justify-center"
+                ></div>
             </div>
 
         </div>

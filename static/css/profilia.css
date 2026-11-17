@@ -124,24 +124,21 @@
 /* 2D Traceability Interactive Canvas */
 
 .traceability-graph-grid {
-    background-color: #0b1526;
+    background-color: #f8fafc;
     background-image:
-        radial-gradient(circle at 16% 24%, rgba(2, 188, 77, 0.16), transparent 40%),
-        radial-gradient(circle at 84% 76%, rgba(0, 212, 97, 0.12), transparent 42%),
-        linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
-    background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
+        radial-gradient(circle at 18% 22%, rgba(0, 135, 54, 0.045), transparent 42%),
+        linear-gradient(rgba(19, 34, 58, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(19, 34, 58, 0.04) 1px, transparent 1px);
+    background-size: 100% 100%, 24px 24px, 24px 24px;
 }
 
 .traceability-scene-surface {
-    background:
-        radial-gradient(circle at 50% 0%, rgba(0, 212, 97, 0.14), transparent 58%),
-        linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(9, 16, 29, 0.98) 100%);
+    background-color: #f8fafc;
 }
 
 @keyframes traceEdgeFlow {
     from {
-        stroke-dashoffset: 28;
+        stroke-dashoffset: 22;
     }
     to {
         stroke-dashoffset: 0;
@@ -149,50 +146,8 @@
 }
 
 .trace-edge-stream {
-    stroke-dasharray: 8 6;
-    animation: traceEdgeFlow 1.15s linear infinite;
-}
-
-@keyframes traceScanBeam {
-    0%, 100% {
-        transform: translateY(6px);
-        opacity: 0.85;
-    }
-    50% {
-        transform: translateY(118px);
-        opacity: 1;
-    }
-}
-
-.trace-scan-beam {
-    animation: traceScanBeam 2.4s ease-in-out infinite;
-}
-
-@keyframes traceRadarSweep {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.trace-radar-sweep {
-    transform-origin: center;
-    animation: traceRadarSweep 4.5s linear infinite;
-}
-
-@keyframes traceFloatChip {
-    0%, 100% {
-        transform: translateY(0px);
-    }
-    50% {
-        transform: translateY(-4px);
-    }
-}
-
-.trace-float-chip {
-    animation: traceFloatChip 2.6s ease-in-out infinite;
+    stroke-dasharray: 6 5;
+    animation: traceEdgeFlow 1.6s linear infinite;
 }
 
 @media (min-width: 768px) {
@@ -201,13 +156,13 @@
         left: var(--node-x, 50%);
         top: var(--node-y, 50%);
         transform: translate(-50%, -50%);
-        width: 136px;
+        width: 144px;
     }
 }
 
 @media (min-width: 1280px) {
     .traceability-node-2d {
-        width: 148px;
+        width: 158px;
     }
 }
 
@@ -215,9 +170,6 @@
     .agent-active,
     #live-banner-ping,
     .trace-edge-stream,
-    .trace-scan-beam,
-    .trace-radar-sweep,
-    .trace-float-chip,
     .app-sidebar-shell,
     .app-sidebar-inner,
     .topbar-sidebar-trigger,

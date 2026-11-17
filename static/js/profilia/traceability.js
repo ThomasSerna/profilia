@@ -1,42 +1,46 @@
-import { animate, spring, stagger } from "../motion.js";
+import { animate, stagger } from "../motion.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 const STATUS_STYLES = {
     completed: {
-        dot: "bg-[#00d461]",
+        dot: "bg-[#008736]",
+        pill: "bg-emerald-50 text-[#006c2b] border border-emerald-200",
     },
     in_progress: {
-        dot: "bg-amber-400",
+        dot: "bg-amber-500",
+        pill: "bg-amber-50 text-amber-800 border border-amber-200",
     },
     preview: {
-        dot: "bg-sky-400",
+        dot: "bg-sky-500",
+        pill: "bg-sky-50 text-sky-800 border border-sky-200",
     },
     pending: {
-        dot: "bg-slate-500",
+        dot: "bg-slate-400",
+        pill: "bg-slate-100 text-slate-600 border border-slate-200",
     },
 };
 
 const TONE_STYLES = {
     emerald: {
-        box: "bg-emerald-950/40 border-emerald-500/30 text-emerald-300",
-        icon: "bg-[#00d461]/15 text-[#00d461]",
-        badge: "bg-[#00d461]/20 text-[#00d461]",
+        pill: "bg-[#dcf6e6] text-[#006c2b]",
+        icon: "text-[#008736]",
+        bar: "bg-[#008736]",
     },
     amber: {
-        box: "bg-amber-950/35 border-amber-500/30 text-amber-200",
-        icon: "bg-amber-400/15 text-amber-300",
-        badge: "bg-amber-400/20 text-amber-300",
+        pill: "bg-amber-50 text-amber-800 border border-amber-200/80",
+        icon: "text-amber-600",
+        bar: "bg-amber-500",
     },
     sky: {
-        box: "bg-sky-950/35 border-sky-500/30 text-sky-200",
-        icon: "bg-sky-400/15 text-sky-300",
-        badge: "bg-sky-400/20 text-sky-300",
+        pill: "bg-sky-50 text-sky-800 border border-sky-200/80",
+        icon: "text-sky-600",
+        bar: "bg-sky-500",
     },
     slate: {
-        box: "bg-slate-900/90 border-slate-800 text-slate-300",
-        icon: "bg-slate-800 text-slate-400",
-        badge: "bg-slate-800 text-slate-400",
+        pill: "bg-slate-100 text-slate-600",
+        icon: "text-slate-400",
+        bar: "bg-slate-400",
     },
 };
 
@@ -59,20 +63,22 @@ export function initTraceability() {
     const svgLayer = document.getElementById("traceability-svg-layer");
     const nodesContainer = document.getElementById("traceability-nodes-container");
     const sceneCanvas = document.getElementById("traceability-scene-canvas");
+    const sceneBadge = document.getElementById("scene-panel-badge");
 
     const stageTitle = document.getElementById("graph-stage-title");
+    const stageSubtitle = document.getElementById("graph-stage-subtitle");
 
     const playBtn = document.getElementById("traceability-play-btn");
     const playIcon = document.getElementById("traceability-play-icon");
     const playLabel = document.getElementById("traceability-play-label");
     const nextStepBtn = document.getElementById("traceability-next-step-btn");
-    const speedBtn = document.getElementById("traceability-speed-btn");
-    const speedLabel = document.getElementById("traceability-speed-label");
 
-    const inspectorCard = document.getElementById("traceability-inspector-card");
+    const inspectorStepCode = document.getElementById("inspector-step-code");
+    const inspectorStepName = document.getElementById("inspector-step-name");
+    const inspectorStepStatus = document.getElementById("inspector-step-status");
+    const inspectorStepPosition = document.getElementById("inspector-step-position");
     const inspectorWhat = document.getElementById("inspector-what");
     const inspectorWhy = document.getElementById("inspector-why");
-    const inspectorItems = document.getElementById("inspector-items");
     const inspectorActionLink = document.getElementById("inspector-action-link");
     const inspectorActionLabel = document.getElementById("inspector-action-label");
 
@@ -80,7 +86,6 @@ export function initTraceability() {
 
     let currentStageId = payload.active_stage_id || stages[0].id;
     let currentNodeIndex = 0;
-    let speedMultiplier = 1;
     let playbackRunId = 0;
     let isPlaying = false;
     let activeWaapiAnimations = [];
@@ -106,11 +111,6 @@ export function initTraceability() {
         const nextIndex = (currentNodeIndex + 1) % stage.nodes.length;
         const targetNode = stage.nodes[nextIndex];
         selectNode(nextIndex, { animateIncomingTo: targetNode?.id });
-    });
-
-    speedBtn?.addEventListener("click", () => {
-        speedMultiplier = speedMultiplier === 1 ? 1.5 : (speedMultiplier === 1.5 ? 2 : 1);
-        speedLabel.textContent = `${speedMultiplier}x`;
     });
 
     window.addEventListener("resize", () => {
@@ -139,10 +139,10 @@ export function initTraceability() {
     if (!reducedMotion) {
         animate(stageTabs, {
             opacity: [0, 1],
-            transform: ["translateY(8px)", "translateY(0px)"],
+            transform: ["translateY(6px)", "translateY(0px)"],
         }, {
-            delay: stagger(0.05),
-            duration: 0.34,
+            delay: stagger(0.04),
+            duration: 0.22,
         });
     }
 
@@ -158,16 +158,15 @@ export function initTraceability() {
         stageTabs.forEach(tab => {
             const active = tab.dataset.stageTab === stage.id;
             tab.setAttribute("aria-selected", active ? "true" : "false");
-            tab.classList.toggle("border-[#02bc4d]", active);
-            tab.classList.toggle("bg-emerald-50/50", active);
-            tab.classList.toggle("shadow-sm", active);
-            tab.classList.toggle("border-slate-200", !active);
-            tab.classList.toggle("bg-slate-50/70", !active);
+            tab.classList.toggle("border-[#008736]", active);
+            tab.classList.toggle("bg-[#dcf6e6]/35", active);
+            tab.classList.toggle("border-slate-200/90", !active);
+            tab.classList.toggle("bg-white", !active);
 
             const iconBox = tab.querySelector("[data-stage-icon-box]");
             if (iconBox) {
-                iconBox.className = `w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold transition ${
-                    active ? "bg-[#13223a] text-[#00d461]" : "bg-slate-200 text-slate-700"
+                iconBox.className = `w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-[11px] font-semibold transition ${
+                    active ? "bg-[#13223a] text-[#00d461]" : "bg-slate-100 text-slate-600"
                 }`;
             }
         });
@@ -175,6 +174,9 @@ export function initTraceability() {
         graphPanel?.setAttribute("aria-labelledby", `stage-tab-${stage.id}`);
         if (stageTitle) {
             stageTitle.textContent = stage.full_title || stage.title;
+        }
+        if (stageSubtitle) {
+            stageSubtitle.textContent = stage.subtitle || stage.summary || "";
         }
 
         renderNodes(stage);
@@ -187,8 +189,8 @@ export function initTraceability() {
                 animate(cards, {
                     opacity: [0, 1],
                 }, {
-                    delay: stagger(0.06),
-                    duration: 0.28,
+                    delay: stagger(0.04),
+                    duration: 0.2,
                 });
             }
         });
@@ -199,43 +201,50 @@ export function initTraceability() {
             const styles = STATUS_STYLES[node.status] || STATUS_STYLES.pending;
             const button = createElement(
                 "button",
-                "traceability-node-2d group text-center p-2.5 rounded-2xl border transition-all min-h-[44px] flex flex-col items-center justify-center gap-2 bg-slate-900/95 border-slate-700/90 hover:border-[#00d461] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d461]",
+                "traceability-node-2d group text-left px-3 py-2.5 rounded-xl border transition-all min-h-[44px] flex flex-col justify-between gap-1.5 bg-white border-slate-300/90 hover:border-[#008736] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]",
             );
             button.type = "button";
             button.dataset.nodeCard = node.id;
             button.dataset.nodeIndex = String(index);
-            button.setAttribute("aria-label", node.title);
+            button.setAttribute("aria-label", `${node.step_label} ${node.title}`);
             button.style.setProperty("--node-x", `${node.x ?? 50}%`);
             button.style.setProperty("--node-y", `${node.y ?? 50}%`);
 
             const pulseRing = createElement(
                 "span",
-                "pointer-events-none absolute -inset-1 rounded-2xl border-2 border-[#00d461] opacity-0",
+                "pointer-events-none absolute -inset-1 rounded-xl border-2 border-[#008736] opacity-0",
             );
             pulseRing.dataset.nodeRing = node.id;
 
-            const iconWrap = createElement(
+            const topRow = createElement(
                 "div",
-                "w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 text-[#00d461] flex items-center justify-center shrink-0 transition relative z-10",
+                "w-full flex items-center justify-between gap-2 relative z-10",
             );
-            iconWrap.dataset.nodeIconWrap = node.id;
-            iconWrap.append(createElement("i", `fa-solid ${node.icon} text-xs`));
+            const stepCode = createElement(
+                "span",
+                "font-mono text-[11px] font-semibold text-slate-500 tabular-nums",
+                node.step_label,
+            );
+            const statusDot = createElement(
+                "span",
+                `w-2 h-2 rounded-full shrink-0 ${styles.dot}`,
+            );
+            topRow.append(stepCode, statusDot);
 
             const titleEl = createElement(
                 "p",
-                "text-[11px] font-bold text-white leading-tight truncate max-w-full relative z-10",
+                "text-[13px] font-bold text-[#13223a] leading-snug truncate w-full relative z-10",
                 node.title,
             );
 
-            const pillRow = createElement(
-                "div",
-                "px-2 py-0.5 rounded-full bg-slate-950/90 border border-slate-800 flex items-center justify-center gap-1.5 max-w-full relative z-10",
+            const badgeEl = createElement(
+                "p",
+                "font-mono text-[11px] font-medium text-slate-500 tabular-nums truncate w-full relative z-10",
+                node.badge,
             );
-            const statusDot = createElement("span", `w-1.5 h-1.5 rounded-full shrink-0 ${styles.dot}`);
-            const badgeText = createElement("span", "text-[10px] font-bold text-[#00d461] truncate", node.badge);
-            pillRow.append(statusDot, badgeText);
+            badgeEl.dataset.nodeBadge = node.id;
 
-            button.append(pulseRing, iconWrap, titleEl, pillRow);
+            button.append(pulseRing, topRow, titleEl, badgeEl);
             button.addEventListener("click", () => {
                 stopPlayback();
                 selectNode(index, { animateIncomingTo: node.id });
@@ -256,30 +265,41 @@ export function initTraceability() {
         cards.forEach((card, idx) => {
             const isSelected = idx === currentNodeIndex;
             const isPast = idx < currentNodeIndex;
-            card.classList.toggle("border-[#00d461]", isSelected);
-            card.classList.toggle("bg-slate-900", isSelected);
-            card.classList.toggle("shadow-lg", isSelected);
-            card.classList.toggle("shadow-[#02bc4d]/25", isSelected);
+            card.setAttribute("aria-pressed", isSelected ? "true" : "false");
+            card.classList.toggle("border-[#008736]", isSelected);
+            card.classList.toggle("shadow-[0_0_0_3px_#dcf6e6]", isSelected);
             card.classList.toggle("z-20", isSelected);
-            card.classList.toggle("border-emerald-500/45", !isSelected && isPast);
-            card.classList.toggle("border-slate-700/90", !isSelected && !isPast);
+            card.classList.toggle("border-[#81cda0]", !isSelected && isPast);
+            card.classList.toggle("border-slate-300/90", !isSelected && !isPast);
 
-            const iconWrap = card.querySelector("[data-node-icon-wrap]");
-            if (iconWrap) {
-                iconWrap.className = `w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition relative z-10 ${
-                    isSelected
-                        ? "bg-[#02bc4d] text-[#0b1526] shadow-md shadow-[#02bc4d]/30"
-                        : "bg-slate-800 border border-slate-700 text-[#00d461]"
+            const badgeEl = card.querySelector("[data-node-badge]");
+            if (badgeEl) {
+                badgeEl.className = `font-mono text-[11px] tabular-nums truncate w-full relative z-10 ${
+                    isSelected ? "font-semibold text-[#006c2b]" : "font-medium text-slate-500"
                 }`;
             }
         });
 
-        updateInspector(stage, activeNode);
+        updateInspector(stage, activeNode, currentNodeIndex, nodes.length);
         renderLiveScene(stage, activeNode);
         drawGraphEdges(stage, currentNodeIndex, options.animateIncomingTo);
     }
 
-    function updateInspector(stage, node) {
+    function updateInspector(stage, node, index, totalNodes) {
+        const styles = STATUS_STYLES[node.status] || STATUS_STYLES.pending;
+        if (inspectorStepCode) {
+            inspectorStepCode.textContent = `Paso ${node.step_label}`;
+        }
+        if (inspectorStepName) {
+            inspectorStepName.textContent = node.title;
+        }
+        if (inspectorStepStatus) {
+            inspectorStepStatus.textContent = node.status_label;
+            inspectorStepStatus.className = `text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${styles.pill}`;
+        }
+        if (inspectorStepPosition) {
+            inspectorStepPosition.textContent = `Paso ${index + 1} de ${totalNodes}`;
+        }
         if (inspectorWhat) {
             inspectorWhat.textContent = node.what_did;
         }
@@ -292,62 +312,8 @@ export function initTraceability() {
         if (inspectorActionLabel) {
             inspectorActionLabel.textContent = stage.action_label;
         }
-
-        const visualData = Array.isArray(node.visual_items) && node.visual_items.length
-            ? node.visual_items
-            : (node.items || []).map(text => ({
-                label: text,
-                value: node.badge || "",
-                tone: "emerald",
-                icon: "fa-check",
-            }));
-
-        const listElements = visualData.slice(0, 4).map(item => {
-            const tone = TONE_STYLES[item.tone] || TONE_STYLES.slate;
-            const li = createElement(
-                "li",
-                `p-2 rounded-xl border flex flex-col justify-between gap-1.5 ${tone.box}`,
-            );
-
-            const top = createElement("div", "flex items-center justify-between gap-2 min-w-0");
-            const left = createElement("div", "flex items-center gap-2 min-w-0");
-            const iconBox = createElement(
-                "span",
-                `w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-[10px] ${tone.icon}`,
-            );
-            iconBox.append(createElement("i", `fa-solid ${item.icon || "fa-circle-check"}`));
-            const labelEl = createElement("span", "text-[11px] font-bold text-white truncate", item.label);
-            left.append(iconBox, labelEl);
-
-            const valBadge = createElement(
-                "span",
-                `text-[10px] font-extrabold px-1.5 py-0.5 rounded-md whitespace-nowrap shrink-0 ${tone.badge}`,
-                item.value,
-            );
-            top.append(left, valBadge);
-            li.append(top);
-
-            if (typeof item.score === "number") {
-                const track = createElement("div", "w-full bg-slate-950/70 rounded-full h-1 overflow-hidden");
-                const fill = createElement("div", "bg-[#00d461] h-full rounded-full");
-                fill.style.width = `${Math.max(8, Math.min(100, item.score))}%`;
-                track.append(fill);
-                li.append(track);
-            }
-
-            return li;
-        });
-
-        inspectorItems.replaceChildren(...listElements);
-
-        if (!reducedMotion && inspectorCard) {
-            animate(listElements, {
-                opacity: [0.2, 1],
-                transform: ["translateY(4px)", "translateY(0px)"],
-            }, {
-                delay: stagger(0.04),
-                duration: 0.25,
-            });
+        if (sceneBadge) {
+            sceneBadge.textContent = node.badge || "";
         }
     }
 
@@ -360,135 +326,48 @@ export function initTraceability() {
 
         const wrapper = createElement("div", "w-full space-y-2");
 
-        if (scene.kind === "scanner") {
-            const box = createElement(
-                "div",
-                "relative p-3 rounded-xl bg-slate-900/95 border border-slate-800 overflow-hidden h-32 flex items-center justify-between gap-3",
-            );
-            const beam = createElement(
-                "div",
-                "trace-scan-beam pointer-events-none absolute left-2 right-2 top-0 h-0.5 bg-gradient-to-r from-transparent via-[#00d461] to-transparent shadow-[0_0_12px_#00d461]",
-            );
-
-            const docCard = createElement(
-                "div",
-                "w-24 h-24 rounded-lg bg-slate-950 border border-slate-700 p-2 flex flex-col justify-between shrink-0 relative",
-            );
-            docCard.append(
-                createElement("div", "flex items-center justify-between text-[10px] text-[#00d461] font-bold", "CV / Perfil"),
-                createElement("div", "space-y-1.5", ""),
-                createElement(
-                    "span",
-                    "text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#00d461]/20 text-[#00d461] text-center",
-                    scene.has_cv ? "PDF activo" : (scene.has_profile ? "Manual" : "En espera"),
-                ),
-            );
-            const linesWrap = docCard.children[1];
-            [85, 65, 92].forEach(w => {
-                const line = createElement("div", "h-1.5 rounded bg-slate-700");
-                line.style.width = `${w}%`;
-                linesWrap.append(line);
-            });
-
-            const tokensCol = createElement("div", "flex-1 flex flex-wrap gap-1.5 content-center");
-            (scene.tokens || []).forEach((tok, idx) => {
-                const chip = createElement(
-                    "span",
-                    "trace-float-chip px-2 py-1 rounded-lg bg-[#00d461]/15 border border-[#00d461]/40 text-[#00d461] text-[10px] font-bold flex items-center gap-1",
-                );
-                chip.style.animationDelay = `${idx * 0.18}s`;
-                chip.append(createElement("i", "fa-solid fa-wand-magic-sparkles text-[9px]"), createElement("span", "", tok));
-                tokensCol.append(chip);
-            });
-
-            box.append(beam, docCard, tokensCol);
-            wrapper.append(box);
-        } else if (scene.kind === "structure") {
-            const grid = createElement("div", "grid grid-cols-2 gap-2");
+        if (scene.kind === "structure") {
+            const grid = createElement("div", "grid grid-cols-2 gap-2.5");
             (scene.blocks || []).forEach(block => {
-                const cell = createElement("div", "p-2.5 rounded-xl bg-slate-900/95 border border-slate-800 space-y-1.5");
-                const top = createElement("div", "flex items-center justify-between");
+                const cell = createElement("div", "p-3 rounded-xl bg-white border border-slate-200/90 space-y-2");
+                const top = createElement("div", "flex items-baseline justify-between gap-2");
                 top.append(
-                    createElement("span", "text-[10px] text-slate-400 font-semibold", block.label),
-                    createElement("span", "text-xs font-extrabold text-[#00d461]", String(block.count)),
+                    createElement("span", "text-xs font-medium text-slate-600", block.label),
+                    createElement("span", "font-mono text-sm font-semibold tabular-nums text-[#13223a]", String(block.count)),
                 );
-                const barBg = createElement("div", "w-full h-1.5 bg-slate-950 rounded-full overflow-hidden");
-                const barFill = createElement("div", "h-full bg-gradient-to-r from-[#02bc4d] to-[#00d461] rounded-full");
-                const pct = Math.min(100, Math.max(12, block.count * 22));
+                const barBg = createElement("div", "w-full h-1 bg-slate-100 rounded-full overflow-hidden");
+                const barFill = createElement("div", "h-full bg-[#008736] rounded-full");
+                const pct = block.count > 0 ? Math.min(100, Math.max(18, block.count * 22)) : 0;
                 barFill.style.width = `${pct}%`;
                 barBg.append(barFill);
                 cell.append(top, barBg);
                 grid.append(cell);
             });
             wrapper.append(grid);
-        } else if (scene.kind === "evidence") {
-            const radarBox = createElement(
-                "div",
-                "p-3 rounded-xl bg-slate-900/95 border border-slate-800 flex items-center gap-3 h-32",
-            );
-            const shieldOrb = createElement(
-                "div",
-                "w-18 h-18 p-4 rounded-full border-2 border-[#00d461]/40 bg-[#00d461]/10 flex items-center justify-center relative shrink-0",
-            );
-            const sweep = createElement(
-                "div",
-                "trace-radar-sweep absolute inset-1 rounded-full border-t-2 border-[#00d461]",
-            );
-            shieldOrb.append(sweep, createElement("i", "fa-solid fa-shield-halved text-lg text-[#00d461]"));
-
-            const chipWrap = createElement("div", "flex-1 flex flex-wrap gap-1.5");
-            const verifiedList = scene.verified?.length ? scene.verified : ["Pendiente de CV"];
-            verifiedList.forEach(skill => {
-                const pill = createElement(
-                    "span",
-                    "px-2 py-1 rounded-lg bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold flex items-center gap-1",
-                );
-                pill.append(createElement("i", "fa-solid fa-check text-[#00d461] text-[9px]"), createElement("span", "", skill));
-                chipWrap.append(pill);
-            });
-            radarBox.append(shieldOrb, chipWrap);
-            wrapper.append(radarBox);
         } else if (scene.kind === "decision_gate") {
-            const gateBox = createElement("div", "grid grid-cols-2 gap-2");
-            const yesCol = createElement("div", "p-2.5 rounded-xl bg-emerald-950/35 border border-emerald-500/30 space-y-1");
+            const gateBox = createElement("div", "grid grid-cols-1 sm:grid-cols-2 gap-2.5");
+            const yesCol = createElement("div", "p-3 rounded-xl bg-white border border-slate-200/90 space-y-1.5");
             yesCol.append(
-                createElement("p", "text-[10px] font-extrabold text-[#00d461] uppercase", "Confirmadas"),
+                createElement("p", "text-xs font-semibold text-[#006c2b]", "Confirmadas contigo"),
             );
-            (scene.confirmed?.length ? scene.confirmed : ["Sin confirmaciones"]).slice(0, 3).forEach(item => {
-                yesCol.append(createElement("div", "text-[10px] text-emerald-200 bg-slate-950/60 px-2 py-0.5 rounded truncate", `✓ ${item}`));
+            (scene.confirmed?.length ? scene.confirmed : ["Sin confirmaciones aún"]).slice(0, 3).forEach(item => {
+                yesCol.append(
+                    createElement("div", "text-xs text-[#13223a] bg-[#dcf6e6]/50 px-2.5 py-1 rounded-lg truncate", item),
+                );
             });
 
-            const gapCol = createElement("div", "p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/30 space-y-1");
+            const gapCol = createElement("div", "p-3 rounded-xl bg-white border border-slate-200/90 space-y-1.5");
             gapCol.append(
-                createElement("p", "text-[10px] font-extrabold text-amber-300 uppercase", "Por aclarar / reforzar"),
+                createElement("p", "text-xs font-semibold text-amber-800", "Por aclarar o reforzar"),
             );
             const gapList = [...(scene.pending || []), ...(scene.strengthen || [])];
             (gapList.length ? gapList : ["Sin preguntas pendientes"]).slice(0, 3).forEach(item => {
-                gapCol.append(createElement("div", "text-[10px] text-amber-200 bg-slate-950/60 px-2 py-0.5 rounded truncate", `? ${item}`));
+                gapCol.append(
+                    createElement("div", "text-xs text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg truncate", item),
+                );
             });
             gateBox.append(yesCol, gapCol);
             wrapper.append(gateBox);
-        } else if (scene.kind === "catalog_grid") {
-            const catBox = createElement("div", "p-3 rounded-xl bg-slate-900/95 border border-slate-800 space-y-2.5");
-            const dotsRow = createElement("div", "grid grid-cols-6 gap-1.5");
-            const totalDots = Math.min(12, scene.total || 12);
-            for (let i = 0; i < totalDots; i += 1) {
-                const cell = createElement(
-                    "div",
-                    "trace-float-chip h-5 rounded-md bg-[#00d461]/15 border border-[#00d461]/40 flex items-center justify-center text-[9px] font-bold text-[#00d461]",
-                    `#${i + 1}`,
-                );
-                cell.style.animationDelay = `${i * 0.08}s`;
-                dotsRow.append(cell);
-            }
-            const tagsRow = createElement("div", "flex flex-wrap gap-1.5");
-            (scene.titles || []).slice(0, 3).forEach(title => {
-                tagsRow.append(
-                    createElement("span", "px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-[10px] text-slate-300 truncate", title),
-                );
-            });
-            catBox.append(dotsRow, tagsRow);
-            wrapper.append(catBox);
         } else if (scene.kind === "roles_meter" || scene.kind === "ranking_bars" || scene.kind === "skill_matrix") {
             const rows = scene.roles
                 ? scene.roles.map(r => ({
@@ -502,132 +381,125 @@ export function initTraceability() {
                     pct: b.score || 50,
                 }));
 
-            const list = createElement("div", "space-y-1.5");
-            (rows.length ? rows : [{ title: "Completa tu perfil", sub: "Para ver afinidad en vivo", pct: 20 }]).slice(0, 3).forEach(row => {
-                const item = createElement("div", "p-2 rounded-xl bg-slate-900/95 border border-slate-800 space-y-1");
-                const top = createElement("div", "flex items-center justify-between gap-2 text-[11px]");
-                top.append(
-                    createElement("span", "font-bold text-white truncate", row.title),
-                    createElement("span", "font-extrabold text-[#00d461] shrink-0", `${row.pct}%`),
+            const list = createElement("div", "space-y-2");
+            if (rows.length) {
+                rows.slice(0, 3).forEach(row => {
+                    const item = createElement("div", "p-3 rounded-xl bg-white border border-slate-200/90 space-y-1.5");
+                    const top = createElement("div", "flex items-baseline justify-between gap-2");
+                    const left = createElement("div", "min-w-0");
+                    left.append(
+                        createElement("p", "text-xs font-bold text-[#13223a] truncate", row.title),
+                        createElement("p", "text-[11px] text-slate-500 truncate", row.sub),
+                    );
+                    top.append(
+                        left,
+                        createElement("span", "font-mono text-xs font-semibold tabular-nums text-[#006c2b] shrink-0", `${row.pct}%`),
+                    );
+                    const barTrack = createElement("div", "w-full h-1 bg-slate-100 rounded-full overflow-hidden");
+                    const barFill = createElement("div", "h-full bg-[#008736] rounded-full");
+                    barFill.style.width = `${row.pct}%`;
+                    barTrack.append(barFill);
+                    item.append(top, barTrack);
+                    list.append(item);
+                });
+            } else {
+                list.append(
+                    createElement(
+                        "div",
+                        "p-3.5 rounded-xl bg-white border border-slate-200/90 text-xs text-slate-600",
+                        "Completa tu perfil y elige tus cargos de interés para ver aquí tu nivel de coincidencia.",
+                    ),
                 );
-                const barTrack = createElement("div", "w-full h-1.5 bg-slate-950 rounded-full overflow-hidden");
-                const barFill = createElement("div", "h-full bg-gradient-to-r from-[#02bc4d] to-[#00d461] rounded-full");
-                barFill.style.width = `${row.pct}%`;
-                barTrack.append(barFill);
-                item.append(top, barTrack);
-                list.append(item);
-            });
+            }
             wrapper.append(list);
         } else if (scene.kind === "normalizer") {
-            const list = createElement("div", "space-y-1.5");
+            const list = createElement("div", "space-y-2");
             (scene.pairs || []).forEach(pair => {
                 const row = createElement(
                     "div",
-                    "p-2 rounded-xl bg-slate-900/95 border border-slate-800 flex items-center justify-between gap-2 text-[11px]",
+                    "p-2.5 rounded-xl bg-white border border-slate-200/90 flex items-center justify-between gap-2",
                 );
                 row.append(
-                    createElement("span", "px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono text-[10px] truncate", pair.raw),
-                    createElement("i", "fa-solid fa-arrow-right-long text-[#00d461] text-xs shrink-0"),
-                    createElement("span", "px-2 py-0.5 rounded bg-[#00d461]/20 text-[#00d461] font-bold text-[10px]", pair.clean),
+                    createElement("span", "px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono text-xs truncate", pair.raw),
+                    createElement("i", "fa-solid fa-arrow-right text-slate-400 text-[11px] shrink-0"),
+                    createElement("span", "px-2.5 py-0.5 rounded-md bg-[#dcf6e6] text-[#006c2b] font-mono font-semibold text-xs", pair.clean),
                 );
                 list.append(row);
             });
             wrapper.append(list);
         } else if (scene.kind === "filter_gate") {
-            const funnel = createElement("div", "p-3 rounded-xl bg-slate-900/95 border border-slate-800 space-y-2");
-            const badges = createElement("div", "grid grid-cols-3 gap-1.5 text-center");
+            const funnel = createElement("div", "p-3.5 rounded-xl bg-white border border-slate-200/90 space-y-3");
+            const badges = createElement("div", "grid grid-cols-3 gap-2");
             [
                 { label: "Modalidad", val: scene.modality },
                 { label: "Ciudad", val: scene.city },
                 { label: "Salario", val: scene.salary },
             ].forEach(f => {
-                const pill = createElement("div", "p-1.5 rounded-lg bg-slate-950 border border-slate-800");
+                const pill = createElement("div", "p-2 rounded-lg bg-slate-50 border border-slate-200/80");
                 pill.append(
-                    createElement("p", "text-[9px] text-slate-400", f.label),
-                    createElement("p", "text-[10px] font-bold text-[#00d461] truncate mt-0.5", f.val),
+                    createElement("p", "text-[11px] text-slate-500", f.label),
+                    createElement("p", "text-xs font-semibold text-[#13223a] truncate mt-0.5", f.val),
                 );
                 badges.append(pill);
             });
-            const meter = createElement("div", "flex items-center justify-between pt-1.5 border-t border-slate-800 text-xs");
+            const total = Math.max(1, scene.total || 1);
+            const passed = scene.passed || 0;
+            const pct = Math.round((passed / total) * 100);
+            const footer = createElement("div", "pt-2.5 border-t border-slate-100 space-y-1.5");
+            const meter = createElement("div", "flex items-baseline justify-between text-xs");
             meter.append(
-                createElement("span", "text-slate-300 font-semibold", "Acordes a tus preferencias"),
-                createElement("span", "text-[#00d461] font-extrabold", `${scene.passed} / ${scene.total}`),
+                createElement("span", "text-slate-600 font-medium", "Ofertas acordes a tus filtros"),
+                createElement("span", "font-mono text-[#13223a] font-semibold tabular-nums", `${passed} de ${scene.total || 0}`),
             );
-            funnel.append(badges, meter);
+            const track = createElement("div", "w-full h-1 bg-slate-100 rounded-full overflow-hidden");
+            const fill = createElement("div", "h-full bg-[#008736] rounded-full");
+            fill.style.width = `${pct}%`;
+            track.append(fill);
+            footer.append(meter, track);
+            funnel.append(badges, footer);
             wrapper.append(funnel);
-        } else if (scene.kind === "letter_composer" || scene.kind === "package_validator" || scene.kind === "submission_dispatch") {
-            const dispatchBox = createElement(
-                "div",
-                "p-3 rounded-xl bg-slate-900/95 border border-slate-800 flex items-center justify-between gap-3 h-32",
-            );
-            const leftOrb = createElement(
-                "div",
-                "w-16 h-16 rounded-2xl bg-[#00d461]/15 border border-[#00d461]/40 flex flex-col items-center justify-center shrink-0 text-[#00d461]",
-            );
-            leftOrb.append(
-                createElement(
-                    "i",
-                    `fa-solid ${scene.kind === "letter_composer" ? "fa-envelope-open-text" : (scene.kind === "package_validator" ? "fa-box-archive" : "fa-paper-plane")} text-lg`,
-                ),
-            );
-
-            const rightCol = createElement("div", "flex-1 space-y-1.5 min-w-0");
-            const items = scene.letters || scene.sent || [];
-            if (items.length) {
-                items.slice(0, 3).forEach((entry, idx) => {
-                    const row = createElement(
-                        "div",
-                        "trace-float-chip px-2.5 py-1 rounded-lg bg-slate-950 border border-emerald-500/30 flex items-center justify-between gap-2 text-[10px]",
-                    );
-                    row.style.animationDelay = `${idx * 0.15}s`;
-                    row.append(
-                        createElement("span", "font-bold text-white truncate", `${entry.title} · ${entry.company}`),
-                        createElement("span", "font-extrabold text-[#00d461] shrink-0", `${entry.score}%`),
-                    );
-                    rightCol.append(row);
-                });
-            } else {
-                rightCol.append(
-                    createElement(
-                        "div",
-                        "px-2.5 py-2 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-slate-300",
-                        scene.kind === "package_validator"
-                            ? `${scene.applied_count || 0} paquete(s) validados · ${scene.warnings_count || 0} aviso(s)`
-                            : "Selecciona y confirma vacantes para activar este flujo",
-                    ),
-                );
-            }
-            dispatchBox.append(leftOrb, rightCol);
-            wrapper.append(dispatchBox);
         } else {
-            const grid = createElement("div", "space-y-1.5");
-            const previewItems = (node.visual_items || []).slice(0, 3);
-            previewItems.forEach(item => {
+            const list = createElement("div", "space-y-2");
+            const visualData = Array.isArray(node.visual_items) && node.visual_items.length
+                ? node.visual_items
+                : (node.items || []).map(text => ({
+                    label: text,
+                    value: node.badge || "",
+                    tone: "emerald",
+                    icon: "fa-check",
+                }));
+
+            visualData.slice(0, 4).forEach(item => {
+                const tone = TONE_STYLES[item.tone] || TONE_STYLES.slate;
                 const row = createElement(
                     "div",
-                    "p-2 rounded-xl bg-slate-900/95 border border-slate-800 flex items-center justify-between gap-2",
+                    "p-2.5 rounded-xl bg-white border border-slate-200/90 flex items-center justify-between gap-3",
                 );
-                const left = createElement("div", "flex items-center gap-2 min-w-0");
+                const left = createElement("div", "flex items-center gap-2.5 min-w-0");
                 left.append(
-                    createElement("i", `fa-solid ${item.icon || "fa-circle-nodes"} text-[#00d461] text-xs`),
-                    createElement("span", "text-xs font-bold text-white truncate", item.label),
+                    createElement("i", `fa-solid ${item.icon || "fa-circle-check"} ${tone.icon} text-xs shrink-0`),
+                    createElement("span", "text-xs font-medium text-[#13223a] truncate", item.label),
                 );
                 row.append(
                     left,
-                    createElement("span", "text-[10px] font-extrabold px-2 py-0.5 rounded bg-[#00d461]/20 text-[#00d461] shrink-0", item.value),
+                    createElement(
+                        "span",
+                        `font-mono text-[11px] font-semibold tabular-nums px-2 py-0.5 rounded-md shrink-0 ${tone.pill}`,
+                        item.value,
+                    ),
                 );
-                grid.append(row);
+                list.append(row);
             });
-            wrapper.append(grid);
+            wrapper.append(list);
         }
 
         sceneCanvas.append(wrapper);
         if (!reducedMotion) {
             animate(wrapper, {
                 opacity: [0, 1],
-                transform: ["scale(0.96)", "scale(1)"],
+                transform: ["translateY(4px)", "translateY(0px)"],
             }, {
-                easing: spring({ stiffness: 280, damping: 24 }),
+                duration: 0.18,
             });
         }
     }
@@ -693,8 +565,8 @@ export function initTraceability() {
             const baseTrack = document.createElementNS(SVG_NS, "path");
             baseTrack.setAttribute("d", d);
             baseTrack.setAttribute("fill", "none");
-            baseTrack.setAttribute("stroke", "#1e293b");
-            baseTrack.setAttribute("stroke-width", "2.5");
+            baseTrack.setAttribute("stroke", "#cbd5e1");
+            baseTrack.setAttribute("stroke-width", "1.75");
             baseTrack.setAttribute("stroke-dasharray", "4 5");
             linesGroup.appendChild(baseTrack);
 
@@ -706,14 +578,14 @@ export function initTraceability() {
             const activePath = document.createElementNS(SVG_NS, "path");
             activePath.setAttribute("d", d);
             activePath.setAttribute("fill", "none");
-            activePath.setAttribute("stroke", isEdgeEnabled ? "#00d461" : "#475569");
-            activePath.setAttribute("stroke-width", isEdgeVisited ? "2.75" : "1.75");
+            activePath.setAttribute("stroke", isEdgeEnabled ? "#008736" : "#94a3b8");
+            activePath.setAttribute("stroke-width", isEdgeVisited ? "2.25" : "1.5");
             activePath.setAttribute("stroke-linecap", "round");
             if (isEdgeVisited && isEdgeEnabled) {
                 activePath.classList.add("trace-edge-stream");
                 activePath.style.opacity = "0.95";
             } else {
-                activePath.style.opacity = isEdgeEnabled ? "0.28" : "0.12";
+                activePath.style.opacity = isEdgeEnabled ? "0.35" : "0.18";
             }
             linesGroup.appendChild(activePath);
 
@@ -724,9 +596,9 @@ export function initTraceability() {
                 const port = document.createElementNS(SVG_NS, "circle");
                 port.setAttribute("cx", String(pt.cx));
                 port.setAttribute("cy", String(pt.cy));
-                port.setAttribute("r", "3.5");
-                port.setAttribute("fill", isEdgeVisited ? "#00d461" : "#334155");
-                port.setAttribute("stroke", "#0b1526");
+                port.setAttribute("r", "3.25");
+                port.setAttribute("fill", isEdgeVisited ? "#008736" : "#94a3b8");
+                port.setAttribute("stroke", "#ffffff");
                 port.setAttribute("stroke-width", "1.5");
                 linesGroup.appendChild(port);
             });
@@ -742,12 +614,12 @@ export function initTraceability() {
             return null;
         }
         const length = Math.max(24, pathEl.getTotalLength());
-        const durationMs = Math.round(520 / speedMultiplier);
+        const durationMs = 460;
 
         const pulseDot = document.createElementNS(SVG_NS, "circle");
-        pulseDot.setAttribute("r", "5");
-        pulseDot.setAttribute("fill", "#00d461");
-        pulseDot.setAttribute("stroke", "#ffffff");
+        pulseDot.setAttribute("r", "4.5");
+        pulseDot.setAttribute("fill", "#008736");
+        pulseDot.setAttribute("stroke", "#dcf6e6");
         pulseDot.setAttribute("stroke-width", "2");
         (targetGroup || svgLayer).appendChild(pulseDot);
 
@@ -802,12 +674,12 @@ export function initTraceability() {
             if (ring && !reducedMotion && typeof ring.animate === "function") {
                 ringAnim = ring.animate(
                     [
-                        { opacity: 0.95, transform: "scale(0.98)" },
-                        { opacity: 0.2, transform: "scale(1.06)" },
-                        { opacity: 0.95, transform: "scale(0.98)" },
+                        { opacity: 0.75, transform: "scale(0.99)" },
+                        { opacity: 0.15, transform: "scale(1.04)" },
+                        { opacity: 0.75, transform: "scale(0.99)" },
                     ],
                     {
-                        duration: Math.round(560 / speedMultiplier),
+                        duration: 520,
                         iterations: 2,
                         easing: "ease-in-out",
                     },
@@ -815,7 +687,7 @@ export function initTraceability() {
                 activeWaapiAnimations.push(ringAnim);
             }
 
-            await waitMs(reducedMotion ? 60 : Math.round(840 / speedMultiplier));
+            await waitMs(reducedMotion ? 60 : 800);
 
             if (ringAnim) {
                 try {
@@ -852,7 +724,7 @@ export function initTraceability() {
             return;
         }
         playIcon.className = playing ? "fa-solid fa-stop text-[10px]" : "fa-solid fa-play text-[10px]";
-        playLabel.textContent = playing ? "Detener" : "Simular grafo";
+        playLabel.textContent = playing ? "Detener" : "Recorrer etapa";
     }
 }
 
