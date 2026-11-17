@@ -146,6 +146,24 @@ export function initTraceability() {
         drawGraphEdges(getStage(currentStageId), currentNodeIndex);
     });
 
+    if (typeof ResizeObserver !== "undefined" && graphBoard) {
+        const boardObserver = new ResizeObserver(() => {
+            drawGraphEdges(getStage(currentStageId), currentNodeIndex);
+        });
+        boardObserver.observe(graphBoard);
+    }
+
+    window.addEventListener("profilia:sidebar-change", () => {
+        const start = performance.now();
+        function syncDuringTransition(now) {
+            drawGraphEdges(getStage(currentStageId), currentNodeIndex);
+            if (now - start < 400) {
+                requestAnimationFrame(syncDuringTransition);
+            }
+        }
+        requestAnimationFrame(syncDuringTransition);
+    });
+
     selectStage(currentStageId, false);
     if (!reducedMotion) {
         animate(stageTabs, {

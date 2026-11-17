@@ -1,6 +1,88 @@
 const PROFILE_STEP_PERCENT = 25;
+const SIDEBAR_STORAGE_KEY = "profilia.sidebar.collapsed";
+
+export function initSidebarToggle() {
+    const sidebar = document.getElementById("app-sidebar");
+    const toggles = Array.from(document.querySelectorAll("[data-sidebar-toggle]"));
+    const backdrop = document.querySelector("[data-sidebar-backdrop]");
+    if (!sidebar || !toggles.length) {
+        return;
+    }
+
+    const root = document.documentElement;
+
+    function isDesktop() {
+        return window.innerWidth >= 1024;
+    }
+
+    function isSidebarOpen() {
+        if (isDesktop()) {
+            return root.dataset.sidebarCollapsed !== "true";
+        }
+        return root.dataset.sidebarMobileOpen === "true";
+    }
+
+    function syncAria() {
+        const open = isSidebarOpen();
+        toggles.forEach(btn => {
+            btn.setAttribute("aria-expanded", String(open));
+        });
+    }
+
+    function setSidebarState(open) {
+        if (isDesktop()) {
+            if (open) {
+                delete root.dataset.sidebarCollapsed;
+            } else {
+                root.dataset.sidebarCollapsed = "true";
+            }
+            try {
+                localStorage.setItem(SIDEBAR_STORAGE_KEY, open ? "false" : "true");
+            } catch {
+                // Ignore storage quota or private-mode errors.
+            }
+        } else if (open) {
+            root.dataset.sidebarMobileOpen = "true";
+        } else {
+            delete root.dataset.sidebarMobileOpen;
+        }
+
+        syncAria();
+        window.dispatchEvent(new CustomEvent("profilia:sidebar-change", { detail: { open } }));
+    }
+
+    toggles.forEach(btn => {
+        btn.addEventListener("click", () => {
+            setSidebarState(!isSidebarOpen());
+        });
+    });
+
+    backdrop?.addEventListener("click", () => {
+        if (!isDesktop()) {
+            setSidebarState(false);
+        }
+    });
+
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && !isDesktop() && root.dataset.sidebarMobileOpen === "true") {
+            setSidebarState(false);
+            document.getElementById("sidebar-open-btn")?.focus();
+        }
+    });
+
+    window.addEventListener("resize", () => {
+        if (isDesktop() && root.dataset.sidebarMobileOpen === "true") {
+            delete root.dataset.sidebarMobileOpen;
+        }
+        syncAria();
+    });
+
+    syncAria();
+}
 
 export function initAccountMenus() {
+    initSidebarToggle();
+
     document.querySelectorAll("[data-account-dropdown]").forEach(container => {
         const toggle = container.querySelector("[data-account-toggle]");
         const panel = container.querySelector("[data-account-panel]");
