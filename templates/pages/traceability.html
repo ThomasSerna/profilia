@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}
+    Profilia - Historial de actividad
+{% endblock %}
+
+
+{% block content %}
+
+<section
+    id="traceability-page"
+    class="space-y-4 max-w-7xl mx-auto pb-8"
+>
+
+    <!-- ================================================== -->
+    <!-- SELECTOR DE LAS 4 ETAPAS                           -->
+    <!-- ================================================== -->
+
+    <div class="p-3 sm:p-3.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div
+            id="traceability-stage-tabs"
+            role="tablist"
+            aria-label="Etapas del recorrido en Profilia"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5"
+        >
+            {% for stage in traceability_data.stages %}
+            <button
+                type="button"
+                role="tab"
+                id="stage-tab-{{ stage.id }}"
+                aria-controls="traceability-graph-panel"
+                aria-selected="{% if stage.id == traceability_data.active_stage_id %}true{% else %}false{% endif %}"
+                data-stage-tab="{{ stage.id }}"
+                class="traceability-stage-tab text-left p-3 rounded-xl border transition-all min-h-[44px] flex flex-col justify-between gap-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]
+                       {% if stage.id == traceability_data.active_stage_id %}border-[#02bc4d] bg-emerald-50/40 shadow-sm{% else %}border-slate-200/90 bg-slate-50/40 hover:border-slate-300 hover:bg-white{% endif %}"
+            >
+                <div class="flex items-center justify-between gap-1.5 w-full">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span
+                            data-stage-icon-box
+                            class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-[11px] font-semibold transition
+                                   {% if stage.id == traceability_data.active_stage_id %}bg-[#13223a] text-[#00d461]{% else %}bg-slate-200/80 text-slate-600{% endif %}"
+                        >
+                            <i class="fa-solid {{ stage.icon }}" aria-hidden="true"></i>
+                        </span>
+
+                        <span class="text-xs font-extrabold text-[#13223a] tracking-tight truncate">
+                            {{ stage.step }}. {{ stage.title }}
+                        </span>
+                    </div>
+
+                    <span
+                        class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 border
+                               {% if stage.status == 'completed' %}bg-emerald-100/80 text-[#006c2b] border-emerald-200
+                               {% elif stage.status == 'in_progress' %}bg-amber-100/80 text-amber-800 border-amber-200
+                               {% elif stage.status == 'preview' %}bg-sky-100/80 text-sky-800 border-sky-200
+                               {% else %}bg-slate-200/70 text-slate-600 border-slate-300{% endif %}"
+                    >
+                        {{ stage.status_label }}
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-200/70 w-full">
+                    {% for metric in stage.metrics %}
+                    <div class="min-w-0 bg-white rounded-lg px-1.5 py-1.5 border border-slate-200/70 text-center">
+                        <p class="text-xs sm:text-[13px] font-extrabold text-[#13223a] leading-tight tabular-nums">{{ metric.value }}</p>
+                        <p class="text-[10px] font-medium text-slate-500 leading-tight mt-0.5 truncate">{{ metric.label }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+
+    <!-- ================================================== -->
+    <!-- SUPERFICIE PRINCIPAL: ESQUEMA 2D + LECTURA         -->
+    <!-- ================================================== -->
+
+    <div
+        id="traceability-graph-panel"
+        role="tabpanel"
+        aria-labelledby="stage-tab-{{ traceability_data.active_stage_id }}"
+        class="rounded-2xl bg-white text-[#13223a] border border-slate-200 shadow-sm overflow-hidden"
+    >
+
+        <!-- Cabecera sobria de la etapa -->
+        <div class="px-4 sm:px-6 py-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-white">
+
+            <div class="min-w-0">
+                <h3 id="graph-stage-title" class="text-sm sm:text-base font-bold text-[#13223a] tracking-tight truncate">
+                    Perfil y orientación
+                </h3>
+                <p id="graph-stage-subtitle" class="text-xs text-slate-500 truncate mt-0.5">
+                    Estructura tu CV, detecta vacíos y evalúa cargos
+                </p>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+                <button
+                    id="traceability-play-btn"
+                    type="button"
+                    class="min-h-[38px] px-3.5 py-1.5 rounded-xl bg-[#008736] hover:bg-[#006c2b] active:bg-[#005723] text-white font-semibold text-xs transition inline-flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]"
+                >
+                    <i id="traceability-play-icon" class="fa-solid fa-play text-[10px]" aria-hidden="true"></i>
+                    <span id="traceability-play-label">Recorrer etapa</span>
+                </button>
+
+                <button
+                    id="traceability-next-step-btn"
+                    type="button"
+                    class="min-h-[38px] px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-[#13223a] font-semibold text-xs border border-slate-300 transition inline-flex items-center gap-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]"
+                >
+                    <span>Siguiente paso</span>
+                    <i class="fa-solid fa-arrow-right text-[10px] text-slate-500" aria-hidden="true"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Lienzo 2D principal del flujo con bifurcaciones -->
+        <div
+            id="traceability-graph-board"
+            class="traceability-graph-grid relative p-4 sm:p-6 min-h-[270px] md:h-[300px] flex items-center border-b border-slate-200 overflow-hidden"
+        >
+            <svg
+                id="traceability-svg-layer"
+                class="hidden md:block pointer-events-none absolute inset-0 w-full h-full z-0"
+                aria-hidden="true"
+            ></svg>
+
+            <div
+                id="traceability-edge-labels"
+                class="hidden md:block pointer-events-none absolute inset-0 z-[5]"
+                aria-hidden="true"
+            ></div>
+
+            <div
+                id="traceability-nodes-container"
+                class="relative z-10 w-full h-full grid grid-cols-2 sm:grid-cols-3 gap-3 md:block"
+            ></div>
+        </div>
+
+        <!-- Panel inferior de lectura y evidencia unificada -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 bg-white">
+
+            <!-- Columna izquierda: Narrativa protagonista ajustada al botón -->
+            <div
+                id="traceability-inspector-card"
+                class="lg:col-span-7 p-5 sm:p-6 md:p-7 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-slate-200"
+            >
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                    <div class="flex-1 min-w-0 space-y-2">
+                        <h4
+                            id="inspector-what"
+                            class="text-base sm:text-[19px] font-bold text-[#13223a] leading-snug tracking-[-0.015em]"
+                        ></h4>
+
+                        <p
+                            id="inspector-why"
+                            class="text-sm sm:text-[15px] text-slate-600 leading-relaxed max-w-[60ch]"
+                        ></p>
+                    </div>
+
+                    <a
+                        id="inspector-action-link"
+                        href="{% url 'home' %}"
+                        class="min-h-[40px] px-4 py-2 rounded-xl bg-[#e8f7ed] hover:bg-[#d8f2e2] text-[#006c2b] border border-[#b9eacb] font-semibold text-xs transition inline-flex items-center justify-center gap-2 shrink-0 self-start sm:self-end focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]"
+                    >
+                        <span id="inspector-action-label">Ir a Mi perfil</span>
+                        <i class="fa-solid fa-arrow-right text-[11px]" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Columna derecha: Única vista de evidencia real -->
+            <div
+                id="traceability-scene-panel"
+                class="traceability-scene-surface lg:col-span-5 p-5 sm:p-6 md:p-7 flex flex-col justify-between gap-3 min-h-[195px]"
+            >
+                <div class="flex items-center justify-between gap-2">
+                    <span id="scene-panel-heading" class="text-xs font-semibold text-slate-500">
+                        Datos registrados en este paso
+                    </span>
+                    <span
+                        id="scene-panel-badge"
+                        class="font-mono text-xs font-semibold text-[#13223a] tabular-nums"
+                    ></span>
+                </div>
+
+                <div
+                    id="traceability-scene-canvas"
+                    class="flex-1 flex flex-col justify-center"
+                ></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{{ traceability_data|json_script:"traceability-data" }}
+
+{% endblock %}
+
+
+{% block extra_js %}
+    <script type="module" src="{% static 'js/profilia/traceability.js' %}"></script>
+{% endblock %}

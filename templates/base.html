@@ -73,6 +73,14 @@
         href="{% static 'css/profilia.css' %}"
     >
 
+    <script>
+        try {
+            if (localStorage.getItem("profilia.sidebar.collapsed") === "true") {
+                document.documentElement.dataset.sidebarCollapsed = "true";
+            }
+        } catch (e) {}
+    </script>
+
 
     {% block extra_head %}
     {% endblock %}

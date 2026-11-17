@@ -49,3 +49,136 @@
 .agent-active {
     animation: agentPulse 2s infinite ease-in-out;
 }
+
+
+/* Retractable Sidebar Transitions */
+
+@media (max-width: 1023px) {
+    .app-sidebar-shell {
+        width: 20rem;
+        transform: translateX(-100%);
+        box-shadow: none;
+        transition:
+            transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
+            box-shadow 340ms ease;
+    }
+
+    html[data-sidebar-mobile-open="true"] .app-sidebar-shell {
+        transform: translateX(0);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    }
+
+    html[data-sidebar-mobile-open="true"] #sidebar-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+@media (min-width: 1024px) {
+    .app-sidebar-shell {
+        width: 20rem;
+        transform: translateX(0);
+        transition:
+            width 360ms cubic-bezier(0.22, 1, 0.36, 1),
+            box-shadow 360ms ease;
+    }
+
+    .app-sidebar-inner {
+        transform: translateX(0);
+        opacity: 1;
+        transition:
+            transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+            opacity 240ms ease;
+    }
+
+    html[data-sidebar-collapsed="true"] .app-sidebar-shell {
+        width: 0rem;
+        box-shadow: none;
+    }
+
+    html[data-sidebar-collapsed="true"] .app-sidebar-inner {
+        transform: translateX(-100%);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    html:not([data-sidebar-collapsed="true"]) .topbar-sidebar-trigger {
+        width: 0;
+        opacity: 0;
+        pointer-events: none;
+        border-width: 0;
+        margin-right: -0.75rem;
+        overflow: hidden;
+        transform: scale(0.85);
+    }
+
+    html[data-sidebar-collapsed="true"] .topbar-sidebar-trigger {
+        width: 2.5rem;
+        opacity: 1;
+        pointer-events: auto;
+        transform: scale(1);
+    }
+}
+
+
+/* 2D Traceability Interactive Canvas */
+
+.traceability-graph-grid {
+    background-color: #f8fafc;
+    background-image:
+        radial-gradient(circle at 18% 22%, rgba(0, 135, 54, 0.045), transparent 42%),
+        linear-gradient(rgba(19, 34, 58, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(19, 34, 58, 0.04) 1px, transparent 1px);
+    background-size: 100% 100%, 24px 24px, 24px 24px;
+}
+
+.traceability-scene-surface {
+    background-color: #f8fafc;
+}
+
+@keyframes traceEdgeFlow {
+    from {
+        stroke-dashoffset: 22;
+    }
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.trace-edge-stream {
+    stroke-dasharray: 6 5;
+    animation: traceEdgeFlow 1.6s linear infinite;
+}
+
+@media (min-width: 768px) {
+    .traceability-node-2d {
+        position: absolute;
+        left: var(--node-x, 50%);
+        top: var(--node-y, 50%);
+        transform: translate(-50%, -50%);
+        width: 144px;
+    }
+
+    .traceability-node-2d.is-selected {
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+}
+
+@media (min-width: 1280px) {
+    .traceability-node-2d {
+        width: 158px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .agent-active,
+    #live-banner-ping,
+    .trace-edge-stream,
+    .app-sidebar-shell,
+    .app-sidebar-inner,
+    .topbar-sidebar-trigger,
+    #sidebar-backdrop {
+        animation: none !important;
+        transition: none !important;
+    }
+}
