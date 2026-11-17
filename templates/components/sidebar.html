@@ -204,9 +204,12 @@
 
                 </div>
 
-                <span class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 font-semibold border
-                             {% if current_url_name == 'vacancies' %}bg-white/20 text-white border-white/30{% else %}bg-[#02bc4d]/20 text-[#02bc4d] border-[#02bc4d]/30{% endif %}">
-                    Disponible
+                <span
+                    id="vacancies-nav-badge"
+                    class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 font-semibold
+                           {% if applications_unlocked %}bg-emerald-900 text-emerald-300{% elif current_url_name == 'vacancies' %}bg-white/20 text-white border border-white/30{% else %}bg-[#02bc4d]/20 text-[#02bc4d] border border-[#02bc4d]/30{% endif %}"
+                >
+                    {% if applications_unlocked %}Completado{% else %}Disponible{% endif %}
                 </span>
 
             </a>
@@ -312,9 +315,12 @@
 
                 </div>
 
-                <span class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 font-semibold border
-                             {% if current_url_name == 'applications' %}bg-white/20 text-white border-white/30{% else %}bg-[#02bc4d]/20 text-[#02bc4d] border-[#02bc4d]/30{% endif %}">
-                    Disponible
+                <span
+                    id="applications-nav-badge"
+                    class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 font-semibold
+                           {% if applications_completed %}bg-emerald-900 text-emerald-300{% elif current_url_name == 'applications' %}bg-white/20 text-white border border-white/30{% else %}bg-[#02bc4d]/20 text-[#02bc4d] border border-[#02bc4d]/30{% endif %}"
+                >
+                    {% if applications_completed %}Completado{% else %}Disponible{% endif %}
                 </span>
 
             </a>
@@ -468,8 +474,8 @@
 
             </span>
 
-            <span class="text-[10px] text-slate-400 font-mono">
-                Mi perfil
+            <span id="flow-progress-stage" class="text-[10px] text-slate-400 font-mono">
+                {{ flow_stage_label|default:"Mi perfil" }}
             </span>
 
         </div>

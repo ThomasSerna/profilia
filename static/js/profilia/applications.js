@@ -1,3 +1,5 @@
+import { markApplicationsCompleted } from "./sidebar.js";
+
 const STATUS = {
     seleccionada: {
         label: "Pendiente",
@@ -78,6 +80,7 @@ export function initApplications() {
                 .filter(item => done.has(item.vacancy_id) || item.status === "postulada")
                 .map(item => done.get(item.vacancy_id) || item);
             setStatus(`Se registraron ${data.count} postulación(es) simulada(s).`);
+            markApplicationsCompleted();
         } catch (error) {
             consoleBox.append(logLine("error", `[ERROR] ${error.message}`));
             setStatus(error instanceof TypeError
