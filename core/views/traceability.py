@@ -217,7 +217,7 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
                 "status": source_status,
                 "status_label": "Completado" if source_status == "completed" else "Pendiente",
                 "badge": source_badge,
-                "x": 9,
+                "x": 8,
                 "y": 50,
                 "live_action": "Leyendo tu información profesional y respetando tus ediciones manuales...",
                 "what_did": source_what,
@@ -241,7 +241,7 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
                 "status": structure_status,
                 "status_label": "Completado" if structure_status == "completed" else "Pendiente",
                 "badge": f"{len(skills)} hab · {experiences} exp",
-                "x": 36,
+                "x": 29,
                 "y": 50,
                 "live_action": "Separando habilidades, experiencia, estudios e idiomas...",
                 "what_did": (
@@ -264,15 +264,15 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
             },
             {
                 "id": "profile-evidence",
-                "step_label": "1.3A",
+                "step_label": "1.3",
                 "title": "Evidencia en CV",
                 "caption": "Respaldo directo",
                 "icon": "fa-shield-halved",
                 "status": evidence_status,
                 "status_label": "Completado" if evidence_status == "completed" else "Pendiente",
                 "badge": f"{len(skills)} en CV",
-                "x": 63,
-                "y": 23,
+                "x": 50,
+                "y": 50,
                 "live_action": "Verificando qué requisitos ya tienen respaldo directo en tu hoja de vida...",
                 "what_did": (
                     f"Encontramos respaldo directo para {len(skills)} habilidad(es) en tu perfil actual."
@@ -289,7 +289,7 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
             },
             {
                 "id": "profile-gaps",
-                "step_label": "1.3B",
+                "step_label": "1.4",
                 "title": "Detección de vacíos",
                 "caption": "Preguntas puntuales",
                 "icon": "fa-magnifying-glass-chart",
@@ -303,8 +303,8 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
                     f"{len(answered)} aclar. · {len(pending)} pend."
                     if pending else f"{len(answered)} aclarada(s)"
                 ),
-                "x": 63,
-                "y": 77,
+                "x": 71,
+                "y": 50,
                 "live_action": "Detectando requisitos ausentes en el CV para preguntarte directamente...",
                 "what_did": (
                     f"Identificamos {len(answered) + len(pending)} requisito(s) que no figuraban en tu CV ({len(answered)} aclarado(s) contigo)."
@@ -322,7 +322,7 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
             },
             {
                 "id": "profile-guidance",
-                "step_label": "1.4",
+                "step_label": "1.5",
                 "title": "Orientación",
                 "caption": "Ruta por cargo",
                 "icon": "fa-compass",
@@ -333,7 +333,7 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
                     else "Pendiente"
                 ),
                 "badge": f"{len(assessments)} cargo(s)",
-                "x": 90,
+                "x": 92,
                 "y": 50,
                 "live_action": "Consolidando tu nivel de coincidencia y plan de mejora por cargo...",
                 "what_did": (
@@ -357,11 +357,10 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
             },
         ],
         "edges": [
-            {"from": "profile-source", "to": "profile-structure", "label": "Lee y ordena", "active": has_profile},
-            {"from": "profile-structure", "to": "profile-evidence", "label": "Figura en CV", "active": has_profile},
-            {"from": "profile-structure", "to": "profile-gaps", "label": "No figura en CV", "active": bool(has_profile or answered or pending)},
-            {"from": "profile-evidence", "to": "profile-guidance", "label": "Fortalezas", "active": bool(assessments)},
-            {"from": "profile-gaps", "to": "profile-guidance", "label": "Aclaraciones", "active": bool(assessments or answered)},
+            {"from": "profile-source", "to": "profile-structure", "label": "Lee datos", "active": has_profile},
+            {"from": "profile-structure", "to": "profile-evidence", "label": "En tu CV", "active": has_profile},
+            {"from": "profile-evidence", "to": "profile-gaps", "label": "Lo faltante", "active": bool(has_profile or answered or pending)},
+            {"from": "profile-gaps", "to": "profile-guidance", "label": "Aclarado", "active": bool(assessments or answered)},
         ],
     }
 
