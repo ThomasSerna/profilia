@@ -22,60 +22,36 @@
 
     <div class="p-4 sm:p-6 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-sm">
 
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
-            <div>
-                <h2 class="text-sm font-bold text-[#13223a]">Seguimiento de postulaciones</h2>
-                <p class="text-xs text-slate-500">
-                    Cuando una empresa te dé novedades, mueve la tarjeta a su nueva etapa. El Agente de
-                    Seguimiento guarda el cambio, te avisa y actualiza tus recordatorios y próximos pasos.
-                </p>
-            </div>
-            <span id="followup-agent-state" class="text-[11px] px-2.5 py-1 rounded-full font-semibold bg-slate-100 text-slate-500 border border-slate-200 whitespace-nowrap self-start sm:self-auto">
-                <i class="fa-solid fa-robot mr-1" aria-hidden="true"></i>Agente listo
-            </span>
+        <div class="border-b border-slate-200 pb-4">
+            <h2 class="text-sm font-bold text-[#13223a]">Seguimiento de postulaciones</h2>
+            <p class="text-xs text-slate-500">
+                Cuando una empresa te dé novedades, arrastra la tarjeta a su nueva etapa. El Agente de
+                Seguimiento guarda el cambio, te avisa y actualiza tus recordatorios y próximos pasos.
+            </p>
         </div>
 
-        <p id="followup-status" role="status" class="text-xs text-slate-600"></p>
+        <p id="followup-status" role="status" aria-live="polite" class="text-xs text-slate-600"></p>
 
         <div id="followup-board" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"></div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        <div class="p-4 sm:p-6 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-sm">
-            <div class="flex items-center justify-between gap-3">
-                <h2 class="text-sm font-bold text-[#13223a] flex items-center gap-2">
-                    <i class="fa-solid fa-bell text-[#02bc4d]" aria-hidden="true"></i>
-                    Notificaciones
-                    <span id="notification-counter" class="hidden min-w-[22px] px-1.5 py-0.5 rounded-full bg-amber-400 text-[#13223a] text-[10px] font-black text-center"></span>
-                </h2>
-                <button
-                    id="read-all-button"
-                    type="button"
-                    class="min-h-[44px] px-3 rounded-xl text-[11px] font-semibold text-[#13223a] hover:bg-slate-100 disabled:text-slate-300 disabled:hover:bg-transparent disabled:cursor-not-allowed"
-                >
-                    Marcar todas como leídas
-                </button>
-            </div>
-            <p id="notification-summary" class="text-xs text-slate-500"></p>
-            <ul id="notification-list" class="space-y-2 max-h-80 overflow-y-auto"></ul>
-        </div>
-
-        <div class="p-4 sm:p-6 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-sm">
+    <div class="p-4 sm:p-6 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-sm">
+        <div class="flex items-center justify-between gap-3">
             <h2 class="text-sm font-bold text-[#13223a] flex items-center gap-2">
-                <i class="fa-solid fa-terminal text-[#02bc4d]" aria-hidden="true"></i>
-                Registro del agente
+                <i class="fa-solid fa-bell text-[#02bc4d]" aria-hidden="true"></i>
+                Notificaciones
+                <span id="notification-counter" class="hidden min-w-[22px] px-1.5 py-0.5 rounded-full bg-amber-400 text-[#13223a] text-[10px] font-black text-center"></span>
             </h2>
-            <div
-                id="followup-console"
-                role="log"
-                aria-live="polite"
-                class="p-4 rounded-xl bg-[#13223a] text-slate-200 font-mono text-xs space-y-2 h-80 overflow-y-auto shadow-inner border border-slate-800"
+            <button
+                id="read-all-button"
+                type="button"
+                class="min-h-[44px] px-3 rounded-xl text-[11px] font-semibold text-[#13223a] hover:bg-slate-100 disabled:text-slate-300 disabled:hover:bg-transparent disabled:cursor-not-allowed"
             >
-                <p class="text-slate-400">[SISTEMA] Agente de Seguimiento listo. Revisando tus postulaciones...</p>
-            </div>
+                Marcar todas como leídas
+            </button>
         </div>
-
+        <p id="notification-summary" class="text-xs text-slate-500"></p>
+        <ul id="notification-list" class="space-y-2 max-h-80 overflow-y-auto"></ul>
     </div>
 
 </section>

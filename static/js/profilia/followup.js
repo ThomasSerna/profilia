@@ -12,15 +12,10 @@ const STATUS_BADGES = {
     descartada: "bg-slate-200 text-slate-500 border-slate-300",
 };
 
-const EVENT_CLASSES = {
-    system: "text-slate-400",
-    agent: "text-emerald-400",
-    step: "text-slate-300",
-    success: "text-emerald-400",
-    final: "text-amber-300 font-bold",
-    warning: "text-amber-300",
-    error: "text-red-400 font-bold",
-};
+const DROP_HIGHLIGHT = ["ring-2", "ring-[#02bc4d]", "bg-emerald-50"];
+const DRAG_THRESHOLD = 6;
+const TOUCH_HOLD_MS = 250;
+const INTERACTIVE = "button, a, input, select, textarea, summary, details";
 
 export function plural(count, singular, pluralForm) {
     return `${count} ${count === 1 ? singular : (pluralForm || `${singular}s`)}`;
@@ -54,25 +49,29 @@ function icon(name) {
 export function initFollowup() {
     const page = document.getElementById("followup-page");
     const boardElement = document.getElementById("followup-board");
-    const consoleBox = document.getElementById("followup-console");
     const statusLine = document.getElementById("followup-status");
-    const agentState = document.getElementById("followup-agent-state");
     const notificationList = document.getElementById("notification-list");
     const notificationSummary = document.getElementById("notification-summary");
     const counter = document.getElementById("notification-counter");
     const readAllButton = document.getElementById("read-all-button");
     const dataElement = document.getElementById("followup-board-data");
 
-    if (!page || !boardElement || !consoleBox || !notificationList) {
+    if (!page || !boardElement || !notificationList) {
         return;
     }
 
     const csrfToken = page.querySelector("[name=csrfmiddlewaretoken]").value;
-    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     let board = JSON.parse(dataElement?.textContent || "{}");
     let busy = false;
+    let drag = null;
 
     readAllButton.addEventListener("click", () => send(page.dataset.readAllUrl));
+    // Mientras se arrastra con el dedo, evita que la página se desplace.
+    document.addEventListener("touchmove", event => {
+        if (drag?.active) {
+            event.preventDefault();
+        }
+    }, { passive: false });
 
     render();
     runAgent();
@@ -95,53 +94,57 @@ export function initFollowup() {
 
     // El evento POSTULACIÓN ENVIADA activa el agente al entrar a la página.
     async function runAgent() {
-        setBusy(true, "Revisando tus postulaciones...");
-        consoleBox.replaceChildren(logLine("agent", "[AGENTE] Iniciando Agente de Seguimiento con LangGraph Agent..."));
+        busy = true;
+        setStatus("Revisando tus postulaciones...");
         try {
-            const data = await post(page.dataset.runUrl);
-            await replay(data.events.slice(1));
-            board = data.board;
+            board = (await post(page.dataset.runUrl)).board;
             setStatus("Tus recordatorios y próximos pasos están al día.");
         } catch (error) {
-            consoleBox.append(logLine("error", `[ERROR] ${error.message}`));
             setStatus(connectionMessage(error), true);
         } finally {
-            setBusy(false);
+            busy = false;
             render();
         }
     }
 
-    async function send(url, data, successText) {
+    async function send(url, data, successText, previous = null) {
         if (busy) {
             return;
         }
-        setBusy(true);
+        busy = true;
+        render();
         try {
-            const payload = await post(url, data);
-            board = payload.board;
-            if (payload.events?.length) {
-                consoleBox.append(logLine("system", "[SISTEMA] ESTADO CAMBIADO: el agente actualiza tus recordatorios..."));
-                await replay(payload.events.slice(1));
-            }
+            board = (await post(url, data)).board;
             if (successText) {
                 setStatus(successText);
             }
         } catch (error) {
+            if (previous) {
+                board = previous;
+            }
             setStatus(connectionMessage(error), true);
         } finally {
-            setBusy(false);
+            busy = false;
             render();
         }
     }
 
-    async function replay(events) {
-        for (const item of events) {
-            consoleBox.append(logLine(item.level, item.message));
-            consoleBox.scrollTop = consoleBox.scrollHeight;
-            if (!reducedMotion) {
-                await new Promise(resolve => setTimeout(resolve, 250));
-            }
+    function moveTo(item, status) {
+        const target = COLUMNS.find(column => column.status === status);
+        if (!target || status === item.status || busy) {
+            return;
         }
+        // Se mueve en pantalla de inmediato; el servidor confirma y devuelve el tablero actualizado.
+        // Si falla, la tarjeta vuelve a su etapa anterior.
+        const previous = board;
+        board = {
+            ...board,
+            applications: board.applications.map(app => app.id === item.id
+                ? { ...app, status, status_label: target.label, next_step: "", reminders: [] } : app),
+        };
+        setStatus(`Actualizando ${item.title}...`);
+        send(page.dataset.moveUrl.replace("/0/", `/${item.id}/`), { status },
+            `Moviste ${item.title} a ${target.label}.`, previous);
     }
 
     function render() {
@@ -154,7 +157,8 @@ export function initFollowup() {
         const applications = board.applications || [];
         boardElement.replaceChildren(...COLUMNS.map(column => {
             const items = applications.filter(item => item.status === column.status);
-            const section = element("section", `rounded-xl bg-slate-50 border border-slate-200 border-t-4 ${column.accent} p-3 space-y-3 min-h-[160px]`);
+            const section = element("section", `rounded-xl bg-slate-50 border border-slate-200 border-t-4 ${column.accent} p-3 space-y-3 min-h-[160px] transition-colors`);
+            section.dataset.status = column.status;
             section.setAttribute("aria-label", column.label);
             const header = element("div", "flex items-center justify-between gap-2");
             const title = element("h3", "text-xs font-bold text-[#13223a] flex items-center gap-2");
@@ -162,7 +166,7 @@ export function initFollowup() {
             header.append(title, element("span", "text-[10px] font-semibold text-slate-500", plural(items.length, "postulación", "postulaciones")));
             section.append(header);
             if (!items.length) {
-                section.append(element("p", "text-[11px] text-slate-400 border border-dashed border-slate-300 rounded-lg p-3 text-center", "Sin postulaciones en esta etapa."));
+                section.append(element("p", "text-[11px] text-slate-400 border border-dashed border-slate-300 rounded-lg p-3 text-center", "Arrastra aquí una postulación."));
             }
             items.forEach(item => section.append(buildCard(item)));
             return section;
@@ -170,14 +174,30 @@ export function initFollowup() {
     }
 
     function buildCard(item) {
-        const card = element("article", "p-3 rounded-xl border border-slate-200 bg-white space-y-2.5 text-xs shadow-sm");
+        const card = element("article", `p-3 rounded-xl border border-slate-200 bg-white space-y-2.5 text-xs shadow-sm select-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#008736] ${busy ? "cursor-wait" : "cursor-grab"}`);
+        card.tabIndex = 0;
+        card.setAttribute("aria-label", `${item.title} en ${item.company}, etapa ${item.status_label}. Arrastra la tarjeta o usa las flechas izquierda y derecha para cambiar de etapa.`);
+        card.addEventListener("pointerdown", event => startDrag(event, card, item));
+        card.addEventListener("keydown", event => {
+            if (event.target !== card || (event.key !== "ArrowRight" && event.key !== "ArrowLeft")) {
+                return;
+            }
+            event.preventDefault();
+            const index = COLUMNS.findIndex(column => column.status === item.status);
+            const next = COLUMNS[index + (event.key === "ArrowRight" ? 1 : -1)];
+            if (next) {
+                moveTo(item, next.status);
+            }
+        });
 
         const header = element("div", "flex items-start justify-between gap-2");
-        const titleBox = element("div", "min-w-0");
-        titleBox.append(
+        const titleBox = element("div", "min-w-0 flex items-start gap-2");
+        const texts = element("div", "min-w-0");
+        texts.append(
             element("p", "font-bold text-[#13223a] text-sm break-words", item.title),
             element("p", "text-slate-500 break-words", item.company),
         );
+        titleBox.append(icon("fa-grip-vertical text-slate-300 mt-1"), texts);
         header.append(titleBox, element("span", "px-2 py-0.5 rounded-full border bg-white text-[#13223a] border-slate-200 text-[10px] font-black shrink-0", `${item.score}% MATCH`));
         card.append(header);
 
@@ -236,8 +256,106 @@ export function initFollowup() {
             card.append(details);
         }
 
-        card.append(moveForm(item));
         return card;
+    }
+
+    function startDrag(event, card, item) {
+        if (busy || event.button > 0 || event.target.closest(INTERACTIVE)) {
+            return;
+        }
+        drag = { card, item, startX: event.clientX, startY: event.clientY, active: false, ghost: null, over: null, timer: null };
+        if (event.pointerType === "touch") {
+            // En pantallas táctiles se mantiene presionada la tarjeta para no confundir el gesto con el scroll.
+            drag.timer = setTimeout(() => activateDrag(event.clientX, event.clientY), TOUCH_HOLD_MS);
+        }
+        card.setPointerCapture?.(event.pointerId);
+        card.addEventListener("pointermove", onDragMove);
+        card.addEventListener("pointerup", onDragEnd);
+        card.addEventListener("pointercancel", cancelDrag);
+    }
+
+    function activateDrag(x, y) {
+        if (!drag || drag.active) {
+            return;
+        }
+        const rect = drag.card.getBoundingClientRect();
+        const ghost = drag.card.cloneNode(true);
+        ghost.removeAttribute("tabindex");
+        ghost.setAttribute("aria-hidden", "true");
+        ghost.style.cssText = `position:fixed;left:0;top:0;width:${rect.width}px;pointer-events:none;z-index:50;opacity:.95;`;
+        ghost.classList.add("shadow-xl", "rotate-2", "cursor-grabbing");
+        document.body.append(ghost);
+        drag = { ...drag, active: true, ghost, offsetX: x - rect.left, offsetY: y - rect.top };
+        drag.card.classList.add("opacity-40");
+        positionGhost(x, y);
+    }
+
+    function onDragMove(event) {
+        if (!drag) {
+            return;
+        }
+        const distance = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
+        if (!drag.active) {
+            if (event.pointerType === "touch") {
+                if (distance > DRAG_THRESHOLD) {
+                    cancelDrag();
+                }
+                return;
+            }
+            if (distance < DRAG_THRESHOLD) {
+                return;
+            }
+            activateDrag(event.clientX, event.clientY);
+        }
+        positionGhost(event.clientX, event.clientY);
+        highlight(columnAt(event.clientX, event.clientY));
+    }
+
+    function onDragEnd(event) {
+        if (!drag) {
+            return;
+        }
+        const { active, item } = drag;
+        const column = active ? columnAt(event.clientX, event.clientY) : null;
+        cancelDrag();
+        if (column) {
+            moveTo(item, column.dataset.status);
+        }
+    }
+
+    function cancelDrag() {
+        if (!drag) {
+            return;
+        }
+        clearTimeout(drag.timer);
+        drag.ghost?.remove();
+        drag.card.classList.remove("opacity-40");
+        drag.card.removeEventListener("pointermove", onDragMove);
+        drag.card.removeEventListener("pointerup", onDragEnd);
+        drag.card.removeEventListener("pointercancel", cancelDrag);
+        highlight(null);
+        drag = null;
+    }
+
+    function positionGhost(x, y) {
+        drag.ghost.style.transform = `translate(${x - drag.offsetX}px, ${y - drag.offsetY}px) rotate(2deg)`;
+    }
+
+    function columnAt(x, y) {
+        return document.elementFromPoint(x, y)?.closest("#followup-board [data-status]") || null;
+    }
+
+    function highlight(column) {
+        if (drag?.over === column) {
+            return;
+        }
+        drag?.over?.classList.remove(...DROP_HIGHLIGHT);
+        if (column && column.dataset.status !== drag?.item.status) {
+            column.classList.add(...DROP_HIGHLIGHT);
+        }
+        if (drag) {
+            drag.over = column;
+        }
     }
 
     function reminderRow(reminder) {
@@ -246,7 +364,7 @@ export function initFollowup() {
         const text = element("div", "min-w-0");
         text.append(
             element("p", `font-semibold break-words ${isDone ? "line-through text-slate-400" : "text-slate-700"}`, reminder.title),
-            element("p", "text-[10px] text-slate-500", `${isDone ? "Completado" : "Para el"} ${isDone ? "" : formatDate(reminder.due_date)}`.trim()),
+            element("p", "text-[10px] text-slate-500", isDone ? "Completado" : `Para el ${formatDate(reminder.due_date)}`),
         );
         if (reminder.detail && !isDone) {
             text.append(element("p", "text-[10px] text-slate-500 break-words", reminder.detail));
@@ -264,32 +382,6 @@ export function initFollowup() {
             row.append(button);
         }
         return row;
-    }
-
-    function moveForm(item) {
-        const form = element("form", "flex items-center gap-2 pt-1 border-t border-slate-100");
-        const id = `move-${item.id}`;
-        const label = element("label", "sr-only", `Mover ${item.title} a otra etapa`);
-        label.htmlFor = id;
-        const select = element("select", "flex-1 min-w-0 min-h-[44px] rounded-lg border border-slate-200 bg-white px-2 text-[11px] text-slate-700");
-        select.id = id;
-        select.name = "status";
-        COLUMNS.filter(column => column.status !== item.status).forEach(column => {
-            const option = element("option", "", `Mover a ${column.label}`);
-            option.value = column.status;
-            select.append(option);
-        });
-        const button = element("button", "min-h-[44px] px-3 rounded-lg bg-[#13223a] hover:bg-slate-800 text-white text-[11px] font-bold disabled:bg-slate-200 disabled:text-slate-400", "Mover");
-        button.type = "submit";
-        button.disabled = busy;
-        form.append(label, select, button);
-        form.addEventListener("submit", event => {
-            event.preventDefault();
-            const target = COLUMNS.find(column => column.status === select.value);
-            send(page.dataset.moveUrl.replace("/0/", `/${item.id}/`), { status: select.value },
-                `Moviste ${item.title} a ${target ? target.label : "otra etapa"}.`);
-        });
-        return form;
     }
 
     function renderNotifications() {
@@ -343,19 +435,6 @@ export function initFollowup() {
         }
     }
 
-    function setBusy(value, text) {
-        busy = value;
-        agentState.replaceChildren(icon(value ? "fa-spinner fa-spin mr-1" : "fa-robot mr-1"),
-            document.createTextNode(value ? "Agente trabajando" : "Agente listo"));
-        agentState.className = `text-[11px] px-2.5 py-1 rounded-full font-semibold whitespace-nowrap self-start sm:self-auto border ${value ? "bg-amber-50 text-amber-800 border-amber-200" : "bg-emerald-50 text-[#02bc4d] border-emerald-200"}`;
-        if (text) {
-            setStatus(text);
-        }
-        if (value) {
-            render();
-        }
-    }
-
     function setStatus(text, isError = false) {
         statusLine.textContent = text;
         statusLine.className = `text-xs ${isError ? "text-red-700" : "text-slate-600"}`;
@@ -363,10 +442,6 @@ export function initFollowup() {
 
     function connectionMessage(error) {
         return error instanceof TypeError ? "No pudimos conectar con Profilia. Intenta de nuevo." : error.message;
-    }
-
-    function logLine(level, text) {
-        return element("p", EVENT_CLASSES[level] || EVENT_CLASSES.step, text);
     }
 }
 

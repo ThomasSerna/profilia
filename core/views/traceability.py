@@ -904,10 +904,6 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
     }
 
 
-def _plural(count: int, singular: str, plural: str | None = None) -> str:
-    return f"{count} {singular if count == 1 else (plural or singular + 's')}"
-
-
 def _status_label(status: str) -> str:
     return "Completado" if status == "completed" else "En curso" if status == "in_progress" else "Pendiente"
 
@@ -1012,13 +1008,8 @@ def _build_followup_stage(applications: list[Application], state: dict) -> dict:
         ),
         "summary": "Actualiza el estado de tus envíos, programa recordatorios y te avisa de cada cambio.",
         "headline_metric": (
-<<<<<<< HEAD
             f"{_plural(len(active), 'activa')} · {_plural(len(pending_reminders), 'recordatorio')}"
             if submitted else "Sin postulaciones enviadas"
-=======
-            f"{_plural(len(applied), 'activa')} · {_plural(max(len(applied), 2), 'alerta')}"
-            if applied else "Alertas y plan de estudio"
->>>>>>> 706e19fea6b80fdac4cb85b556cbba9ae654fe25
         ),
         "metrics": [
             {"label": "Activas", "value": str(len(active))},
@@ -1032,7 +1023,6 @@ def _build_followup_stage(applications: list[Application], state: dict) -> dict:
                 "title": "Estado de envíos",
                 "caption": "Postulada → En revisión → Entrevista",
                 "icon": "fa-inbox",
-<<<<<<< HEAD
                 "status": monitor_status,
                 "status_label": _status_label(monitor_status),
                 "badge": _plural(len(active), "activa"),
@@ -1045,16 +1035,6 @@ def _build_followup_stage(applications: list[Application], state: dict) -> dict:
                     if submitted else "Cuando envíes una postulación, el agente seguirá su estado."
                 ),
                 "why_did": "Cada cambio que haces queda en el historial con su fecha y motivo, y te llega una notificación.",
-=======
-                "status": "preview",
-                "status_label": "Vista previa",
-                "badge": _plural(len(applied), "activa"),
-                "x": 12,
-                "y": 50,
-                "live_action": "Consolidando el estado y fecha de tus postulaciones enviadas...",
-                "what_did": f"Reúne {_plural(len(applied), 'postulación enviada', 'postulaciones enviadas')} para activar tu agenda.",
-                "why_did": "Centralizar tus envíos evita perder fechas clave de contacto o pruebas.",
->>>>>>> 706e19fea6b80fdac4cb85b556cbba9ae654fe25
                 "items": active_items,
                 "visual_items": [
                     {"label": label, "value": str(count), "tone": status_tones.get(label, "sky"),
@@ -1073,15 +1053,9 @@ def _build_followup_stage(applications: list[Application], state: dict) -> dict:
                 "title": "Recordatorios",
                 "caption": "Fechas clave",
                 "icon": "fa-bell",
-<<<<<<< HEAD
                 "status": reminders_status,
                 "status_label": _status_label(reminders_status),
                 "badge": _plural(len(pending_reminders), "pendiente"),
-=======
-                "status": "preview",
-                "status_label": "Vista previa",
-                "badge": _plural(len(reminder_items), "alerta"),
->>>>>>> 706e19fea6b80fdac4cb85b556cbba9ae654fe25
                 "x": 52,
                 "y": 23,
                 "live_action": "Programando recordatorios con fecha para cada postulación activa...",
@@ -1108,15 +1082,9 @@ def _build_followup_stage(applications: list[Application], state: dict) -> dict:
                 "title": "Refuerzo",
                 "caption": "Habilidades por cubrir",
                 "icon": "fa-graduation-cap",
-<<<<<<< HEAD
                 "status": practice_status,
                 "status_label": _status_label(practice_status),
                 "badge": _plural(len(missing_skills), "foco", "focos") if missing_skills else "Repaso",
-=======
-                "status": "preview",
-                "status_label": "Vista previa",
-                "badge": _plural(len(missing_skills), "foco") if missing_skills else "Repaso",
->>>>>>> 706e19fea6b80fdac4cb85b556cbba9ae654fe25
                 "x": 52,
                 "y": 77,
                 "live_action": "Conectando los requisitos pendientes de tus vacantes con temas de estudio...",
