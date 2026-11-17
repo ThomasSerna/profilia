@@ -8,7 +8,7 @@ from agents.career.cache import get_career_data, get_profile_state
 from agents.profile.schemas import ProfileData, has_professional_information
 from agents.vacancies.graph import run_vacancy_agent
 from agents.vacancies.schemas import Preferences
-from core.models import Application, Profile
+from core.models import Application, ApplicationStatusChange, Profile, Reminder
 from core.views.vacancies import stored_preferences
 
 MODALITY_LABELS = {
@@ -615,7 +615,7 @@ def _build_vacancies_stage(profile, candidate: ProfileData | None, saved_career:
 
 def _build_applications_stage(candidate: ProfileData | None, applications: list[Application]) -> dict:
     total_selected = len(applications)
-    applied = [app for app in applications if app.status == Application.APPLIED]
+    applied = [app for app in applications if app.status in Application.SUBMITTED_STATUSES]
     pending = [app for app in applications if app.status == Application.SELECTED]
 
     total_screening = sum(len(app.screening or []) for app in applied)
@@ -632,7 +632,7 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
     execution_status = "completed" if applied else ("in_progress" if pending else "pending")
 
     selection_items = [
-        f"{app.title} · {app.company} ({'Postulada' if app.status == Application.APPLIED else 'En cola'})."
+        f"{app.title} · {app.company} ({'Postulada' if app.status in Application.SUBMITTED_STATUSES else 'En cola'})."
         for app in applications[:4]
     ] or ["Aún no has seleccionado vacantes para postular."]
 
@@ -719,8 +719,8 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
                 "visual_items": [
                     {
                         "label": f"{app.title} · {app.company}",
-                        "value": "Postulada" if app.status == Application.APPLIED else "Seleccionada",
-                        "tone": "emerald" if app.status == Application.APPLIED else "amber",
+                        "value": "Postulada" if app.status in Application.SUBMITTED_STATUSES else "Seleccionada",
+                        "tone": "emerald" if app.status in Application.SUBMITTED_STATUSES else "amber",
                         "icon": "fa-briefcase",
                     }
                     for app in applications[:4]
@@ -732,7 +732,7 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
                             "title": app.title,
                             "company": app.company,
                             "score": app.score,
-                            "applied": app.status == Application.APPLIED,
+                            "applied": app.status in Application.SUBMITTED_STATUSES,
                         }
                         for app in applications[:4]
                     ],
@@ -888,107 +888,177 @@ def _build_applications_stage(candidate: ProfileData | None, applications: list[
     }
 
 
+def _plural(count: int, singular: str, plural: str | None = None) -> str:
+    return f"{count} {singular if count == 1 else (plural or singular + 's')}"
+
+
+def _status_label(status: str) -> str:
+    return "Completado" if status == "completed" else "En curso" if status == "in_progress" else "Pendiente"
+
+
 def _build_followup_stage(applications: list[Application], state: dict) -> dict:
-    applied = [app for app in applications if app.status == Application.APPLIED]
-    assessments = state.get("assessments") or []
+    submitted = [app for app in applications if app.status in Application.SUBMITTED_STATUSES]
+    active = [app for app in submitted if app.status in Application.ACTIVE_STATUSES]
+    finished = [app for app in submitted if app.status not in Application.ACTIVE_STATUSES]
+    by_id = {app.id: app for app in submitted}
+
+    reminders = list(Reminder.objects.filter(application__in=submitted).exclude(status=Reminder.DISMISSED))
+    pending_reminders = [item for item in reminders if item.status == Reminder.PENDING]
+    done_reminders = [item for item in reminders if item.status == Reminder.DONE]
+    changes = list(ApplicationStatusChange.objects.filter(application__in=submitted).order_by("-created_at", "-id"))
+    planned = [app for app in active if app.next_step and app.next_step_status == app.status]
 
     missing_skills = []
-    for item in assessments:
-        for skill in item.get("unknown_skills") or []:
+    for app in active:
+        for skill in (app.audit or {}).get("missing_required") or []:
             if skill not in missing_skills:
                 missing_skills.append(skill)
-    for app in applied:
-        for warning in app.warnings or []:
-            if warning not in missing_skills:
-                missing_skills.append(warning)
+    if not missing_skills:
+        for item in state.get("assessments") or []:
+            for skill in item.get("unknown_skills") or []:
+                if skill not in missing_skills:
+                    missing_skills.append(skill)
+
+    if not submitted:
+        stage_status = "pending"
+    elif active:
+        stage_status = "in_progress"
+    else:
+        stage_status = "completed"
+
+    monitor_status = "completed" if submitted else "pending"
+    if reminders or (submitted and not active):
+        reminders_status = "completed"
+    else:
+        reminders_status = "in_progress" if active else "pending"
+    practice_status = "completed" if submitted else "pending"
+    if submitted and len(planned) == len(active):
+        next_status = "completed"
+    else:
+        next_status = "in_progress" if active else "pending"
+
+    status_counts = [
+        (label, sum(1 for app in submitted if app.status == status))
+        for status, label in Application.STATUS_CHOICES if status in Application.SUBMITTED_STATUSES
+    ]
+    status_tones = {"Entrevista": "emerald", "Descartada": "slate"}
 
     active_items = [
-        f"Seguimiento activo: {app.title} en {app.company}."
-        for app in applied[:3]
-    ] or ["Vista previa: aquí verás tus candidaturas enviadas bajo seguimiento."]
+        f"{app.title} en {app.company}: {app.get_status_display()}."
+        for app in submitted[:3]
+    ] or ["Aún no tienes postulaciones enviadas bajo seguimiento."]
+    active_items += [
+        f"Último cambio: {by_id[change.application_id].title} pasó a {change.get_to_status_display()}."
+        for change in changes[:2]
+    ]
 
     reminder_items = [
-        f"En 7 días: revisar estado de {app.title} ({app.company})."
-        for app in applied[:2]
-    ] + ["Actualizar tu perfil al completar un proyecto o curso."]
+        f"{item.due_date.strftime('%d/%m/%Y')}: {item.title} ({by_id[item.application_id].company})."
+        for item in pending_reminders[:3]
+    ]
+    if not reminder_items:
+        reminder_items = (
+            [f"Completaste {_plural(len(done_reminders), 'recordatorio')}."] if done_reminders
+            else ["Los recordatorios aparecerán cuando el agente revise tus postulaciones."]
+        )
 
     practice_items = (
-        [f"Reforzar: {item}" for item in missing_skills[:3]]
+        [f"Reforzar: {skill}" for skill in missing_skills[:3]]
         if missing_skills else ["Repasar las habilidades clave destacadas en tus cartas."]
     )
 
+    next_steps = [(app, app.next_step) for app in planned[:3]]
     next_steps_items = [
-        "1. Revisar cartas y respuestas guardadas en Postulaciones.",
-        "2. Completar aclaraciones pendientes en Mi perfil.",
-        "3. Explorar nuevas ofertas si cambian tus preferencias.",
+        f"{index}. {app.title}: {step}" for index, (app, step) in enumerate(next_steps, start=1)
     ]
+    if not next_steps_items:
+        next_steps_items = (
+            ["Tus procesos terminaron: explora nuevas vacantes en el Agente de Vacantes."] if finished
+            else ["Envía una postulación para recibir tu hoja de ruta."]
+        )
 
     return {
         "id": "followup",
         "step": 4,
         "title": "Seguimiento",
         "full_title": "Seguimiento y próximos pasos",
-        "subtitle": "Recordatorios, refuerzo de brechas y hoja de ruta",
+        "subtitle": "Estados, recordatorios, refuerzo de brechas y hoja de ruta",
         "icon": "fa-chart-line",
-        "status": "preview",
-        "status_label": "Vista previa",
-        "action_url": reverse("applications") if applications else reverse("home"),
-        "action_label": "Ver postulaciones" if applications else "Ir a Mi perfil",
-        "summary": "A partir de tus envíos y brechas detectadas, organiza alertas y estudio recomendado.",
+        "status": stage_status,
+        "status_label": _status_label(stage_status),
+        "action_url": (
+            reverse("followup") if submitted
+            else (reverse("applications") if applications else reverse("home"))
+        ),
+        "action_label": (
+            "Ver seguimiento" if submitted
+            else ("Ver postulaciones" if applications else "Ir a Mi perfil")
+        ),
+        "summary": "Actualiza el estado de tus envíos, programa recordatorios y te avisa de cada cambio.",
         "headline_metric": (
-            f"{len(applied)} activa(s) · {max(len(applied), 2)} alertas"
-            if applied else "Alertas y plan de estudio"
+            f"{_plural(len(active), 'activa')} · {_plural(len(pending_reminders), 'recordatorio')}"
+            if submitted else "Sin postulaciones enviadas"
         ),
         "metrics": [
-            {"label": "Activas", "value": str(len(applied))},
-            {"label": "Alertas", "value": str(max(len(applied), 2))},
-            {"label": "Pasos", "value": "3"},
+            {"label": "Activas", "value": str(len(active))},
+            {"label": "Recordatorios", "value": str(len(pending_reminders))},
+            {"label": "Cambios", "value": str(len(changes))},
         ],
         "nodes": [
             {
                 "id": "followup-monitor",
                 "step_label": "4.1",
-                "title": "Envíos activos",
-                "caption": "Base de seguimiento",
+                "title": "Estado de envíos",
+                "caption": "Postulada → En revisión → Entrevista",
                 "icon": "fa-inbox",
-                "status": "preview",
-                "status_label": "Vista previa",
-                "badge": f"{len(applied)} activa(s)",
+                "status": monitor_status,
+                "status_label": _status_label(monitor_status),
+                "badge": _plural(len(active), "activa"),
                 "x": 12,
                 "y": 50,
-                "live_action": "Consolidando el estado y fecha de tus postulaciones enviadas...",
-                "what_did": f"Reúne tus {len(applied)} postulación(es) enviada(s) para activar tu agenda.",
-                "why_did": "Centralizar tus envíos evita perder fechas clave de contacto o pruebas.",
+                "live_action": "Consolidando el estado y los cambios que registraste en tus postulaciones...",
+                "what_did": (
+                    f"Sigue {_plural(len(submitted), 'postulación enviada', 'postulaciones enviadas')} y "
+                    f"registró {_plural(len(changes), 'cambio de estado', 'cambios de estado')}."
+                    if submitted else "Cuando envíes una postulación, el agente seguirá su estado."
+                ),
+                "why_did": "Cada cambio que haces queda en el historial con su fecha y motivo, y te llega una notificación.",
                 "items": active_items,
                 "visual_items": [
-                    {"label": app.title, "value": app.company, "tone": "sky", "icon": "fa-paper-plane"}
-                    for app in applied[:3]
-                ] or [{"label": "Candidaturas base", "value": "Vista previa", "tone": "sky", "icon": "fa-eye"}],
+                    {"label": label, "value": str(count), "tone": status_tones.get(label, "sky"),
+                     "icon": "fa-paper-plane"}
+                    for label, count in status_counts if count
+                ] or [{"label": "Postulaciones enviadas", "value": "Sin envíos", "tone": "slate", "icon": "fa-inbox"}],
                 "scene": {
                     "kind": "followup_radar",
-                    "active_count": len(applied),
-                    "apps": [{"title": app.title, "company": app.company} for app in applied[:3]],
+                    "active_count": len(active),
+                    "apps": [{"title": app.title, "company": app.company} for app in submitted[:3]],
                 },
             },
             {
                 "id": "followup-reminders",
                 "step_label": "4.2A",
                 "title": "Recordatorios",
-                "caption": "Alertas a 7 días",
+                "caption": "Fechas clave",
                 "icon": "fa-bell",
-                "status": "preview",
-                "status_label": "Vista previa",
-                "badge": f"{len(reminder_items)} alerta(s)",
+                "status": reminders_status,
+                "status_label": _status_label(reminders_status),
+                "badge": _plural(len(pending_reminders), "pendiente"),
                 "x": 52,
                 "y": 23,
-                "live_action": "Programando alertas periódicas por cada candidatura enviada...",
-                "what_did": "Programa recordatorios sugeridos según la fecha de envío de cada oferta.",
-                "why_did": "Te mantiene atento a citaciones, pruebas técnicas o novedades del proceso.",
+                "live_action": "Programando recordatorios con fecha para cada postulación activa...",
+                "what_did": (
+                    f"Programó {_plural(len(reminders), 'recordatorio')}; "
+                    f"{_plural(len(done_reminders), 'completado')}."
+                    if reminders else "Programa recordatorios con fecha según el estado de cada postulación."
+                ),
+                "why_did": "Te mantiene atento a entrevistas, pruebas técnicas o novedades del proceso.",
                 "items": reminder_items,
                 "visual_items": [
-                    {"label": item, "value": "Cada 7 días", "tone": "sky", "icon": "fa-bell"}
-                    for item in reminder_items[:3]
-                ],
+                    {"label": item.title, "value": item.due_date.strftime("%d/%m/%Y"), "tone": "sky",
+                     "icon": "fa-bell"}
+                    for item in pending_reminders[:3]
+                ] or [{"label": "Recordatorios", "value": "Sin pendientes", "tone": "slate", "icon": "fa-bell-slash"}],
                 "scene": {
                     "kind": "followup_timeline",
                     "reminders": reminder_items[:3],
@@ -1000,18 +1070,21 @@ def _build_followup_stage(applications: list[Application], state: dict) -> dict:
                 "title": "Refuerzo",
                 "caption": "Habilidades por cubrir",
                 "icon": "fa-graduation-cap",
-                "status": "preview",
-                "status_label": "Vista previa",
-                "badge": f"{len(missing_skills)} foco(s)" if missing_skills else "Repaso",
+                "status": practice_status,
+                "status_label": _status_label(practice_status),
+                "badge": _plural(len(missing_skills), "foco", "focos") if missing_skills else "Repaso",
                 "x": 52,
                 "y": 77,
-                "live_action": "Conectando las brechas de tus vacantes con temas de estudio...",
-                "what_did": "Cruza los requisitos pendientes en tus postulaciones con tu plan de carrera.",
-                "why_did": "Aprovechar la espera para practicar brechas clave mejora tu preparación.",
+                "live_action": "Conectando los requisitos pendientes de tus vacantes con temas de estudio...",
+                "what_did": (
+                    "Tomó los requisitos que te faltan en tus postulaciones activas para tus recordatorios de estudio."
+                    if missing_skills else "Revisa los requisitos de tus vacantes para proponerte qué repasar."
+                ),
+                "why_did": "Aprovechar la espera para practicar las brechas clave mejora tu preparación.",
                 "items": practice_items,
                 "visual_items": [
-                    {"label": item, "value": "Prioridad de estudio", "tone": "amber", "icon": "fa-book-open"}
-                    for item in (missing_skills[:3] or ["Repaso de proyectos en CV"])
+                    {"label": skill, "value": "Prioridad de estudio", "tone": "amber", "icon": "fa-book-open"}
+                    for skill in (missing_skills[:3] or ["Repaso de proyectos en tu hoja de vida"])
                 ],
                 "scene": {
                     "kind": "followup_practice",
@@ -1024,31 +1097,36 @@ def _build_followup_stage(applications: list[Application], state: dict) -> dict:
                 "title": "Próximos pasos",
                 "caption": "Hoja de ruta",
                 "icon": "fa-route",
-                "status": "preview",
-                "status_label": "Vista previa",
-                "badge": "3 acciones",
+                "status": next_status,
+                "status_label": _status_label(next_status),
+                "badge": _plural(len(next_steps), "acción", "acciones"),
                 "x": 88,
                 "y": 50,
-                "live_action": "Sintetizando tus próximas acciones recomendadas en Profilia...",
-                "what_did": "Resume los siguientes pasos concretos para avanzar en tu búsqueda.",
+                "live_action": "Definiendo el próximo paso concreto de cada postulación...",
+                "what_did": (
+                    f"Definió el próximo paso de "
+                    f"{_plural(len(planned), 'postulación activa', 'postulaciones activas')}."
+                    if planned else "Resume el siguiente paso concreto de cada postulación activa."
+                ),
                 "why_did": "Para que después de postular tengas siempre una ruta clara de acción.",
                 "items": next_steps_items,
                 "visual_items": [
-                    {"label": "1. Revisar constancias", "value": "Postulaciones", "tone": "emerald", "icon": "fa-file-shield"},
-                    {"label": "2. Aclarar habilidades", "value": "Mi perfil", "tone": "sky", "icon": "fa-comments"},
-                    {"label": "3. Explorar ofertas", "value": "Vacantes", "tone": "emerald", "icon": "fa-compass"},
-                ],
+                    {"label": f"{index}. {app.title}", "value": app.get_status_display(), "tone": "emerald",
+                     "icon": "fa-route"}
+                    for index, (app, _) in enumerate(next_steps, start=1)
+                ] or [{"label": "Próximos pasos", "value": "Sin acciones pendientes", "tone": "slate",
+                       "icon": "fa-route"}],
                 "scene": {
                     "kind": "followup_roadmap",
-                    "steps": ["Revisar constancias", "Reforzar habilidades", "Explorar vacantes"],
+                    "steps": [step for _, step in next_steps] or ["Explorar vacantes", "Actualizar tu perfil"],
                 },
             },
         ],
         "edges": [
-            {"from": "followup-monitor", "to": "followup-reminders", "label": "Fechas clave", "active": True},
-            {"from": "followup-monitor", "to": "followup-practice", "label": "Por reforzar", "active": True},
-            {"from": "followup-reminders", "to": "followup-next", "label": "Agenda activa", "active": True},
-            {"from": "followup-practice", "to": "followup-next", "label": "Plan de mejora", "active": True},
+            {"from": "followup-monitor", "to": "followup-reminders", "label": "Fechas clave", "active": bool(submitted)},
+            {"from": "followup-monitor", "to": "followup-practice", "label": "Por reforzar", "active": bool(submitted)},
+            {"from": "followup-reminders", "to": "followup-next", "label": "Agenda activa", "active": bool(reminders)},
+            {"from": "followup-practice", "to": "followup-next", "label": "Plan de mejora", "active": bool(planned)},
         ],
     }
 
@@ -1069,7 +1147,7 @@ def build_traceability_payload(user) -> dict:
 
     active_stage_id = "profile"
     for stage in stages:
-        if stage["status"] in ("in_progress", "completed") and stage["id"] != "followup":
+        if stage["status"] in ("in_progress", "completed"):
             active_stage_id = stage["id"]
 
     completed_stages = sum(1 for stage in stages if stage["status"] == "completed")

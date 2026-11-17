@@ -9,7 +9,36 @@ const STATUS = {
         label: "Postulado ✓",
         classes: "bg-emerald-100 text-[#02bc4d] border-emerald-200",
     },
+    en_revision: {
+        label: "En revisión",
+        classes: "bg-sky-100 text-sky-800 border-sky-200",
+    },
+    entrevista: {
+        label: "Entrevista",
+        classes: "bg-emerald-100 text-[#02bc4d] border-emerald-200",
+    },
+    descartada: {
+        label: "Descartada",
+        classes: "bg-slate-200 text-slate-600 border-slate-300",
+    },
 };
+
+// Estados de una postulación ya enviada (el Agente de Seguimiento la hace avanzar).
+const SUBMITTED = new Set(["postulada", "en_revision", "entrevista", "descartada"]);
+
+function unlockFollowupLink() {
+    const locked = document.getElementById("followup-link-locked");
+    if (!locked) {
+        return;
+    }
+    const link = element("a", "py-3 px-6 min-h-[44px] rounded-xl bg-[#13223a] hover:bg-slate-800 text-white font-bold text-xs transition flex items-center gap-2 shadow-md");
+    link.id = "followup-link";
+    link.href = locked.dataset.followupUrl;
+    const icon = element("i", "fa-solid fa-arrow-right text-[10px]");
+    icon.setAttribute("aria-hidden", "true");
+    link.append(element("span", "", "Ir a Seguimiento"), icon);
+    locked.replaceWith(link);
+}
 
 const EVENT_CLASSES = {
     system: "text-slate-400",
@@ -77,10 +106,13 @@ export function initApplications() {
             await replay(data.events.slice(1));
             const done = new Map(data.applications.map(item => [item.vacancy_id, item]));
             applications = applications
-                .filter(item => done.has(item.vacancy_id) || item.status === "postulada")
+                .filter(item => done.has(item.vacancy_id) || SUBMITTED.has(item.status))
                 .map(item => done.get(item.vacancy_id) || item);
             setStatus(`Se registraron ${data.count} postulación(es) simulada(s).`);
             markApplicationsCompleted();
+            if (data.count > 0) {
+                unlockFollowupLink();
+            }
         } catch (error) {
             consoleBox.append(logLine("error", `[ERROR] ${error.message}`));
             setStatus(error instanceof TypeError
@@ -142,7 +174,7 @@ export function initApplications() {
         (item.warnings || []).forEach(text => card.append(
             element("p", "px-2.5 py-1.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200", text)));
 
-        if (item.status === "postulada") {
+        if (SUBMITTED.has(item.status)) {
             card.append(letterDetails(item), screeningDetails(item), element("p", "text-[11px] text-slate-500", footer(item)));
         }
         return card;

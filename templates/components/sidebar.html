@@ -365,6 +365,47 @@
 
 
             <!-- Agent 4 -->
+            {% if followup_unlocked %}
+            <a
+                id="followup-nav-link"
+                href="{% url 'followup' %}"
+                class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl transition-all duration-200 group
+                       {% if current_url_name == 'followup' %}bg-[#02bc4d] text-white font-medium shadow-md shadow-[#02bc4d]/20{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}"
+            >
+
+                <div class="flex items-center space-x-3">
+
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center transition
+                                {% if current_url_name == 'followup' %}bg-white/20 text-white{% else %}bg-slate-800 text-slate-400{% endif %}">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+
+                    <div class="text-left min-w-0">
+
+                        <p class="text-xs font-semibold">
+                            4. Seguimiento
+                        </p>
+
+                        <p class="text-[10px] font-medium whitespace-nowrap {% if current_url_name == 'followup' %}text-white/90{% else %}text-slate-300{% endif %}">
+                            Novedades y recordatorios
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <span
+                    id="followup-nav-badge"
+                    data-unread="{{ unread_notifications }}"
+                    aria-label="{{ unread_notifications }} notificaci{{ unread_notifications|pluralize:'ón sin leer,ones sin leer' }}"
+                    class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 font-semibold
+                           {% if unread_notifications %}bg-amber-400 text-[#13223a]{% elif current_url_name == 'followup' %}bg-white/20 text-white border border-white/30{% else %}bg-[#02bc4d]/20 text-[#02bc4d] border border-[#02bc4d]/30{% endif %}"
+                >
+                    {% if unread_notifications %}<i class="fa-solid fa-bell text-[9px] mr-1" aria-hidden="true"></i>{{ unread_notifications }} nueva{{ unread_notifications|pluralize }}{% else %}Disponible{% endif %}
+                </span>
+
+            </a>
+            {% else %}
             <button
                 disabled
                 class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl
@@ -401,6 +442,7 @@
                 </span>
 
             </button>
+            {% endif %}
 
 
             <!-- Traceability -->

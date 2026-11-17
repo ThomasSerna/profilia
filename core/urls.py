@@ -7,6 +7,14 @@ from .views.career import assess_career, clarify_career, explore_career, retry_c
 from .views.vacancies import match_vacancies, save_vacancy_preferences, vacancies_page
 from .views.applications import applications_page, run_applications, select_applications
 from .views.traceability import traceability_page
+from .views.followup import (
+    complete_reminder,
+    followup_page,
+    move_application,
+    read_all_notifications,
+    read_notification,
+    run_followup,
+)
 
 
 urlpatterns = [
@@ -39,4 +47,12 @@ urlpatterns = [
     path("postulaciones/", applications_page, name="applications"),
     path("applications/select/", select_applications, name="select_applications"),
     path("applications/run/", run_applications, name="run_applications"),
+
+    # Agente de seguimiento
+    path("seguimiento/", followup_page, name="followup"),
+    path("followup/run/", run_followup, name="run_followup"),
+    path("followup/applications/<int:application_id>/status/", move_application, name="move_application"),
+    path("followup/reminders/<int:reminder_id>/complete/", complete_reminder, name="complete_reminder"),
+    path("followup/notifications/<int:notification_id>/read/", read_notification, name="read_notification"),
+    path("followup/notifications/read-all/", read_all_notifications, name="read_all_notifications"),
 ]

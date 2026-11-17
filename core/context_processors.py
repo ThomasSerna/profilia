@@ -1,5 +1,5 @@
 from agents.profile.schemas import has_professional_information
-from core.models import Application, Profile
+from core.models import Application, Notification, Profile
 
 PROFILE_STEP_PERCENT = 25
 VACANCIES_STEP_PERCENT = 50
@@ -11,6 +11,7 @@ PAGE_ICONS = {
     "vacancies": "fa-briefcase",
     "applications": "fa-paper-plane",
     "traceability": "fa-list-check",
+    "followup": "fa-chart-line",
 }
 
 
@@ -19,6 +20,8 @@ def sidebar_state(request):
     completed = False
     has_applications = False
     applications_completed = False
+    followup_unlocked = False
+    unread_notifications = 0
 
     if request.user.is_authenticated:
         profile = Profile.objects.filter(user=request.user).only("data").first()
@@ -29,9 +32,12 @@ def sidebar_state(request):
             )
             has_applications = bool(statuses)
             applications_completed = bool(
-                statuses and any(s == Application.APPLIED for s in statuses)
+                statuses and any(s in Application.SUBMITTED_STATUSES for s in statuses)
                 and not any(s == Application.SELECTED for s in statuses)
             )
+            followup_unlocked = any(s in Application.SUBMITTED_STATUSES for s in statuses)
+            if followup_unlocked:
+                unread_notifications = Notification.objects.filter(user=request.user, is_read=False).count()
 
     applications_unlocked = bool(completed and has_applications)
 
@@ -58,4 +64,6 @@ def sidebar_state(request):
         "flow_stage_label": flow_stage_label,
         "applications_unlocked": applications_unlocked,
         "applications_completed": applications_completed,
+        "followup_unlocked": followup_unlocked,
+        "unread_notifications": unread_notifications,
     }

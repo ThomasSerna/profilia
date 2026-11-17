@@ -61,14 +61,27 @@
     </div>
 
     <div class="pt-2 flex justify-end">
+        {% if followup_unlocked %}
+        <a
+            id="followup-link"
+            href="{% url 'followup' %}"
+            class="py-3 px-6 min-h-[44px] rounded-xl bg-[#13223a] hover:bg-slate-800 text-white font-bold text-xs transition flex items-center gap-2 shadow-md"
+        >
+            <span>Ir a Seguimiento</span>
+            <i class="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i>
+        </a>
+        {% else %}
         <button
+            id="followup-link-locked"
+            data-followup-url="{% url 'followup' %}"
             type="button"
             disabled
             class="py-3 px-6 min-h-[44px] rounded-xl bg-slate-200 text-slate-400 font-bold text-xs cursor-not-allowed flex items-center gap-2"
         >
-            <span>Seguimiento · Próximamente</span>
+            <span>Seguimiento · Envía una postulación</span>
             <i class="fa-solid fa-lock text-[10px]" aria-hidden="true"></i>
         </button>
+        {% endif %}
     </div>
 
 </section>
