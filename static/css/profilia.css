@@ -158,6 +158,10 @@
         transform: translate(-50%, -50%);
         width: 144px;
     }
+
+    .traceability-node-2d.is-selected {
+        transform: translate(-50%, -50%) scale(1.05);
+    }
 }
 
 @media (min-width: 1280px) {

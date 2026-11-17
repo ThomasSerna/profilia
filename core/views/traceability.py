@@ -203,9 +203,9 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
         "summary": "Estructura tu perfil, separa evidencia real de vacíos y orienta tus cargos.",
         "headline_metric": headline_metric,
         "metrics": [
-            {"label": "Hab.", "value": str(len(skills))},
+            {"label": "Habilidades", "value": str(len(skills))},
             {"label": "Cargos", "value": str(len(role_names))},
-            {"label": "Aclar.", "value": str(len(answered))},
+            {"label": "Aclaradas", "value": str(len(answered))},
         ],
         "nodes": [
             {
@@ -299,7 +299,10 @@ def _build_profile_stage(profile, candidate: ProfileData | None, state: dict) ->
                     else "En curso" if gaps_status == "in_progress"
                     else "Pendiente"
                 ),
-                "badge": f"{len(answered)} aclaradas · {len(pending)} pend.",
+                "badge": (
+                    f"{len(answered)} aclar. · {len(pending)} pend."
+                    if pending else f"{len(answered)} aclarada(s)"
+                ),
                 "x": 63,
                 "y": 77,
                 "live_action": "Detectando requisitos ausentes en el CV para preguntarte directamente...",

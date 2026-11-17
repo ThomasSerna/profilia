@@ -5,19 +5,15 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 const STATUS_STYLES = {
     completed: {
         dot: "bg-[#008736]",
-        pill: "bg-emerald-50 text-[#006c2b] border border-emerald-200",
     },
     in_progress: {
         dot: "bg-amber-500",
-        pill: "bg-amber-50 text-amber-800 border border-amber-200",
     },
     preview: {
         dot: "bg-sky-500",
-        pill: "bg-sky-50 text-sky-800 border border-sky-200",
     },
     pending: {
         dot: "bg-slate-400",
-        pill: "bg-slate-100 text-slate-600 border border-slate-200",
     },
 };
 
@@ -73,10 +69,6 @@ export function initTraceability() {
     const playLabel = document.getElementById("traceability-play-label");
     const nextStepBtn = document.getElementById("traceability-next-step-btn");
 
-    const inspectorStepCode = document.getElementById("inspector-step-code");
-    const inspectorStepName = document.getElementById("inspector-step-name");
-    const inspectorStepStatus = document.getElementById("inspector-step-status");
-    const inspectorStepPosition = document.getElementById("inspector-step-position");
     const inspectorWhat = document.getElementById("inspector-what");
     const inspectorWhy = document.getElementById("inspector-why");
     const inspectorActionLink = document.getElementById("inspector-action-link");
@@ -158,15 +150,16 @@ export function initTraceability() {
         stageTabs.forEach(tab => {
             const active = tab.dataset.stageTab === stage.id;
             tab.setAttribute("aria-selected", active ? "true" : "false");
-            tab.classList.toggle("border-[#008736]", active);
-            tab.classList.toggle("bg-[#dcf6e6]/35", active);
+            tab.classList.toggle("border-[#02bc4d]", active);
+            tab.classList.toggle("bg-emerald-50/40", active);
+            tab.classList.toggle("shadow-sm", active);
             tab.classList.toggle("border-slate-200/90", !active);
-            tab.classList.toggle("bg-white", !active);
+            tab.classList.toggle("bg-slate-50/40", !active);
 
             const iconBox = tab.querySelector("[data-stage-icon-box]");
             if (iconBox) {
-                iconBox.className = `w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-[11px] font-semibold transition ${
-                    active ? "bg-[#13223a] text-[#00d461]" : "bg-slate-100 text-slate-600"
+                iconBox.className = `w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-[11px] font-semibold transition ${
+                    active ? "bg-[#13223a] text-[#00d461]" : "bg-slate-200/80 text-slate-600"
                 }`;
             }
         });
@@ -201,50 +194,50 @@ export function initTraceability() {
             const styles = STATUS_STYLES[node.status] || STATUS_STYLES.pending;
             const button = createElement(
                 "button",
-                "traceability-node-2d group text-left px-3 py-2.5 rounded-xl border transition-all min-h-[44px] flex flex-col justify-between gap-1.5 bg-white border-slate-300/90 hover:border-[#008736] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]",
+                "traceability-node-2d group text-center p-2.5 rounded-2xl border transition-all duration-200 min-h-[44px] flex flex-col items-center justify-center gap-1.5 bg-white border-slate-300/90 hover:border-[#008736] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]",
             );
             button.type = "button";
             button.dataset.nodeCard = node.id;
             button.dataset.nodeIndex = String(index);
-            button.setAttribute("aria-label", `${node.step_label} ${node.title}`);
+            button.setAttribute("aria-label", node.title);
             button.style.setProperty("--node-x", `${node.x ?? 50}%`);
             button.style.setProperty("--node-y", `${node.y ?? 50}%`);
 
             const pulseRing = createElement(
                 "span",
-                "pointer-events-none absolute -inset-1 rounded-xl border-2 border-[#008736] opacity-0",
+                "pointer-events-none absolute -inset-1 rounded-2xl border-2 border-[#02bc4d] opacity-0",
             );
             pulseRing.dataset.nodeRing = node.id;
 
-            const topRow = createElement(
+            const iconWrap = createElement(
                 "div",
-                "w-full flex items-center justify-between gap-2 relative z-10",
+                "w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center shrink-0 transition relative z-10",
             );
-            const stepCode = createElement(
-                "span",
-                "font-mono text-[11px] font-semibold text-slate-500 tabular-nums",
-                node.step_label,
-            );
-            const statusDot = createElement(
-                "span",
-                `w-2 h-2 rounded-full shrink-0 ${styles.dot}`,
-            );
-            topRow.append(stepCode, statusDot);
+            iconWrap.dataset.nodeIconWrap = node.id;
+            iconWrap.append(createElement("i", `fa-solid ${node.icon} text-xs`));
 
             const titleEl = createElement(
                 "p",
-                "text-[13px] font-bold text-[#13223a] leading-snug truncate w-full relative z-10",
+                "text-xs font-bold text-[#13223a] leading-tight truncate max-w-full relative z-10",
                 node.title,
             );
+            titleEl.dataset.nodeTitle = node.id;
 
-            const badgeEl = createElement(
-                "p",
-                "font-mono text-[11px] font-medium text-slate-500 tabular-nums truncate w-full relative z-10",
+            const pillRow = createElement(
+                "div",
+                "px-2 py-0.5 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center gap-1.5 max-w-full relative z-10",
+            );
+            pillRow.dataset.nodePill = node.id;
+            const statusDot = createElement("span", `w-1.5 h-1.5 rounded-full shrink-0 ${styles.dot}`);
+            const badgeText = createElement(
+                "span",
+                "font-mono text-[10px] font-semibold text-slate-600 tabular-nums truncate",
                 node.badge,
             );
-            badgeEl.dataset.nodeBadge = node.id;
+            badgeText.dataset.nodeBadge = node.id;
+            pillRow.append(statusDot, badgeText);
 
-            button.append(pulseRing, topRow, titleEl, badgeEl);
+            button.append(pulseRing, iconWrap, titleEl, pillRow);
             button.addEventListener("click", () => {
                 stopPlayback();
                 selectNode(index, { animateIncomingTo: node.id });
@@ -266,40 +259,50 @@ export function initTraceability() {
             const isSelected = idx === currentNodeIndex;
             const isPast = idx < currentNodeIndex;
             card.setAttribute("aria-pressed", isSelected ? "true" : "false");
-            card.classList.toggle("border-[#008736]", isSelected);
-            card.classList.toggle("shadow-[0_0_0_3px_#dcf6e6]", isSelected);
+            card.classList.toggle("is-selected", isSelected);
+            card.classList.toggle("border-2", isSelected);
+            card.classList.toggle("border-[#02bc4d]", isSelected);
+            card.classList.toggle("bg-emerald-50/70", isSelected);
+            card.classList.toggle("shadow-[0_0_0_4px_#dcf6e6,0_8px_20px_-6px_rgba(2,188,77,0.28)]", isSelected);
             card.classList.toggle("z-20", isSelected);
             card.classList.toggle("border-[#81cda0]", !isSelected && isPast);
+            card.classList.toggle("bg-white", !isSelected);
             card.classList.toggle("border-slate-300/90", !isSelected && !isPast);
+
+            const iconWrap = card.querySelector("[data-node-icon-wrap]");
+            if (iconWrap) {
+                iconWrap.className = `w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition relative z-10 ${
+                    isSelected
+                        ? "bg-[#02bc4d] text-[#0b1526] shadow-md shadow-[#02bc4d]/35"
+                        : isPast
+                            ? "bg-emerald-50 border border-emerald-200 text-[#008736]"
+                            : "bg-slate-100 border border-slate-200 text-slate-600"
+                }`;
+            }
+
+            const pillRow = card.querySelector("[data-node-pill]");
+            if (pillRow) {
+                pillRow.className = `px-2 py-0.5 rounded-full flex items-center justify-center gap-1.5 max-w-full relative z-10 ${
+                    isSelected
+                        ? "bg-white border border-[#81cda0]"
+                        : "bg-slate-50 border border-slate-200/80"
+                }`;
+            }
 
             const badgeEl = card.querySelector("[data-node-badge]");
             if (badgeEl) {
-                badgeEl.className = `font-mono text-[11px] tabular-nums truncate w-full relative z-10 ${
-                    isSelected ? "font-semibold text-[#006c2b]" : "font-medium text-slate-500"
+                badgeEl.className = `font-mono text-[10px] tabular-nums truncate ${
+                    isSelected ? "font-bold text-[#006c2b]" : "font-semibold text-slate-600"
                 }`;
             }
         });
 
-        updateInspector(stage, activeNode, currentNodeIndex, nodes.length);
+        updateInspector(stage, activeNode);
         renderLiveScene(stage, activeNode);
         drawGraphEdges(stage, currentNodeIndex, options.animateIncomingTo);
     }
 
-    function updateInspector(stage, node, index, totalNodes) {
-        const styles = STATUS_STYLES[node.status] || STATUS_STYLES.pending;
-        if (inspectorStepCode) {
-            inspectorStepCode.textContent = `Paso ${node.step_label}`;
-        }
-        if (inspectorStepName) {
-            inspectorStepName.textContent = node.title;
-        }
-        if (inspectorStepStatus) {
-            inspectorStepStatus.textContent = node.status_label;
-            inspectorStepStatus.className = `text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${styles.pill}`;
-        }
-        if (inspectorStepPosition) {
-            inspectorStepPosition.textContent = `Paso ${index + 1} de ${totalNodes}`;
-        }
+    function updateInspector(stage, node) {
         if (inspectorWhat) {
             inspectorWhat.textContent = node.what_did;
         }
