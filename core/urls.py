@@ -6,12 +6,14 @@ from .views.profile_editor import edit_profile
 from .views.career import assess_career, clarify_career, explore_career, retry_career_recommendation
 from .views.vacancies import match_vacancies, save_vacancy_preferences, vacancies_page
 from .views.applications import applications_page, run_applications, select_applications
+from .views.traceability import traceability_page
 
 
 urlpatterns = [
     # Aplicación
     path("", home, name="home"),
     path("perfil/editar/", edit_profile, name="edit_profile"),
+    path("actividad/", traceability_page, name="traceability"),
 
     # Agente de perfil
     path(

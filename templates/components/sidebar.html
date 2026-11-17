@@ -374,22 +374,18 @@
                     Tu actividad
                 </p>
 
-                <!--
-                    Estilo final del mockup. Sigue "disabled" porque aún no existe
-                    la vista de trazabilidad. Cuando exista, cambiar <button> por
-                    <a href="URL_DE_LA_VISTA"> y quitar disabled.
-                -->
-                <button
-                    disabled
+                <a
+                    id="traceability-nav-link"
+                    href="{% url 'traceability' %}"
                     class="w-full flex items-center justify-between px-3.5 py-3 rounded-xl
-                           transition-all duration-200 text-emerald-300 hover:bg-slate-800
-                           border border-[#00d461]/20 group bg-[#00d461]/10 cursor-not-allowed"
+                           transition-all duration-200 group border
+                           {% if current_url_name == 'traceability' %}bg-[#02bc4d] text-white font-medium border-[#00d461]/40 shadow-md shadow-[#02bc4d]/20{% else %}text-emerald-300 hover:bg-slate-800 hover:text-white border-[#00d461]/20 bg-[#00d461]/10{% endif %}"
                 >
 
                     <div class="flex items-center space-x-3">
 
-                        <div class="w-8 h-8 rounded-lg bg-[#00d461]/20 flex items-center justify-center text-[#00d461]
-                                    group-hover:bg-[#00d461] group-hover:text-[#13223a] transition">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center transition
+                                    {% if current_url_name == 'traceability' %}bg-white/20 text-white{% else %}bg-[#00d461]/20 text-[#00d461] group-hover:bg-[#00d461] group-hover:text-[#13223a]{% endif %}">
                             <i class="fa-solid fa-list-check"></i>
                         </div>
 
@@ -399,7 +395,7 @@
                                 Historial de actividad
                             </p>
 
-                            <p class="text-[10px] font-medium whitespace-nowrap text-slate-300">
+                            <p class="text-[10px] font-medium whitespace-nowrap {% if current_url_name == 'traceability' %}text-white/90{% else %}text-slate-300{% endif %}">
                                 Revisa tus avances
                             </p>
 
@@ -407,11 +403,12 @@
 
                     </div>
 
-                    <span class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 bg-[#00d461]/20 text-[#00d461] font-semibold border border-[#00d461]/30">
-                        Próximamente
+                    <span class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 font-semibold border
+                                 {% if current_url_name == 'traceability' %}bg-white/20 text-white border-white/30{% else %}bg-[#00d461]/20 text-[#00d461] border-[#00d461]/30{% endif %}">
+                        Disponible
                     </span>
 
-                </button>
+                </a>
 
             </div>
 

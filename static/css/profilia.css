@@ -49,3 +49,22 @@
 .agent-active {
     animation: agentPulse 2s infinite ease-in-out;
 }
+
+
+/* Traceability graph canvas */
+
+.traceability-graph-grid {
+    background-color: #13223a;
+    background-image:
+        radial-gradient(circle at 18% 20%, rgba(2, 188, 77, 0.12), transparent 42%),
+        radial-gradient(circle at 82% 80%, rgba(0, 212, 97, 0.1), transparent 45%),
+        radial-gradient(rgba(148, 163, 184, 0.16) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 22px 22px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .agent-active,
+    #live-banner-ping {
+        animation: none !important;
+    }
+}
