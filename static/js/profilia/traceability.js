@@ -176,10 +176,11 @@ export function initTraceability() {
     }
 
     function renderNodes(stage) {
+        const isLinearStage = stage.nodes.length > 0 && stage.nodes.every(n => n.y === stage.nodes[0].y);
         const cards = stage.nodes.map((node, index) => {
             const button = createElement(
                 "button",
-                "traceability-node-2d group text-center p-2.5 rounded-2xl border transition-all duration-200 min-h-[44px] flex flex-col items-center justify-center gap-1 bg-white border-slate-300/90 hover:border-[#008736] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]",
+                `traceability-node-2d${isLinearStage ? " is-linear" : ""} group text-center p-2.5 rounded-2xl border transition-all duration-200 min-h-[44px] flex flex-col items-center justify-center gap-1 bg-white border-slate-300/90 hover:border-[#008736] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#008736]`,
             );
             button.type = "button";
             button.dataset.nodeCard = node.id;
@@ -203,7 +204,7 @@ export function initTraceability() {
 
             const titleEl = createElement(
                 "p",
-                "text-xs font-bold text-[#13223a] leading-tight truncate max-w-full relative z-10",
+                `${isLinearStage ? "text-[11px]" : "text-xs"} font-bold text-[#13223a] leading-tight truncate max-w-full relative z-10`,
                 node.title,
             );
             titleEl.dataset.nodeTitle = node.id;
@@ -592,7 +593,7 @@ export function initTraceability() {
                         : "bg-slate-50/95 border-slate-200 text-slate-400 font-medium";
                 const labelPill = createElement(
                     "span",
-                    `absolute -translate-x-1/2 -translate-y-1/2 px-2 py-0.5 rounded-full text-[10px] leading-tight whitespace-nowrap border shadow-[0_1px_2px_rgba(19,34,58,0.06)] transition-colors ${toneClasses}`,
+                    `absolute -translate-x-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded-full text-[10px] leading-tight whitespace-nowrap border shadow-[0_1px_2px_rgba(19,34,58,0.06)] transition-colors ${toneClasses}`,
                     edge.label,
                 );
                 labelPill.dataset.edgeLabel = `${edge.from}->${edge.to}`;
@@ -601,7 +602,7 @@ export function initTraceability() {
                 edgeLabelsLayer.appendChild(labelPill);
 
                 const sameRow = Math.abs(y2 - y1) < 24;
-                if (sameRow && labelPill.getBoundingClientRect().width + 8 > (x2 - x1)) {
+                if (sameRow && labelPill.getBoundingClientRect().width + 6 > (x2 - x1)) {
                     labelPill.remove();
                 }
             }
