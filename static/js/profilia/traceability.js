@@ -4,23 +4,15 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 
 const STATUS_STYLES = {
     completed: {
-        pill: "bg-emerald-100 text-[#008736] border border-emerald-200",
-        darkPill: "bg-[#00d461]/20 text-[#00d461] border border-[#00d461]/40",
         dot: "bg-[#00d461]",
     },
     in_progress: {
-        pill: "bg-amber-100 text-amber-800 border border-amber-200",
-        darkPill: "bg-amber-400/20 text-amber-300 border border-amber-400/40",
         dot: "bg-amber-400",
     },
     preview: {
-        pill: "bg-sky-100 text-sky-800 border border-sky-200",
-        darkPill: "bg-sky-400/20 text-sky-300 border border-sky-400/40",
         dot: "bg-sky-400",
     },
     pending: {
-        pill: "bg-slate-200 text-slate-600 border border-slate-300",
-        darkPill: "bg-slate-800 text-slate-400 border border-slate-700",
         dot: "bg-slate-500",
     },
 };
@@ -67,30 +59,17 @@ export function initTraceability() {
     const svgLayer = document.getElementById("traceability-svg-layer");
     const nodesContainer = document.getElementById("traceability-nodes-container");
     const sceneCanvas = document.getElementById("traceability-scene-canvas");
-    const sceneNodeBadge = document.getElementById("scene-node-badge");
 
-    const stageStepPill = document.getElementById("graph-stage-step-pill");
     const stageTitle = document.getElementById("graph-stage-title");
-    const stageStatusBadge = document.getElementById("graph-stage-status-badge");
-    const stageSummary = document.getElementById("graph-stage-summary");
 
     const playBtn = document.getElementById("traceability-play-btn");
     const playIcon = document.getElementById("traceability-play-icon");
     const playLabel = document.getElementById("traceability-play-label");
-    const playAllBtn = document.getElementById("traceability-play-all-btn");
     const nextStepBtn = document.getElementById("traceability-next-step-btn");
     const speedBtn = document.getElementById("traceability-speed-btn");
     const speedLabel = document.getElementById("traceability-speed-label");
 
-    const liveStatus = document.getElementById("traceability-live-status");
-    const stepCounter = document.getElementById("traceability-step-counter");
-    const playbackBar = document.getElementById("traceability-playback-bar");
-
     const inspectorCard = document.getElementById("traceability-inspector-card");
-    const inspectorIcon = document.getElementById("inspector-icon");
-    const inspectorStepLabel = document.getElementById("inspector-step-label");
-    const inspectorStatusPill = document.getElementById("inspector-status-pill");
-    const inspectorTitle = document.getElementById("inspector-title");
     const inspectorWhat = document.getElementById("inspector-what");
     const inspectorWhy = document.getElementById("inspector-why");
     const inspectorItems = document.getElementById("inspector-items");
@@ -119,14 +98,6 @@ export function initTraceability() {
             return;
         }
         playCurrentStage();
-    });
-
-    playAllBtn?.addEventListener("click", () => {
-        if (isPlaying) {
-            stopPlayback();
-            return;
-        }
-        playAllStages();
     });
 
     nextStepBtn?.addEventListener("click", () => {
@@ -202,16 +173,12 @@ export function initTraceability() {
         });
 
         graphPanel?.setAttribute("aria-labelledby", `stage-tab-${stage.id}`);
-        stageStepPill.textContent = `Etapa ${stage.step}`;
-        stageTitle.textContent = stage.full_title || stage.title;
-        stageStatusBadge.textContent = stage.status_label;
-        if (stageSummary) {
-            stageSummary.textContent = stage.summary;
+        if (stageTitle) {
+            stageTitle.textContent = stage.full_title || stage.title;
         }
 
         renderNodes(stage);
-        selectNode(0, { animateIncomingTo: null, silentBanner: true });
-        liveStatus.textContent = stage.nodes[0]?.live_action || stage.summary;
+        selectNode(0, { animateIncomingTo: null });
 
         requestAnimationFrame(() => {
             drawGraphEdges(stage, currentNodeIndex);
@@ -232,11 +199,12 @@ export function initTraceability() {
             const styles = STATUS_STYLES[node.status] || STATUS_STYLES.pending;
             const button = createElement(
                 "button",
-                "traceability-node-2d group text-left p-2.5 sm:p-3 rounded-2xl border transition-all min-h-[44px] flex flex-col justify-between gap-2 bg-slate-900/95 border-slate-700/90 hover:border-[#00d461] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d461]",
+                "traceability-node-2d group text-center p-2.5 rounded-2xl border transition-all min-h-[44px] flex flex-col items-center justify-center gap-2 bg-slate-900/95 border-slate-700/90 hover:border-[#00d461] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#00d461]",
             );
             button.type = "button";
             button.dataset.nodeCard = node.id;
             button.dataset.nodeIndex = String(index);
+            button.setAttribute("aria-label", node.title);
             button.style.setProperty("--node-x", `${node.x ?? 50}%`);
             button.style.setProperty("--node-y", `${node.y ?? 50}%`);
 
@@ -246,37 +214,22 @@ export function initTraceability() {
             );
             pulseRing.dataset.nodeRing = node.id;
 
-            const topRow = createElement("div", "flex items-center justify-between gap-1.5 w-full relative z-10");
             const iconWrap = createElement(
                 "div",
-                "w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 text-[#00d461] flex items-center justify-center shrink-0 transition",
+                "w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 text-[#00d461] flex items-center justify-center shrink-0 transition relative z-10",
             );
             iconWrap.dataset.nodeIconWrap = node.id;
-            iconWrap.append(createElement("i", `fa-solid ${node.icon} text-xs`));
+            iconWrap.append(createElement("i", `fa-solid ${node.icon} text-sm`));
 
-            const stepBadge = createElement(
-                "span",
-                `text-[9px] font-extrabold px-1.5 py-0.5 rounded-md whitespace-nowrap ${styles.darkPill}`,
-                node.step_label,
-            );
-            stepBadge.dataset.nodeStatusBadge = node.id;
-            topRow.append(iconWrap, stepBadge);
-
-            const body = createElement("div", "space-y-0.5 relative z-10");
-            body.append(
-                createElement("p", "text-xs font-extrabold text-white leading-tight truncate", node.title),
-                createElement("p", "text-[10px] text-slate-400 leading-tight truncate", node.caption),
-            );
-
-            const footer = createElement(
+            const pillRow = createElement(
                 "div",
-                "pt-1.5 border-t border-slate-800/90 flex items-center justify-between gap-1.5 w-full text-[10px] relative z-10",
+                "px-2 py-0.5 rounded-full bg-slate-950/90 border border-slate-800 flex items-center justify-center gap-1.5 max-w-full relative z-10",
             );
             const statusDot = createElement("span", `w-1.5 h-1.5 rounded-full shrink-0 ${styles.dot}`);
-            const badgeText = createElement("span", "font-bold text-[#00d461] truncate flex-1", node.badge);
-            footer.append(statusDot, badgeText);
+            const badgeText = createElement("span", "text-[10px] font-bold text-[#00d461] truncate", node.badge);
+            pillRow.append(statusDot, badgeText);
 
-            button.append(pulseRing, topRow, body, footer);
+            button.append(pulseRing, iconWrap, pillRow);
             button.addEventListener("click", () => {
                 stopPlayback();
                 selectNode(index, { animateIncomingTo: node.id });
@@ -307,7 +260,7 @@ export function initTraceability() {
 
             const iconWrap = card.querySelector("[data-node-icon-wrap]");
             if (iconWrap) {
-                iconWrap.className = `w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition ${
+                iconWrap.className = `w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition relative z-10 ${
                     isSelected
                         ? "bg-[#02bc4d] text-[#0b1526] shadow-md shadow-[#02bc4d]/30"
                         : "bg-slate-800 border border-slate-700 text-[#00d461]"
@@ -315,33 +268,23 @@ export function initTraceability() {
             }
         });
 
-        stepCounter.textContent = `${currentNodeIndex + 1} / ${nodes.length}`;
-        const progressPercent = ((currentNodeIndex + 1) / nodes.length) * 100;
-        animate(playbackBar, { width: `${progressPercent}%` }, { duration: 0.3 });
-
-        if (!options.silentBanner) {
-            liveStatus.textContent = activeNode.live_action;
-        }
-
         updateInspector(stage, activeNode);
         renderLiveScene(stage, activeNode);
         drawGraphEdges(stage, currentNodeIndex, options.animateIncomingTo);
     }
 
     function updateInspector(stage, node) {
-        const styles = STATUS_STYLES[node.status] || STATUS_STYLES.pending;
-        inspectorIcon.className = `fa-solid ${node.icon} text-sm`;
-        inspectorStepLabel.textContent = `Nodo ${node.step_label}`;
-        inspectorStatusPill.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${styles.pill}`;
-        inspectorStatusPill.textContent = node.status_label;
-        inspectorTitle.textContent = node.title;
-        inspectorWhat.textContent = node.what_did;
-        inspectorWhy.textContent = node.why_did;
-        inspectorActionLink.href = stage.action_url;
-        inspectorActionLabel.textContent = stage.action_label;
-
-        if (sceneNodeBadge) {
-            sceneNodeBadge.textContent = `${node.step_label} · ${node.title}`;
+        if (inspectorWhat) {
+            inspectorWhat.textContent = node.what_did;
+        }
+        if (inspectorWhy) {
+            inspectorWhy.textContent = node.why_did;
+        }
+        if (inspectorActionLink) {
+            inspectorActionLink.href = stage.action_url;
+        }
+        if (inspectorActionLabel) {
+            inspectorActionLabel.textContent = stage.action_label;
         }
 
         const visualData = Array.isArray(node.visual_items) && node.visual_items.length
@@ -697,8 +640,7 @@ export function initTraceability() {
 
         const linesGroup = document.createElementNS(SVG_NS, "g");
         const particlesGroup = document.createElementNS(SVG_NS, "g");
-        const labelsGroup = document.createElementNS(SVG_NS, "g");
-        svgLayer.append(linesGroup, particlesGroup, labelsGroup);
+        svgLayer.append(linesGroup, particlesGroup);
 
         const cardMap = new Map();
         const nodeIndexMap = new Map();
@@ -783,35 +725,6 @@ export function initTraceability() {
                 linesGroup.appendChild(port);
             });
 
-            if (edge.label && isDesktop2D && typeof activePath.getTotalLength === "function") {
-                const totalLen = activePath.getTotalLength();
-                const midPt = activePath.getPointAtLength(totalLen * 0.5);
-                const pillWidth = Math.max(58, edge.label.length * 5.6 + 14);
-                const pillHeight = 18;
-
-                const pillRect = document.createElementNS(SVG_NS, "rect");
-                pillRect.setAttribute("x", String(midPt.x - pillWidth / 2));
-                pillRect.setAttribute("y", String(midPt.y - pillHeight / 2));
-                pillRect.setAttribute("width", String(pillWidth));
-                pillRect.setAttribute("height", String(pillHeight));
-                pillRect.setAttribute("rx", "9");
-                pillRect.setAttribute("fill", "#0f172a");
-                pillRect.setAttribute("stroke", isEdgeVisited ? "#00d461" : "#334155");
-                pillRect.setAttribute("stroke-width", "1");
-                labelsGroup.appendChild(pillRect);
-
-                const labelText = document.createElementNS(SVG_NS, "text");
-                labelText.setAttribute("x", String(midPt.x));
-                labelText.setAttribute("y", String(midPt.y + 0.5));
-                labelText.setAttribute("text-anchor", "middle");
-                labelText.setAttribute("dominant-baseline", "middle");
-                labelText.setAttribute("fill", isEdgeVisited ? "#00d461" : "#94a3b8");
-                labelText.setAttribute("font-size", "9.5");
-                labelText.setAttribute("font-weight", "700");
-                labelText.textContent = edge.label;
-                labelsGroup.appendChild(labelText);
-            }
-
             if (animateTargetNodeId && edge.to === animateTargetNodeId && !reducedMotion) {
                 animateSvgEdge(activePath, particlesGroup);
             }
@@ -867,23 +780,6 @@ export function initTraceability() {
         }
     }
 
-    async function playAllStages() {
-        const runId = ++playbackRunId;
-        setPlayingState(true);
-        for (const stage of stages) {
-            if (runId !== playbackRunId) {
-                break;
-            }
-            selectStage(stage.id, true);
-            await waitMs(reducedMotion ? 40 : Math.round(240 / speedMultiplier));
-            await runStageSequence(stage, runId);
-            await waitMs(reducedMotion ? 40 : Math.round(300 / speedMultiplier));
-        }
-        if (runId === playbackRunId) {
-            setPlayingState(false);
-        }
-    }
-
     async function runStageSequence(stage, runId) {
         const cards = Array.from(nodesContainer.querySelectorAll("[data-node-card]"));
         for (let i = 0; i < stage.nodes.length; i += 1) {
@@ -895,19 +791,13 @@ export function initTraceability() {
             selectNode(i, { animateIncomingTo: i > 0 ? node.id : null });
             const card = cards[i];
             const ring = card?.querySelector("[data-node-ring]");
-            const statusBadge = card?.querySelector("[data-node-status-badge]");
-            const originalText = statusBadge?.textContent || "";
-
-            if (statusBadge) {
-                statusBadge.textContent = "Activo";
-            }
 
             let ringAnim = null;
             if (ring && !reducedMotion && typeof ring.animate === "function") {
                 ringAnim = ring.animate(
                     [
                         { opacity: 0.95, transform: "scale(0.98)" },
-                        { opacity: 0.2, transform: "scale(1.05)" },
+                        { opacity: 0.2, transform: "scale(1.06)" },
                         { opacity: 0.95, transform: "scale(0.98)" },
                     ],
                     {
@@ -930,9 +820,6 @@ export function initTraceability() {
             }
             if (ring) {
                 ring.style.opacity = "0";
-            }
-            if (statusBadge) {
-                statusBadge.textContent = originalText;
             }
         }
     }
@@ -958,7 +845,7 @@ export function initTraceability() {
         if (!playBtn || !playIcon || !playLabel) {
             return;
         }
-        playIcon.className = playing ? "fa-solid fa-stop" : "fa-solid fa-play";
+        playIcon.className = playing ? "fa-solid fa-stop text-[10px]" : "fa-solid fa-play text-[10px]";
         playLabel.textContent = playing ? "Detener" : "Simular grafo";
     }
 }
