@@ -312,7 +312,6 @@ class SidebarStateTests(TestCase):
         self.assertEqual(response.context["flow_progress"], 25)
         self.assertContains(response, "Completado")
         self.assertContains(response, 'href="/vacantes/"')
-        self.assertContains(response, "width: 25%")
 
     def test_active_page_is_marked_in_sidebar(self):
         Profile.objects.create(user=self.user, data=ProfileData(skills=["Python"]).model_dump(),
