@@ -217,45 +217,6 @@ export function initFollowup() {
             card.append(step);
         }
 
-        const pending = item.reminders.filter(reminder => reminder.status === "pendiente");
-        const done = item.reminders.filter(reminder => reminder.status === "completado");
-        if (item.reminders.length) {
-            const box = element("div", "space-y-1.5");
-            box.append(element("p", "text-[10px] font-bold uppercase tracking-wide text-slate-500",
-                pending.length ? `Recordatorios · ${plural(pending.length, "pendiente")}` : "Recordatorios completados"));
-            const list = element("ul", "space-y-1.5");
-            pending.forEach(reminder => list.append(reminderRow(reminder)));
-            done.forEach(reminder => list.append(reminderRow(reminder)));
-            box.append(list);
-            card.append(box);
-        }
-
-        const last = item.last_activity;
-        if (last) {
-            const activity = element("p", "text-[10px] text-slate-500 leading-relaxed");
-            const who = last.source === "usuario" ? "Tú" : "Agente";
-            activity.append(icon("fa-clock-rotate-left mr-1"),
-                document.createTextNode(`Última actividad (${formatDate(last.created_at)} · ${who}): ${last.reason}`));
-            card.append(activity);
-        }
-
-        if ((item.history || []).length) {
-            const details = element("details", "rounded-lg border border-slate-200");
-            details.append(element("summary", "px-2.5 py-2 min-h-[44px] flex items-center cursor-pointer font-semibold text-[#13223a] text-[11px]",
-                `Historial (${plural(item.history.length, "cambio")})`));
-            const list = element("ol", "px-2.5 pb-2.5 space-y-1.5");
-            item.history.slice().reverse().forEach(change => {
-                const row = element("li", "text-[10px] text-slate-600");
-                row.append(
-                    element("p", "font-semibold text-slate-700", `${formatDate(change.created_at)} · ${change.from_label} → ${change.to_label}`),
-                    element("p", "", change.reason),
-                );
-                list.append(row);
-            });
-            details.append(list);
-            card.append(details);
-        }
-
         return card;
     }
 
@@ -356,32 +317,6 @@ export function initFollowup() {
         if (drag) {
             drag.over = column;
         }
-    }
-
-    function reminderRow(reminder) {
-        const isDone = reminder.status === "completado";
-        const row = element("li", `flex items-start justify-between gap-2 p-2 rounded-lg border ${isDone ? "bg-slate-50 border-slate-100" : "bg-white border-slate-200"}`);
-        const text = element("div", "min-w-0");
-        text.append(
-            element("p", `font-semibold break-words ${isDone ? "line-through text-slate-400" : "text-slate-700"}`, reminder.title),
-            element("p", "text-[10px] text-slate-500", isDone ? "Completado" : `Para el ${formatDate(reminder.due_date)}`),
-        );
-        if (reminder.detail && !isDone) {
-            text.append(element("p", "text-[10px] text-slate-500 break-words", reminder.detail));
-        }
-        row.append(text);
-        if (!isDone) {
-            const button = element("button", "shrink-0 w-11 h-11 -m-1 rounded-lg text-[#02bc4d] hover:bg-emerald-50 flex items-center justify-center disabled:text-slate-300");
-            button.type = "button";
-            button.disabled = busy;
-            button.setAttribute("aria-label", `Marcar como completado: ${reminder.title}`);
-            button.title = "Marcar como completado";
-            button.append(icon("fa-circle-check text-base"));
-            button.addEventListener("click", () => send(
-                page.dataset.reminderUrl.replace("/0/", `/${reminder.id}/`), {}, "Recordatorio completado."));
-            row.append(button);
-        }
-        return row;
     }
 
     function renderNotifications() {
